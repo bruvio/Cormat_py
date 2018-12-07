@@ -286,7 +286,7 @@
      <property name="title">
       <string>Output</string>
      </property>
-     <layout class="QFormLayout" name="formLayout_3">
+     <layout class="QGridLayout" name="gridLayout_5">
       <item row="0" column="0">
        <widget class="QGroupBox" name="groupBox_2">
         <property name="title">
@@ -374,8 +374,8 @@
       <rect>
        <x>230</x>
        <y>230</y>
-       <width>103</width>
-       <height>89</height>
+       <width>151</width>
+       <height>121</height>
       </rect>
      </property>
      <property name="title">
