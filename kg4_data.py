@@ -36,6 +36,7 @@ class Kg4Data:
         self.ellipticity = {}
         self.xg_elld_signal = {}
         self.xg_ell_signal = {}
+        self.density = {}
 
         self.xg_ell_signal_start = 0
         self.xg_ell_signal_end = 0
@@ -213,3 +214,13 @@ class Kg4Data:
                                   colours=["blue"], pformat=[1], show=True,
                                   title="KG4 density from Cotton Mutton. Chan {}".format(cm_chan))
 
+        # Read in kg4r signal from ppf
+        for kg4_chan in self.constants.kg4r.keys():
+            nodename = self.constants.kg1v[kg4_chan]
+            density = SignalBase(self.constants)
+            dda = nodename[:nodename.find('/')]
+            dtype = nodename[nodename.find('/')+1:]
+            status = density.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid='JETPPF')
+
+            if density.data is not None:
+                self.density[kg4_chan] = density

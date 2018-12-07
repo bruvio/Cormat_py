@@ -20,12 +20,17 @@ import argparse
 import pdb
 from os import listdir
 #  pdb.set_trace()
-from kg1_consts import Kg1Consts
-from kg1_data import Kg1Data
+from consts import Consts
+# from kg1_consts import Kg1Consts
+from mag_data import MagData
+# from kg1_data import Kg1Data
+from kg1_ppf_data import Kg1PPFData
 from kg4_data import Kg4Data
 from elms_data import ElmsData
 from pellet_data import PelletData
 from nbi_data import NBIData
+from hrts_data import HRTSData
+from lidar_data import LIDARData
 from find_disruption import find_disruption
 import woop
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
@@ -237,8 +242,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         # self.comboBox_readuid.setModel(fsm)
         # self.comboBox_readuid.setRootModelIndex(index)
         self.comboBox_readuid.addItems(users)
-
-        self.pulse = (self.lineEdit_jpn.text())
+        # initpulse = pdmsht()
+        initpulse = 92121
+        self.lineEdit_jpn.setText(str(initpulse))
 
 
 
@@ -256,9 +262,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
 
 
 
-        self.pushButton_plot.clicked.connect(self.handle_plotbutton)
-        self.pushButton_zoom.clicked.connect(self.handle_zoombutton)
-        self.pushButton_reset.clicked.connect(self.handle_resetbutton)
+        # self.pushButton_plot.clicked.connect(self.handle_plotbutton)
+        # self.pushButton_zoom.clicked.connect(self.handle_zoombutton)
+        # self.pushButton_reset.clicked.connect(self.handle_resetbutton)
         self.button_read_pulse.clicked.connect(self.handle_readbutton)
         self.button_check_pulse.clicked.connect(self.handle_checkbutton)
         self.button_save.clicked.connect(self.handle_savebutton)
@@ -285,39 +291,11 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         self.pushButton_apply.setEnabled(False)
         self.pushButton_makeperm.setEnabled(False)
         self.pushButton_undo.setEnabled(False)
-        self.pushButton_reset.setEnabled(False)
+        # self.pushButton_reset.setEnabled(False)
         # self.pushButton_plot.setEnabled(False)
-        self.pushButton_zoom.setEnabled(False)
-
-# ------------------------
-    def handle_plotbutton(self):
-
-        ax1 = self.widget_LID1.figure.add_subplot(111)
-        ax2 = self.widget_LID2.figure.add_subplot(111)
-        ax3 = self.widget_LID3.figure.add_subplot(111)
-
-        ax1.plot()
-        ax2.plot()
-        ax2.plot()
+        # self.pushButton_zoom.setEnabled(False)
 
 
-        a=[x for x in range(10)]
-        b=np.square(a)
-        ax1.plot(a,b,'r')
-        self.widget_LID1.draw()
-        ax2.plot(a,b,'b')
-        self.widget_LID2.draw()
-        ax3.plot(a,b,'k')
-
-
-
-
-
-
-
-
-
-        pass
 #------------------------
     def handle_zoombutton(self):
         pass
@@ -328,26 +306,43 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
 
 # ------------------------
     def handle_readbutton(self):
+        # read pulse number
+        self.pulse = int(self.lineEdit_jpn.text())
+
         # -------------------------------
-        # 1. Read in KG1 variables and config data.
+        # 0. Read in KG1 variables and config data.
         # -------------------------------
         # Read in signal names and configuration data
+
+
+
         logger.info("Reading in constants.")
         try:
-            constants = Kg1Consts("kg1_consts.ini", __version__)
+            constants = Consts("consts.ini", __version__)
+            # constants = Kg1Consts("kg1_consts.ini", __version__)
         except KeyError:
             logger.error("Could not read in configuration file kg1_consts.ini")
             sys.exit(65)
 
         logger.info("Reading data for pulse {}".format(str(self.pulse)))
+
+        # -------------------------------
+        # 1. Read in Magnetics data
+        # -------------------------------
+        logger.info("\n             Reading in magnetics data.")
+        mag = MagData(constants)
+        success = mag.read_data(self.pulse)
+
+
         # -------------------------------
         # 2. Read in KG1 data
         # -------------------------------
         logger.info("\n             Reading in KG1 data.")
-        kg1_signals = Kg1Data(constants,self.pulse)
+        kg1_data = Kg1PPFData(constants,self.pulse)
 
+        read_uid = self.comboBox_readuid.currentText()
 
-        success = kg1_signals.read_data(self.pulse, read_uid=read_uid)
+        success = kg1_data.read_data(self.pulse, read_uid=read_uid)
 
         # Exit if there were no good signals
         # If success == 1 it means that at least one channel was not available. But this shouldn't stop the rest of the code
@@ -388,7 +383,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         #    Within this time window the code will not make corrections.
         # -------------------------------
         logger.info("\n             Find disruption.")
-        is_dis, dis_time = find_disruption(self.pulse, constants, kg1_signals)
+        is_dis, dis_time = find_disruption(self.pulse, constants, kg1_data)
         logger.info("Time of disruption {}".format(dis_time))
 
         # -------------------------------
@@ -396,19 +391,19 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         # -------------------------------
         logger.info("\n             Reading in ELMs data.")
         elms = ElmsData(constants, self.pulse, dis_time=dis_time[0])
+        # -------------------------------
+        # 9. Read HRTS data
         # # -------------------------------
-        # # 9. Read HRTS data
-        # # -------------------------------
-        logger.info("\n             Reading in HRTS data.")
-        HRTS_data = HRTSData(constants)
-        HRTS_data.read_data(self.pulse)
-        # # -------------------------------
-        # # 10. Read LIDAR data
-        # # -------------------------------
-        logger.info("\n             Reading in LIDAR data.")
-        LIDAR_data = LIDARData(constants)
-        LIDAR_data.read_data(self.pulse)
-        #
+        # logger.info("\n             Reading in HRTS data.")
+        # HRTS_data = HRTSData(constants)
+        # HRTS_data.read_data(self.pulse)
+        # # # # -------------------------------
+        # # # 10. Read LIDAR data
+        # # # -------------------------------
+        # logger.info("\n             Reading in LIDAR data.")
+        # LIDAR_data = LIDARData(constants)
+        # LIDAR_data.read_data(self.pulse)
+        # #
 
 
 
@@ -419,13 +414,76 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
 
 
 
-        self.button_plot.setEnabled(True)
+        # self.button_plot.setEnabled(True)
         self.button_check_pulse.setEnabled(True)
         self.button_save.setEnabled(True)
         self.button_normalize.setEnabled(True)
         self.pushButton_apply.setEnabled(True)
         self.pushButton_makeperm.setEnabled(True)
         self.pushButton_undo.setEnabled(True)
+
+        ax1 = self.widget_LID1.figure.add_subplot(111)
+        ax2 = self.widget_LID2.figure.add_subplot(111)
+        ax3 = self.widget_LID3.figure.add_subplot(111)
+        ax4 = self.widget_LID4.figure.add_subplot(111)
+
+        ax5 = self.widget_LID5.figure.add_subplot(211)
+        ax51 = self.widget_LID5.figure.add_subplot(212)
+
+        ax6 = self.widget_LID6.figure.add_subplot(211)
+        ax61 = self.widget_LID6.figure.add_subplot(212)
+
+        ax7 = self.widget_LID7.figure.add_subplot(211)
+        ax71 = self.widget_LID7.figure.add_subplot(212)
+
+        ax8 = self.widget_LID8.figure.add_subplot(211)
+        ax81 = self.widget_LID8.figure.add_subplot(212)
+
+        # ax1.plot()
+        # ax2.plot()
+        # ax3.plot()
+        # ax4.plot()
+        # ax5.plot()
+        # ax6.plot()
+        # ax7.plot()
+        # ax8.plot()
+        #
+        # ax51.plot()
+        # ax61.plot()
+        # ax71.plot()
+        # ax81.plot()
+
+
+        for chan in kg1_data.constants.kg1v.keys():
+            ax_name =  'ax'+str(chan)
+            widget_name='widget_LID'+str(chan)
+
+            vars()[ax_name].plot(kg1_data.density[chan].time, kg1_data.density[chan].data)
+            # draw_widget(chan)
+            self.widget_LID1.draw()
+
+            if chan >4:
+                ax_name1 = 'ax' + str(chan)+str(1)
+                widget_name1 = 'widget_LID' + str(chan)+str(1)
+                vars()[ax_name].plot(kg1_data.density[chan].time,
+                                     kg1_data.density[chan].data)
+                # draw_widget(chan)
+
+
+                vars()[ax_name1].plot(kg1_data.vibration[chan].time,
+                                     kg1_data.vibration[chan].data)
+
+                # draw_widget(chan)
+
+        # plt.show()
+        #
+        # a=[x for x in range(10)]
+        # b=np.square(a)
+        # ax1.plot(a,b,'r')
+        # self.widget_LID1.draw()
+        # ax2.plot(a,b,'b')
+        # self.widget_LID2.draw()
+        # ax3.plot(a,b,'k')
         pass
 
 #------------------------
@@ -572,6 +630,27 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         logging.info('\n')
         logging.info('Exit now')
         sys.exit()
+
+
+    def draw_widget(self,chan):
+        if chan ==1:
+            self.widget_LID1.draw()
+        if chan ==2:
+            self.widget_LID2.draw()
+        if chan ==3:
+            self.widget_LID3.draw()
+        if chan ==4:
+            self.widget_LID4.draw()
+        if chan ==5:
+            self.widget_LID5.draw()
+        if chan ==6:
+            self.widget_LID6.draw()
+        if chan ==7:
+            self.widget_LID7.draw()
+        if chan ==8:
+            self.widget_LID8.draw()
+
+
 # ----------------------------
 # Custom formatter
 class MyFormatter(logging.Formatter):

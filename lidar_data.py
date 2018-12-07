@@ -34,18 +34,22 @@ class LIDARData:
         
         
         # ------------------------
-        def read_data(self, shot_no):
+    def read_data(self, shot_no):
             """
-            Read in faraday angle & ellipticity, and convert to densities
+            Read in lidar (LIDX)
             
-            :param mag: Instance of MagData, with data read in already. Needed for conversion to density
+
             :param shot_no: shot number
             """
-            # Read in faraday rotation angle and calculate density #NOT USED
+            # Read in lidar
             for lidar_chan in self.constants.lidar.keys():
-                node_name = self.constants.lidar[far_chan]
+                node_name = self.constants.lidar[lidar_chan]
                 lidar_signal = SignalBase(self.constants)
-                lidar_signal.read_data_jpf(node_name, shot_no)
+                dda = node_name[:node_name.find('/')]
+                dtype = node_name[node_name.find('/') + 1:]
+                status = lidar_signal.read_data_ppf(self, dda, dtype, shot_no, read_bad=False, read_uid="JETPPF")
+                # lidar_signal.read_data_ppf(self, dda, dtype, shot_no, read_uid="JETPPF", seq=0)
+
                 
                 if lidar_signal.data is not None:
                     # Keep points where there is ip

@@ -107,8 +107,7 @@ class Consts:
 
 
         #KG1 signal to be validated
-        self.kg1v = self._get_node_channumber_dict(config,
-                                                                 "kg1v")
+        self.kg1v = self._get_node_channumber_dict(config,"kg1v")
 
 
 
@@ -116,7 +115,7 @@ class Consts:
         self.kg4_far = self._get_node_channumber_dict(config, "kg4_far")
         self.kg4_ell = self._get_node_channumber_dict(config, "kg4_ell")
         self.kg4_xg_ell = self._get_node_channumber_dict(config, "kg4_xg_ell")
-
+        self.kg4r =   self._get_node_channumber_dict(config, "kg4_lid")
         self.kg4_xg_elld = self._get_node_channumber_dict(config, "kg4_xg_elld")
 
         self.elms = self._get_node_channumber_dict(config, "elms")

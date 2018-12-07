@@ -36,19 +36,23 @@ class HRTSData:
     # ------------------------
     def read_data(self, shot_no):
         """
-        Read in faraday angle & ellipticity, and convert to densities
+        Read in HRTX data
 
-        :param mag: Instance of MagData, with data read in already. Needed for conversion to density
+
         :param shot_no: shot number
         """
         # Read in faraday rotation angle and calculate density #NOT USED
         for hrts_chan in self.constants.hrts.keys():
-            node_name = self.constants.hrts[far_chan]
+            node_name = self.constants.hrts[hrts_chan]
             hrts_signal = SignalBase(self.constants)
-            hrts_signal.read_data_jpf(node_name, shot_no)
+            dda = node_name[:node_name.find('/')]
+            dtype = node_name[node_name.find('/') + 1:]
+
+            status = hrts_signal.read_data_ppf(self, dda, dtype, shot_no, read_bad=False, read_uid="JETPPF")
+            # hrts_signal.read_data_ppf(self, dda, dtype, shot_no, read_uid="JETPPF", seq=0)
 
             if hrts_signal.data is not None:
-                # Keep points where there is ip
+
                         
              self.density[hrts_chan] = hrts_signal
 

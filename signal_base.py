@@ -9,7 +9,7 @@ import logging
 import numpy as np
 from scipy import signal
 # from getdat import getdat, getsca
-import getdat
+from getdat import *
 from ppf import ppfgo, ppfget, ppfssr, ppfuid
 
 from wv_denoise import wv_denoise
