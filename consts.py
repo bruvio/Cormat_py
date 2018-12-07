@@ -14,7 +14,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-class Kg1Consts:
+class Consts:
 
     # Fringe in terms of density for DCN & MET
     DFR_DCN = 1.14300e19  # phase->fj conversion factor for dcn
@@ -103,61 +103,21 @@ class Kg1Consts:
         config = configparser.ConfigParser()
         file_read = config.read(config_name)
 
-        self.kg1_signal_choices = self._get_node_channumber_dict(config, "kg1_signals")
+
 
 
         #KG1 signal to be validated
-        self.kg1_signal_choices = self._get_node_channumber_dict(config,
+        self.kg1v = self._get_node_channumber_dict(config,
                                                                  "kg1v")
 
 
-        # KG1 JPF phase and amplitude node names
-        # KG1C Phase
-        self.kg1c_phase_ldraw_dcn = self._get_node_channumber_dict(config, "kg1c_phase_ldraw_dcn")
-        self.kg1c_phase_ldraw_met = self._get_node_channumber_dict(config, "kg1c_phase_ldraw_met")
-        self.kg1c_phase_ld_dcn = self._get_node_channumber_dict(config, "kg1c_phase_ld_dcn")
-        self.kg1c_phase_ld_met = self._get_node_channumber_dict(config, "kg1c_phase_ld_met")
-        self.kg1c_phase_ldcor_dcn = self._get_node_channumber_dict(config, "kg1c_phase_ldcor_dcn")
-        self.kg1c_phase_ldcor_met = self._get_node_channumber_dict(config, "kg1c_phase_ldcor_met")
-
-        # KG1C "amplitude"
-        self.kg1c_cprb_dcn = self._get_node_channumber_dict(config, "kg1c_cprb_dcn")
-        self.kg1c_cprb_met = self._get_node_channumber_dict(config, "kg1c_cprb_met")
-
-        # KG1C status flag
-        self.kg1c_sts_dcn = self._get_node_channumber_dict(config, "kg1c_sts_dcn")
-        self.kg1c_sts_met = self._get_node_channumber_dict(config, "kg1c_sts_met")
-
-        # KG1C FJ signal
-        self.kg1c_fj_dcn = self._get_node_channumber_dict(config, "kg1c_fj_dcn")
-        self.kg1c_fj_met = self._get_node_channumber_dict(config, "kg1c_fj_met")
-
-        # KG1R phase
-        self.kg1r_phase_dcn = self._get_node_channumber_dict(config, "kg1r_phase_dcn")
-        self.kg1r_phase_met = self._get_node_channumber_dict(config, "kg1r_phase_met")
-
-        # KG1R density and vibration
-        self.kg1r_ne = self._get_node_channumber_dict(config, "kg1r_ne")
-        self.kg1r_vib = self._get_node_channumber_dict(config, "kg1r_vib")
-
-        # KG1R amplitude
-        self.kg1r_amp_dcn = self._get_node_channumber_dict(config, "kg1r_amp_dcn")
-        self.kg1r_amp_met = self._get_node_channumber_dict(config, "kg1r_amp_met")
-
-        # KG1V phase
-        self.kg1v_phase_dcn = self._get_node_channumber_dict(config, "kg1v_phase_dcn")
-        self.kg1v_phase_met = self._get_node_channumber_dict(config, "kg1v_phase_met")
-
-        # KG1V amplitude
-        self.kg1v_amp_dcn = self._get_node_channumber_dict(config, "kg1v_amp_dcn")
-        self.kg1v_amp_met = self._get_node_channumber_dict(config, "kg1v_amp_met")
 
         # Other diagnostics/PPFs
         self.kg4_far = self._get_node_channumber_dict(config, "kg4_far")
         self.kg4_ell = self._get_node_channumber_dict(config, "kg4_ell")
         self.kg4_xg_ell = self._get_node_channumber_dict(config, "kg4_xg_ell")
 
-        # self.kg4_xg_elld = self._get_node_channumber_dict(config, "kg4_xg_elld")
+        self.kg4_xg_elld = self._get_node_channumber_dict(config, "kg4_xg_elld")
 
         self.elms = self._get_node_channumber_dict(config, "elms")
         self.pellets = self._get_node_channumber_dict(config, "pellets")
@@ -165,7 +125,9 @@ class Kg1Consts:
         self.lidar = self._get_node_channumber_dict(config, "lidar")
 
         self.hrts_ppf = self._get_node_channumber_dict(config, "hrts_ppf")
-        self.kg1r_ppf_ne = self._get_node_channumber_dict(config, "kg1r_ppf_ne")
+
+        # kg1v PPFs
+
         self.kg1r_ppf_vib = self._get_node_channumber_dict(config, "kg1r_ppf_vib")
         self.kg1r_ppf_fj_dcn = self._get_node_channumber_dict(config, "kg1r_ppf_fj_dcn")
         self.kg1r_ppf_fj_met = self._get_node_channumber_dict(config, "kg1r_ppf_fj_met")
@@ -185,24 +147,6 @@ class Kg1Consts:
         self.disruption = config["disruption"]["1"]
         self.dis_window = float(config["disruption"]["window"])
 
-        # Amplitude thresholds
-        self.cprb_mid_dcn = float(config["kg1c_cprb_dcn_limits"]["mid_freq"])
-        self.cprb_range_dcn = float(config["kg1c_cprb_dcn_limits"]["freq_range"])
-        self.cprb_mid_met = float(config["kg1c_cprb_met_limits"]["mid_freq"])
-        self.cprb_range_met = float(config["kg1c_cprb_met_limits"]["freq_range"])
-
-        self.min_amp_kg1r = float(config["kg1r_amp_limits"]["min_amp"])
-        self.min_amp_kg1v = float(config["kg1v_amp_limits"]["min_amp"])
-
-        # Constants for fringe jump correction & wavelet filtering
-        fringe_jumps = config["fringe_jumps"]
-        self.min_fringe = fringe_jumps.getfloat("min_fringe", self.min_fringe)
-        self.min_vib = fringe_jumps.getfloat("min_vib", self.min_vib)
-
-        wavelets = config["wavelet_filter"]
-        self.wv_family = wavelets.get("wv_family", self.wv_family)
-        self.wv_ncoeff_ne = wavelets.getint("wv_ncoeff_ne", self.wv_ncoeff_ne)
-        self.wv_ncoeff_vib = wavelets.getint("wv_ncoeff_vib", self.wv_ncoeff_vib)
 
         geometry = config["geometry"]
         self.temp_node = geometry.get("temp_jpf", self.temp_node)
