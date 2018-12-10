@@ -34,7 +34,7 @@ class LIDARData:
         
         
         # ------------------------
-    def read_data(self, shot_no):
+    def read_data(self, shot_no, read_uid="JETPPF"):
             """
             Read in lidar (LIDX)
             
@@ -47,7 +47,11 @@ class LIDARData:
                 lidar_signal = SignalBase(self.constants)
                 dda = node_name[:node_name.find('/')]
                 dtype = node_name[node_name.find('/') + 1:]
-                status = lidar_signal.read_data_ppf(self, dda, dtype, shot_no, read_bad=False, read_uid="JETPPF")
+
+                status = lidar_signal.read_data_ppf(dda, dtype,shot_no,
+                                                                 read_bad=True,
+                                                                 read_uid=read_uid)
+                # status = lidar_signal.read_data_ppf(self, dda, dtype, shot_no,read_uid)
                 # lidar_signal.read_data_ppf(self, dda, dtype, shot_no, read_uid="JETPPF", seq=0)
 
                 

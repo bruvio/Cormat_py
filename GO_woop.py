@@ -218,6 +218,13 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         logging.debug('we are in %s', cwd)
         # psrint(homefold + os.sep+ folder)
 
+        logger.info("Reading in constants.")
+        try:
+            self.constants = Consts("consts.ini", __version__)
+            # constants = Kg1Consts("kg1_consts.ini", __version__)
+        except KeyError:
+            logger.error("Could not read in configuration file consts.ini")
+            sys.exit(65)
 
 
 
@@ -226,13 +233,24 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         self.PathTranfile = None
 
         self.PathCatalog = '/home'
-        users = []
+        read_uis = []
+        write_uis = []
+
+        for user in self.constants.readusers.keys():
         # users = [u for u in listdir(self.PathCatalog)]
         # users=sorted(users)
         # users.insert(0,'JETPPF')
-        users.append('JETPPF')
-        users.append('chain1')
-        users.append(self.owner)
+            user_name = self.constants.readusers[user]
+            read_uis.append(user_name)
+        for user in self.constants.writeusers.keys():
+        # users = [u for u in listdir(self.PathCatalog)]
+        # users=sorted(users)
+        # users.insert(0,'JETPPF')
+            user_name = self.constants.writeusers[user]
+            write_uis.append(user_name)
+        # users.append('JETPPF')
+        # users.append('chain1')
+        # users.append(self.owner)
 
 
         # fsm = Qt.QFileSystemModel()
@@ -241,7 +259,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
 
         # self.comboBox_readuid.setModel(fsm)
         # self.comboBox_readuid.setRootModelIndex(index)
-        self.comboBox_readuid.addItems(users)
+        self.comboBox_readuid.addItems(read_uis)
+        self.comboBox_writeuid.addItems(write_uis)
         # initpulse = pdmsht()
         initpulse = 92121
         self.lineEdit_jpn.setText(str(initpulse))
@@ -250,15 +269,18 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
 
         othersignallist=['None','HRTS','Lidar','BremS','Far','CM','LIDRT']
         self.comboBox_2ndtrace.addItems(othersignallist)
+        self.comboBox_2ndtrace.activated[str].connect(self.plot_2nd_trace)
+
+        # self.ui_edge2d.comboBox_Name.setModel(fsm)
+        # self.ui_edge2d.comboBox_Name.setRootModelIndex(index)
+        self.comboBox_2ndtrace.currentIndexChanged.connect(self.plot_2nd_trace)
+
+        # write_allowedusers = []
+        # # write_allowedusers.append(self.owner)
+        # # write_allowedusers.append('JETPPF')
+        # write_allowedusers.append(users)
 
 
-
-
-        write_allowedusers = []
-        write_allowedusers.append(self.owner)
-        write_allowedusers.append('JETPPF')
-
-        self.comboBox_writeuid.addItems(write_allowedusers)
 
 
 
@@ -291,9 +313,44 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         self.pushButton_apply.setEnabled(False)
         self.pushButton_makeperm.setEnabled(False)
         self.pushButton_undo.setEnabled(False)
+
+        self.button_read_pulse.click()
         # self.pushButton_reset.setEnabled(False)
         # self.pushButton_plot.setEnabled(False)
         # self.pushButton_zoom.setEnabled(False)
+    # def ScanName(self,i):
+    #     self.s2ndtrace =self.comboBox_2ndtrace.itemText(i)
+    #     print(self.s2ndtrace)
+
+
+#------------------------
+    def plot_2nd_trace(self):
+        # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
+        self.s2ndtrace = self.comboBox_2ndtrace.currentText()
+        print(self.s2ndtrace)
+        if self.s2ndtrace == None:
+            logging.info('no second trace selected')
+        if self.s2ndtrace == 'HRTS':
+            for chan in self.KG1_data.constants.kg1v.keys():
+                ax_name = 'ax' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+
+                vars()[ax_name].plot(self.HRTS_data.density[chan].time,
+                                     self.HRTS_data.density[chan].data, 'bx')
+                # draw_widget(chan)
+                # self.widget_LID1.draw()
+
+                if chan > 4:
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    vars()[ax_name].plot(self.KG1_data.density[chan].time,
+                                         self.KG1_data.density[chan].data, 'bx')
+                    # draw_widget(chan)
+
+                    vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
+                                          self.KG1_data.vibration[chan].data, 'bx')
+
+
 
 
 #------------------------
@@ -316,13 +373,6 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
 
 
 
-        logger.info("Reading in constants.")
-        try:
-            constants = Consts("consts.ini", __version__)
-            # constants = Kg1Consts("kg1_consts.ini", __version__)
-        except KeyError:
-            logger.error("Could not read in configuration file kg1_consts.ini")
-            sys.exit(65)
 
         logger.info("Reading data for pulse {}".format(str(self.pulse)))
 
@@ -330,19 +380,20 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         # 1. Read in Magnetics data
         # -------------------------------
         logger.info("\n             Reading in magnetics data.")
-        mag = MagData(constants)
-        success = mag.read_data(self.pulse)
-
+        MAG_data = MagData(self.constants)
+        success = MAG_data.read_data(self.pulse)
+        self.mag = MAG_data
 
         # -------------------------------
         # 2. Read in KG1 data
         # -------------------------------
         logger.info("\n             Reading in KG1 data.")
-        kg1_data = Kg1PPFData(constants,self.pulse)
+        KG1_data = Kg1PPFData(self.constants,self.pulse)
+        self.KG1_data = KG1_data
 
         read_uid = self.comboBox_readuid.currentText()
 
-        success = kg1_data.read_data(self.pulse, read_uid=read_uid)
+        success = KG1_data.read_data(self.pulse, read_uid=read_uid)
 
         # Exit if there were no good signals
         # If success == 1 it means that at least one channel was not available. But this shouldn't stop the rest of the code
@@ -358,24 +409,25 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         # 4. Read in KG4 data
         # -------------------------------
         logger.info("\n             Reading in KG4 data.")
-        kg4_data = Kg4Data(constants)
-        kg4_data.read_data(mag, self.pulse)
+        KG4_data = Kg4Data(self.constants)
+        KG4_data.read_data(MAG_data, self.pulse)
+        self.KG4_data = KG4_data
         # pdb.set_trace()
 
         # -------------------------------
         # 5. Read in pellet signals
         # -------------------------------
         logger.info("\n             Reading in pellet data.")
-        pellets = PelletData(constants)
-        pellets.read_data(self.pulse)
-
+        PELLETS_data = PelletData(self.constants)
+        PELLETS_data.read_data(self.pulse)
+        self.PELLETS_data = PELLETS_data
         # -------------------------------
         # 6. Read in NBI data.
         # -------------------------------
         logger.info("\n             Reading in NBI data.")
-        NBI_data = NBIData(constants)
+        NBI_data = NBIData(self.constants)
         NBI_data.read_data(self.pulse)
-
+        self.NBI_data = NBI_data
         # -------------------------------
         # 7. Check for a disruption, and set status flag near the disruption to 4
         #    If there was no disruption then dis_time elements are set to -1.
@@ -383,29 +435,35 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         #    Within this time window the code will not make corrections.
         # -------------------------------
         logger.info("\n             Find disruption.")
-        is_dis, dis_time = find_disruption(self.pulse, constants, kg1_data)
+        is_dis, dis_time = find_disruption(self.pulse, self.constants, KG1_data)
         logger.info("Time of disruption {}".format(dis_time))
 
         # -------------------------------
         # 8. Read in Be-II signals, and find ELMs
         # -------------------------------
         logger.info("\n             Reading in ELMs data.")
-        elms = ElmsData(constants, self.pulse, dis_time=dis_time[0])
+        ELM_data = ElmsData(self.constants, self.pulse, dis_time=dis_time[0])
+        self.ELM_data = ELM_data
         # -------------------------------
         # 9. Read HRTS data
         # # -------------------------------
-        # logger.info("\n             Reading in HRTS data.")
-        # HRTS_data = HRTSData(constants)
-        # HRTS_data.read_data(self.pulse)
+        logger.info("\n             Reading in HRTS data.")
+        HRTS_data = HRTSData(self.constants)
+        HRTS_data.read_data(self.pulse)
+        self.HRTS_data = HRTS_data
         # # # # -------------------------------
         # # # 10. Read LIDAR data
         # # # -------------------------------
-        # logger.info("\n             Reading in LIDAR data.")
-        # LIDAR_data = LIDARData(constants)
-        # LIDAR_data.read_data(self.pulse)
+        logger.info("\n             Reading in LIDAR data.")
+        LIDAR_data = LIDARData(self.constants)
+        LIDAR_data.read_data(self.pulse)
+        self.LIDAR_data = LIDAR_data
         # #
 
 
+        #TO DO
+        #ADD SAVE DATA
+        # DUMP TO PICKLE FILE
 
 
 
@@ -423,6 +481,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         self.pushButton_undo.setEnabled(True)
 
         ax1 = self.widget_LID1.figure.add_subplot(111)
+
         ax2 = self.widget_LID2.figure.add_subplot(111)
         ax3 = self.widget_LID3.figure.add_subplot(111)
         ax4 = self.widget_LID4.figure.add_subplot(111)
@@ -439,6 +498,32 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         ax8 = self.widget_LID8.figure.add_subplot(211)
         ax81 = self.widget_LID8.figure.add_subplot(212)
 
+        ax_all = self.widget_LID_ALL.figure.add_subplot(111)
+
+        ax_mir = self.widget_MIR.figure.add_subplot(111)
+
+        self.ax1 = ax1
+        self.ax1 = ax2
+        self.ax1 = ax3
+        self.ax1 = ax4
+        self.ax1 = ax5
+        self.ax1 = ax6
+        self.ax1 = ax7
+        self.ax1 = ax8
+
+        self.ax51 = ax51
+        self.ax61 = ax61
+        self.ax71 = ax71
+        self.ax81 = ax81
+
+        self.ax_all = ax_all
+        self.ax_mir = ax_mir
+
+
+
+
+
+
         # ax1.plot()
         # ax2.plot()
         # ax3.plot()
@@ -454,25 +539,37 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         # ax81.plot()
 
 
-        for chan in kg1_data.constants.kg1v.keys():
-            ax_name =  'ax'+str(chan)
+        for chan in self.KG1_data.constants.kg1v.keys():
+            ax_name=  'ax'+str(chan)
+            name='LID'+str(chan)
             widget_name='widget_LID'+str(chan)
+            vars()[ax_name].plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x', color='b')
+            vars()[ax_name].legend()
+            self.ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x')
+            self.ax_all.legend()
+            # exec(
+            #     'self.' + ax_name + '.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)')
+            # self.ax_all.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)
 
-            vars()[ax_name].plot(kg1_data.density[chan].time, kg1_data.density[chan].data)
             # draw_widget(chan)
-            self.widget_LID1.draw()
+            # self.widget_LID1.draw()
 
             if chan >4:
+                name1='MIR'+str(chan)
                 ax_name1 = 'ax' + str(chan)+str(1)
                 widget_name1 = 'widget_LID' + str(chan)+str(1)
-                vars()[ax_name].plot(kg1_data.density[chan].time,
-                                     kg1_data.density[chan].data)
-                # draw_widget(chan)
-
-
-                vars()[ax_name1].plot(kg1_data.vibration[chan].time,
-                                     kg1_data.vibration[chan].data)
-
+                # vars()[ax_name].plot(kg1_data.density[chan].time,
+                #                      kg1_data.density[chan].data,'b',label=name,,marker='x')
+                # # exec('self.'+ax_name1+'.plot(KG1_data.density[chan].time,KG1_data.density[chan].data,''bx'')')
+                # # draw_widget(chan)
+                # exec(
+                #     'self.' + ax_name1 + '.plot(KG1_data.vibration[chan].time,KG1_data.vibration[chan].data)')
+                vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
+                                      self.KG1_data.vibration[chan].data,marker='x',label=name1, color='b')
+                vars()[ax_name1].legend()
+                self.ax_mir.plot(self.KG1_data.vibration[chan].time,
+                                 self.KG1_data.vibration[chan].data,marker='x',label=name1)
+                self.ax_mir.legend()
                 # draw_widget(chan)
 
         # plt.show()
@@ -540,86 +637,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         pass
 
 
-    # -------------------------------
-    # 1. Read in KG1 variables and config data.
-    # -------------------------------
-    # Read in signal names and configuration data
-    # logger.info("Reading in constants.")
-    # try:
-    #     constants = Kg1Consts("kg1_consts.ini", __version__)
-    # except KeyError:
-    #         logger.error("Could not read in configuration file kg1_consts.ini")
-    #         sys.exit(65)
-    #
 
-    #
-    #
-    #     logger.info("\n             Find disruption.")
-    #     is_dis, dis_time = find_disruption(self.pulse, constants, kg1_signals)
-    #     logger.info("Time of disruption {}".format(dis_time))
-
-    #
-    #
-    #
-    #
-
-    #
-    #
-    #
-    #
-    #
-    #                     def handle_readdata_button(self):
-    #                         """
-    #                         opens a new windows where the user can input a list of pulses he/she wants to plot
-    #
-    #                         than the user can select a standard sets (a list of signal)
-    #                         and then plot them
-    #
-    #
-    #                         :return:
-    #                             """
-    #
-    #                             logging.info('\n')
-    #                             logging.info('plotting tool')
-    #
-    #                             self.window_plotdata = QtGui.QMainWindow()
-    #                             self.ui_plotdata = Ui_plotdata_window()
-    #                             self.ui_plotdata.setupUi(self.window_plotdata)
-    #                             self.window_plotdata.show()
-    #
-    #                             initpulse = pdmsht()
-    #                             initpulse2 = initpulse -1
-    #
-    #                             self.ui_plotdata.textEdit_pulselist.setText(str(initpulse))
-    #                             # self.ui_plotdata.textEdit_colorlist.setText('black')
-    #
-    #                             self.ui_plotdata.selectfile.clicked.connect(self.selectstandardset)
-    #
-    #                             self.ui_plotdata.plotbutton.clicked.connect(self.plotdata)
-    #                             self.ui_plotdata.savefigure_checkBox.setChecked(False)
-    #                             self.ui_plotdata.checkBox.setChecked(False)
-    #                             self.ui_plotdata.checkBox.toggled.connect(
-    #                                 lambda: self.checkstateJSON(self.ui_plotdata.checkBox))
-    #
-    #                             self.JSONSS = '/work/bviola/Python/kg1_tools/kg1_tools_gui/standard_set/PLASMA_main_parameters_new.json'
-    #                             self.JSONSSname = os.path.basename(self.JSONSS)
-    #
-    #                             logging.debug('default set is {}'.format(self.JSONSSname))
-    #                             logging.info('select a standard set')
-    #                             logging.info('\n')
-    #                             logging.info('type in a list of pulses')
-    #                             """
-    #                             Setup the GUI, and connect the buttons to functions.
-    #                             """
-    #                             import os
-    #                             super(bruvio_tool, self).__init__(parent)
-    #                             self.setupUi(self)
-    #                             logging.debug('start')
-    #                             cwd = os.getcwd()
-    #                             self.workfold = cwd
-    #                             self.home = cwd
-    #                             parent= Path(self.home)
-    #                             # print(parent.parent)
 
 
     # ----------------------------
@@ -632,23 +650,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         sys.exit()
 
 
-    def draw_widget(self,chan):
-        if chan ==1:
-            self.widget_LID1.draw()
-        if chan ==2:
-            self.widget_LID2.draw()
-        if chan ==3:
-            self.widget_LID3.draw()
-        if chan ==4:
-            self.widget_LID4.draw()
-        if chan ==5:
-            self.widget_LID5.draw()
-        if chan ==6:
-            self.widget_LID6.draw()
-        if chan ==7:
-            self.widget_LID7.draw()
-        if chan ==8:
-            self.widget_LID8.draw()
+
 
 
 # ----------------------------

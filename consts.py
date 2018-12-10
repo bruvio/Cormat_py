@@ -104,7 +104,9 @@ class Consts:
         file_read = config.read(config_name)
 
 
-
+        #read users
+        self.readusers = self._get_node_channumber_dict(config,"readusers")
+        self.writeusers = self._get_node_channumber_dict(config,"writeusers")
 
         #KG1 signal to be validated
         self.kg1v = self._get_node_channumber_dict(config,"kg1v")
