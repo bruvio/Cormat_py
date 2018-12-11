@@ -120,6 +120,10 @@ class Consts:
         self.kg4r =   self._get_node_channumber_dict(config, "kg4_lid")
         self.kg4_xg_elld = self._get_node_channumber_dict(config, "kg4_xg_elld")
 
+        #kg1 real time
+
+        self.kg1rt =  self._get_node_channumber_dict(config, "kg1rt")
+
         self.elms = self._get_node_channumber_dict(config, "elms")
         self.pellets = self._get_node_channumber_dict(config, "pellets")
         self.hrts = self._get_node_channumber_dict(config, "hrts")

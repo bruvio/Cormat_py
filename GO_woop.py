@@ -267,7 +267,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
 
 
 
-        othersignallist=['None','HRTS','Lidar','BremS','Far','CM','LIDRT']
+        othersignallist=['None','HRTS','Lidar','BremS','Far','CM','KG1_RT']
         self.comboBox_2ndtrace.addItems(othersignallist)
         self.comboBox_2ndtrace.activated[str].connect(self.plot_2nd_trace)
 
@@ -329,7 +329,33 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         self.s2ndtrace = self.comboBox_2ndtrace.currentText()
 
 
+        # self.widget_LID8.draw()
 
+        self.widget_LID1.figure.clear()
+        self.widget_LID1.draw()
+
+        self.widget_LID2.figure.clear()
+        self.widget_LID2.draw()
+
+        self.widget_LID3.figure.clear()
+        self.widget_LID3.draw()
+
+        self.widget_LID4.figure.clear()
+        self.widget_LID4.draw()
+
+        self.widget_LID5.figure.clear()
+        self.widget_LID5.draw()
+
+        self.widget_LID6.figure.clear()
+        self.widget_LID6.draw()
+
+        self.widget_LID7.figure.clear()
+        self.widget_LID7.draw()
+
+        self.widget_LID8.figure.clear()
+        self.widget_LID8.draw()
+
+        
         ax1 = self.widget_LID1.figure.add_subplot(111)
 
         ax2 = self.widget_LID2.figure.add_subplot(111)
@@ -354,7 +380,43 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
 
 
 
-        # print(self.s2ndtrace)
+        for chan in self.KG1_data.constants.kg1v.keys():
+            ax_name=  'ax'+str(chan)
+            name='LID'+str(chan)
+            widget_name='widget_LID'+str(chan)
+            vars()[ax_name].plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x', color='b')
+            vars()[ax_name].legend()
+            # self.ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x')
+            # self.ax_all.legend()
+            # exec(
+            #     'self.' + ax_name + '.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)')
+            # self.ax_all.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)
+
+            # draw_widget(chan)
+            # self.widget_LID1.draw()
+
+            if chan >4:
+                name1='MIR'+str(chan)
+                ax_name1 = 'ax' + str(chan)+str(1)
+                widget_name1 = 'widget_LID' + str(chan)+str(1)
+                # vars()[ax_name].plot(kg1_data.density[chan].time,
+                #                      kg1_data.density[chan].data,'b',label=name,,marker='x')
+                # # exec('self.'+ax_name1+'.plot(KG1_data.density[chan].time,KG1_data.density[chan].data,''bx'')')
+                # # draw_widget(chan)
+                # exec(
+                #     'self.' + ax_name1 + '.plot(KG1_data.vibration[chan].time,KG1_data.vibration[chan].data)')
+                vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
+                                      self.KG1_data.vibration[chan].data,marker='x',label=name1, color='b')
+                vars()[ax_name1].legend()
+                # self.ax_mir.plot(self.KG1_data.vibration[chan].time,
+                #                  self.KG1_data.vibration[chan].data,marker='x',label=name1)
+                # self.ax_mir.legend()
+                # draw_widget(chan)
+
+
+
+
+        logging.info('plotting second trace {}'.format(self.s2ndtrace))
         if self.s2ndtrace == None:
             logging.info('no second trace selected')
         if self.s2ndtrace == 'HRTS':
@@ -366,9 +428,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
 
                 vars()[ax_name].plot(self.HRTS_data.density[chan].time,
                                      self.HRTS_data.density[chan].data,label=name,marker='o', color='r')
-                # draw_widget(chan)
-                self.widget_LID1.draw()
 
+                
 
                 if chan > 4:
                     ax_name1 = 'ax' + str(chan) + str(1)
@@ -376,14 +437,125 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
                     vars()[ax_name].plot(self.HRTS_data.density[chan].time,
                                          self.HRTS_data.density[chan].data,label=name,marker='o', color='r')
 
-                    # vars()[widget_name1].draw()
-                    # draw_widget(chan)
+        if self.s2ndtrace == 'Lidar':
+
+            for chan in self.KG1_data.constants.kg1v.keys():
+                ax_name = 'ax' + str(chan)
+                name = 'HRTS ch.' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+
+                vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
+                                     self.LIDAR_data.density[chan].data,label=name,marker='o', color='r')
+
+
+
+                if chan > 4:
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
+                                         self.LIDAR_data.density[chan].data,label=name,marker='o', color='r')
+
+        if self.s2ndtrace == 'Far':
+
+            for chan in self.KG1_data.constants.kg1v.keys():
+                ax_name = 'ax' + str(chan)
+                name = 'Far ch.' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+
+                vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
+                                     self.KG4_data.faraday[chan].data,label=name,marker='o', color='r')
 
 
 
 
+                if chan > 4:
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
+                                         self.KG4_data.faraday[chan].data,label=name,marker='o', color='r')
+
+        if self.s2ndtrace == 'CM':
+
+            for chan in self.KG1_data.constants.kg1v.keys():
+                ax_name = 'ax' + str(chan)
+                name = 'CM ch.' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+
+                vars()[ax_name].plot(self.KG4_data.xg_ell_signal[chan].time,
+                                     self.KG4_data.xg_ell_signal[chan].data,label=name,marker='o', color='r')
 
 
+
+
+                if chan > 4:
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    vars()[ax_name].plot(self.KG4_data.xg_ell_signal[chan].time,
+                                         self.KG4_data.xg_ell_signal[chan].data,label=name,marker='o', color='r')
+
+        if self.s2ndtrace == 'KG1_RT':
+
+            for chan in self.KG1_data.constants.kg1v.keys():
+                ax_name = 'ax' + str(chan)
+                name = 'KG1 RT ch.' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+
+                vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
+                                     self.KG1_data.kg1rt[chan].data,label=name,marker='o', color='r')
+
+
+
+
+                if chan > 4:
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
+                                         self.KG1_data.kg1rt[chan].data,label=name,marker='o', color='r')
+
+        if self.s2ndtrace == 'BremS':
+            logging.debug('not implemented yet')
+
+            # for chan in self.LIDAR_data.constants.kg1v.keys():
+            #     ax_name = 'ax' + str(chan)
+            #     name = 'HRTS ch.' + str(chan)
+            #     widget_name = 'widget_LID' + str(chan)
+            #
+            #     vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
+            #                          self.LIDAR_data.density[chan].data,label=name,marker='o', color='r')
+            #
+            #     self.widget_LID1.draw()
+            #
+            #
+            #     if chan > 4:
+            #         ax_name1 = 'ax' + str(chan) + str(1)
+            #         widget_name1 = 'widget_LID' + str(chan) + str(1)
+            #         vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
+            #                              self.LIDAR_data.density[chan].data,label=name,marker='o', color='r')
+
+
+        # self.widget_LID1.figure.clear()
+
+        #
+        # self.widget_LID2.figure.clear()
+        self.widget_LID2.draw()
+        #
+        # self.widget_LID3.figure.clear()
+        self.widget_LID3.draw()
+        #
+        # self.widget_LID4.figure.clear()
+        self.widget_LID4.draw()
+        #
+        # self.widget_LID5.figure.clear()
+        self.widget_LID5.draw()
+        #
+        # self.widget_LID6.figure.clear()
+        self.widget_LID6.draw()
+        #
+        # self.widget_LID7.figure.clear()
+        self.widget_LID7.draw()
+        #
+        # self.widget_LID8.figure.clear()
+        self.widget_LID8.draw()
 #------------------------
     def handle_zoombutton(self):
         pass

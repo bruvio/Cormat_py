@@ -39,6 +39,7 @@ class Kg1PPFData:
         self.bp_dcn = {}
         self.bp_met = {}
         self.status = {}
+        self.kg1rt = {}
         self.type = ""
         self.mode = ""
 
@@ -70,6 +71,15 @@ class Kg1PPFData:
             #     return False
             else:
                 return False
+
+        for chan in self.constants.kg1rt.keys():
+            node_name = self.constants.kg1rt[chan]
+            kg1rt_signal = SignalBase(self.constants)
+            kg1rt_signal.read_data_jpf(node_name, shot_no)
+            if kg1rt_signal.data is not None:
+                self.kg1rt[chan] = kg1rt_signal
+
+
 
         for chan in self.constants.kg1r_ppf_vib.keys():
             nodename = self.constants.kg1r_ppf_vib[chan]
