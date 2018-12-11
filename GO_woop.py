@@ -327,28 +327,59 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
     def plot_2nd_trace(self):
         # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
         self.s2ndtrace = self.comboBox_2ndtrace.currentText()
-        print(self.s2ndtrace)
+
+
+
+        ax1 = self.widget_LID1.figure.add_subplot(111)
+
+        ax2 = self.widget_LID2.figure.add_subplot(111)
+        ax3 = self.widget_LID3.figure.add_subplot(111)
+        ax4 = self.widget_LID4.figure.add_subplot(111)
+
+        ax5 = self.widget_LID5.figure.add_subplot(211)
+        ax51 = self.widget_LID5.figure.add_subplot(212)
+
+        ax6 = self.widget_LID6.figure.add_subplot(211)
+        ax61 = self.widget_LID6.figure.add_subplot(212)
+
+        ax7 = self.widget_LID7.figure.add_subplot(211)
+        ax71 = self.widget_LID7.figure.add_subplot(212)
+
+        ax8 = self.widget_LID8.figure.add_subplot(211)
+        ax81 = self.widget_LID8.figure.add_subplot(212)
+
+        ax_all = self.widget_LID_ALL.figure.add_subplot(111)
+
+        ax_mir = self.widget_MIR.figure.add_subplot(111)
+
+
+
+        # print(self.s2ndtrace)
         if self.s2ndtrace == None:
             logging.info('no second trace selected')
         if self.s2ndtrace == 'HRTS':
+
             for chan in self.KG1_data.constants.kg1v.keys():
                 ax_name = 'ax' + str(chan)
+                name = 'HRTS ch.' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
 
                 vars()[ax_name].plot(self.HRTS_data.density[chan].time,
-                                     self.HRTS_data.density[chan].data, 'bx')
+                                     self.HRTS_data.density[chan].data,label=name,marker='o', color='r')
                 # draw_widget(chan)
-                # self.widget_LID1.draw()
+                self.widget_LID1.draw()
+
 
                 if chan > 4:
                     ax_name1 = 'ax' + str(chan) + str(1)
                     widget_name1 = 'widget_LID' + str(chan) + str(1)
-                    vars()[ax_name].plot(self.KG1_data.density[chan].time,
-                                         self.KG1_data.density[chan].data, 'bx')
+                    vars()[ax_name].plot(self.HRTS_data.density[chan].time,
+                                         self.HRTS_data.density[chan].data,label=name,marker='o', color='r')
+
+                    # vars()[widget_name1].draw()
                     # draw_widget(chan)
 
-                    vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                          self.KG1_data.vibration[chan].data, 'bx')
+
 
 
 
