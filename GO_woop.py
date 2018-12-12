@@ -393,7 +393,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
             # self.ax_all.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)
 
             # draw_widget(chan)
-            # self.widget_LID1.draw()
+            self.widget_LID1.draw()
 
             if chan >4:
                 name1='MIR'+str(chan)
@@ -420,32 +420,37 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         if self.s2ndtrace == None:
             logging.info('no second trace selected')
         if self.s2ndtrace == 'HRTS':
+            if len(self.HRTS_data.density[chan].time)==0:
+                logging.info('NO HRTS data')
+            else:
+                for chan in self.KG1_data.constants.kg1v.keys():
+                    ax_name = 'ax' + str(chan)
+                    name = 'HRTS ch.' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
 
-            for chan in self.KG1_data.constants.kg1v.keys():
-                ax_name = 'ax' + str(chan)
-                name = 'HRTS ch.' + str(chan)
-                widget_name = 'widget_LID' + str(chan)
-
-                vars()[ax_name].plot(self.HRTS_data.density[chan].time,
-                                     self.HRTS_data.density[chan].data,label=name,marker='o', color='r')
-
-                
-
-                if chan > 4:
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    widget_name1 = 'widget_LID' + str(chan) + str(1)
                     vars()[ax_name].plot(self.HRTS_data.density[chan].time,
-                                         self.HRTS_data.density[chan].data,label=name,marker='o', color='r')
+                                         self.HRTS_data.density[chan].data,label=name,marker='o', color='orange')
+
+
+
+                    if chan > 4:
+                        ax_name1 = 'ax' + str(chan) + str(1)
+                        widget_name1 = 'widget_LID' + str(chan) + str(1)
+                        vars()[ax_name].plot(self.HRTS_data.density[chan].time,
+                                             self.HRTS_data.density[chan].data,label=name,marker='o', color='orange')
 
         if self.s2ndtrace == 'Lidar':
+            if len(self.LIDAR_data.density[chan].time) == 0:
+                logging.info('NO LIDAR data')
+            else:
 
-            for chan in self.KG1_data.constants.kg1v.keys():
+              for chan in self.KG1_data.constants.kg1v.keys():
                 ax_name = 'ax' + str(chan)
                 name = 'HRTS ch.' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
 
                 vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
-                                     self.LIDAR_data.density[chan].data,label=name,marker='o', color='r')
+                                     self.LIDAR_data.density[chan].data,label=name,marker='o', color='green')
 
 
 
@@ -453,17 +458,20 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
                     ax_name1 = 'ax' + str(chan) + str(1)
                     widget_name1 = 'widget_LID' + str(chan) + str(1)
                     vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
-                                         self.LIDAR_data.density[chan].data,label=name,marker='o', color='r')
+                                         self.LIDAR_data.density[chan].data,label=name,marker='o', color='green')
 
         if self.s2ndtrace == 'Far':
+            # if len(self.KG4_data.faraday[chan].time) == 0:
+            #     logging.info('NO Far data')
+            # else:
 
-            for chan in self.KG1_data.constants.kg1v.keys():
+              for chan in self.KG4_data.faraday.keys():
                 ax_name = 'ax' + str(chan)
                 name = 'Far ch.' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
 
                 vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
-                                     self.KG4_data.faraday[chan].data,label=name,marker='o', color='r')
+                                     self.KG4_data.faraday[chan].data,label=name,marker='o', color='red')
 
 
 
@@ -472,36 +480,43 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
                     ax_name1 = 'ax' + str(chan) + str(1)
                     widget_name1 = 'widget_LID' + str(chan) + str(1)
                     vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
-                                         self.KG4_data.faraday[chan].data,label=name,marker='o', color='r')
+                                         self.KG4_data.faraday[chan].data,label=name,marker='o', color='red')
 
         if self.s2ndtrace == 'CM':
 
-            for chan in self.KG1_data.constants.kg1v.keys():
-                ax_name = 'ax' + str(chan)
-                name = 'CM ch.' + str(chan)
-                widget_name = 'widget_LID' + str(chan)
+            # if len(self.KG4_data.xg_ell_signal[chan].time) == 0:
+            #     logging.info('NO CM data')
+            # else:
 
-                vars()[ax_name].plot(self.KG4_data.xg_ell_signal[chan].time,
-                                     self.KG4_data.xg_ell_signal[chan].data,label=name,marker='o', color='r')
+                for chan in self.KG4_data.xg_ell_signal.keys():
+                    ax_name = 'ax' + str(chan)
+                    name = 'CM ch.' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
 
-
-
-
-                if chan > 4:
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    widget_name1 = 'widget_LID' + str(chan) + str(1)
                     vars()[ax_name].plot(self.KG4_data.xg_ell_signal[chan].time,
-                                         self.KG4_data.xg_ell_signal[chan].data,label=name,marker='o', color='r')
+                                         self.KG4_data.xg_ell_signal[chan].data,label=name,marker='o', color='purple')
+
+
+
+
+                    if chan > 4:
+                        ax_name1 = 'ax' + str(chan) + str(1)
+                        widget_name1 = 'widget_LID' + str(chan) + str(1)
+                        vars()[ax_name].plot(self.KG4_data.xg_ell_signal[chan].time,
+                                             self.KG4_data.xg_ell_signal[chan].data,label=name,marker='o', color='purple')
 
         if self.s2ndtrace == 'KG1_RT':
+            # if len(self.KG4_data.density[chan].time) == 0:
+            #     logging.info('NO KG1_RT data')
+            # else:
 
-            for chan in self.KG1_data.constants.kg1v.keys():
+             for chan in self.KG4_data.density.keys():
                 ax_name = 'ax' + str(chan)
                 name = 'KG1 RT ch.' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
 
                 vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
-                                     self.KG1_data.kg1rt[chan].data,label=name,marker='o', color='r')
+                                     self.KG1_data.kg1rt[chan].data,label=name,marker='o', color='brown')
 
 
 
@@ -510,7 +525,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
                     ax_name1 = 'ax' + str(chan) + str(1)
                     widget_name1 = 'widget_LID' + str(chan) + str(1)
                     vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
-                                         self.KG1_data.kg1rt[chan].data,label=name,marker='o', color='r')
+                                         self.KG1_data.kg1rt[chan].data,label=name,marker='o', color='brown')
 
         if self.s2ndtrace == 'BremS':
             logging.debug('not implemented yet')
@@ -534,7 +549,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
 
 
         # self.widget_LID1.figure.clear()
-
+        self.widget_LID1.draw()
         #
         # self.widget_LID2.figure.clear()
         self.widget_LID2.draw()
@@ -784,7 +799,10 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         # ax2.plot(a,b,'b')
         # self.widget_LID2.draw()
         # ax3.plot(a,b,'k')
-        pass
+
+        plt.figure()
+        chan = 1
+
 
 #------------------------
     def handle_checkbutton(self):
@@ -907,8 +925,8 @@ def main():
     import sys
     app = QtGui.QApplication(sys.argv)
     MainWindow = woop()
-    MainWindow.show()
-    # MainWindow.showMaximized()
+    #MainWindow.show()
+    MainWindow.showMaximized()
     app.exec_()
 
     # app = None
