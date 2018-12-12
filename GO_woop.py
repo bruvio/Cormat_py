@@ -155,6 +155,15 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         self.widget_LID1.figure.clear()
         self.widget_LID1.draw()
 
+        # self.navi_toolbar = NavigationToolbar( self.widget_LID1, self) #createa navigation toolbar for our plot canvas
+
+        # self.vbl = QtGui.QVBoxLayout()
+        # self.vbl.addWidget( self.widget_LID1 )
+        # self.vbl.addWidget(self.navi_toolbar)
+        # self.setLayout( self.vbl )
+        # self.navigation_toolbar = NavigationToolbar(self.widget_LID1, self)
+        # self.navigation_toolbar.update()
+
         self.widget_LID2.figure.clear()
         self.widget_LID2.draw()
 
@@ -271,7 +280,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         self.comboBox_2ndtrace.addItems(othersignallist)
         self.comboBox_2ndtrace.activated[str].connect(self.plot_2nd_trace)
 
-        markers=['None','ELMS','NBI','PELLET','MAGNETICS']
+        markers=['None','ELMs','NBI','PELLETs','MAGNETICs']
         self.comboBox_markers.addItems(markers)
         self.comboBox_markers.activated[str].connect(self.plot_markers)
 
@@ -317,14 +326,15 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         self.pushButton_apply.setEnabled(False)
         self.pushButton_makeperm.setEnabled(False)
         self.pushButton_undo.setEnabled(False)
+        self.button_check_pulse.setEnabled(False)
+        self.button_normalize.setEnabled(False)
 
+        #run code by default
         self.button_read_pulse.click()
         # self.pushButton_reset.setEnabled(False)
         # self.pushButton_plot.setEnabled(False)
         # self.pushButton_zoom.setEnabled(False)
-    # def ScanName(self,i):
-    #     self.s2ndtrace =self.comboBox_2ndtrace.itemText(i)
-    #     print(self.s2ndtrace)
+
 
 
 
@@ -356,7 +366,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         logger.info("\n             Reading in magnetics data.")
         MAG_data = MagData(self.constants)
         success = MAG_data.read_data(self.pulse)
-        self.mag = MAG_data
+        self.MAG_data = MAG_data
 
         # -------------------------------
         # 2. Read in KG1 data
@@ -384,7 +394,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         # -------------------------------
         logger.info("\n             Reading in KG4 data.")
         KG4_data = Kg4Data(self.constants)
-        KG4_data.read_data(MAG_data, self.pulse)
+        KG4_data.read_data(self.MAG_data, self.pulse)
         self.KG4_data = KG4_data
         # pdb.set_trace()
 
@@ -409,7 +419,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         #    Within this time window the code will not make corrections.
         # -------------------------------
         logger.info("\n             Find disruption.")
-        is_dis, dis_time = find_disruption(self.pulse, self.constants, KG1_data)
+        is_dis, dis_time = find_disruption(self.pulse, self.constants, self.KG1_data)
         logger.info("Time of disruption {}".format(dis_time))
 
         # -------------------------------
@@ -860,7 +870,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
 
         ax_mir = self.widget_MIR.figure.add_subplot(111)
 
-        for chan in self.KG1_data.constants.kg1v.keys():
+        for chan in self.KG1_data.density.keys():
             ax_name = 'ax' + str(chan)
             name = 'LID' + str(chan)
             widget_name = 'widget_LID' + str(chan)
@@ -897,10 +907,124 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
                 # draw_widget(chan)
 
         logging.info('plotting marker {}'.format(self.marker))
-        if self.s2ndtrace == None:
+        if self.marker == None:
             logging.info('no marker selected')
-        if self.s2ndtrace == 'HRTS':
-            pass
+        if self.marker == 'ELMs':
+            for chan in self.KG1_data.density.keys():
+                        ax_name = 'ax' + str(chan)
+                        # name = 'HRTS ch.' + str(chan)
+                        widget_name = 'widget_LID' + str(chan)
+
+                        vars()[ax_name].plot(self.ELM_data.elms_signal.time, self.ELM_data.elms_signal.data,
+                                             color='black')
+                        if self.ELM_data.elm_times is not None:
+                            for vert in self.ELM_data.elm_times:
+                                vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
+                                                     linewidth=2, color="red")
+                        # if len(self.ELM_data.elm_times) > 0:
+                            for horz in [self.ELM_data.UP_THRESH, self.ELM_data.DOWN_THRESH]:
+                                vars()[ax_name].axhline(y=horz, xmin=0, xmax=1,
+                                                linewidth=2, color="cyan")
+                        else:
+                            logging.info('No ELMs marker')
+
+                        # if chan > 4:
+                        #     ax_name1 = 'ax' + str(chan) + str(1)
+                        #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+                        #     vars()[ax_name].plot(
+                        #         self.HRTS_data.density[chan].time,
+                        #         self.HRTS_data.density[chan].data, label=name,
+                        #         marker='o', color='orange')
+
+                        # make_plot([[elms_signal.time, elms_signal.data],
+                        #            [elms_signal.time, data_filt],
+                        #            [elms_signal.time[0:-10], first_deriv],
+                        #            [elms_signal.time, elms_signal.data],
+                        #            [elms_signal.time, elms_signal.data]],
+                        #           labels=["Be-II", "filt", "1st deriv",
+                        #                   "starts", "ends"],
+                        #           colours=["blue", "green", "green", "blue",
+                        #                    "blue"],
+                        #           pformat=[2, 1, 1, 1],
+                        #           show=True,
+                        #           vert_lines=[elm_times, [],
+                        #                       elms_signal.time[ind_start],
+                        #                       elms_signal.time[ind_end]],
+                        #           horz_lines=[[], [self.UP_THRESH,
+                        #                            self.DOWN_THRESH], [], []],
+                        #           title="Be-II signal & 1st derivative used for ELM finding, detected elm times shown.")
+
+        if self.marker == 'MAGNETICs':
+            for chan in self.KG1_data.density.keys():
+                ax_name = 'ax' + str(chan)
+                # name = 'HRTS ch.' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+
+                if (self.MAG_data.start_ip) > 0:
+                    for vert in [self.MAG_data.start_ip, self.MAG_data.end_ip]:
+                        vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
+                                            linewidth=2, color="red")
+                    for vert in [self.MAG_data.start_flattop, self.MAG_data.end_flattop]:
+                        vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
+                                            linewidth=2, color="green")
+                else:
+                    logging.info('No MAGNETICs marker')
+
+
+        if self.marker == 'NBI':
+            for chan in self.KG1_data.density.keys():
+                        ax_name = 'ax' + str(chan)
+                        # name = 'HRTS ch.' + str(chan)
+                        widget_name = 'widget_LID' + str(chan)
+
+                        if (self.NBI_data.start_nbi) > 0.0:
+                            for vert in [self.NBI_data.start_nbi, self.NBI_data.end_nbi]:
+                                vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
+                                                    linewidth=2, color="red")
+                        else:
+                            logging.info('No NBI marker')
+
+
+
+
+        if self.marker == 'PELLETs':
+            for chan in self.KG1_data.density.keys():
+                ax_name = 'ax' + str(chan)
+                # name = 'HRTS ch.' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+
+                if self.PELLETS_data.time_pellets is not None:
+                    for vert in [self.PELLETS_data.time_pellets]:
+                      vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
+                                            linewidth=2, color="red")
+                else:
+                    logging.info('No PELLET marker')
+
+
+            # pass
+        # self.widget_LID1.figure.clear()
+        self.widget_LID1.draw()
+        #
+        # self.widget_LID2.figure.clear()
+        self.widget_LID2.draw()
+        #
+        # self.widget_LID3.figure.clear()
+        self.widget_LID3.draw()
+        #
+        # self.widget_LID4.figure.clear()
+        self.widget_LID4.draw()
+        #
+        # self.widget_LID5.figure.clear()
+        self.widget_LID5.draw()
+        #
+        # self.widget_LID6.figure.clear()
+        self.widget_LID6.draw()
+        #
+        # self.widget_LID7.figure.clear()
+        self.widget_LID7.draw()
+        #
+        # self.widget_LID8.figure.clear()
+        self.widget_LID8.draw()
 #------------------------
     def handle_checkbutton(self):
         pass
