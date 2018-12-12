@@ -484,6 +484,24 @@
       <string>exit</string>
      </property>
     </widget>
+    <widget class="QGroupBox" name="groupBox_9">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>230</y>
+       <width>103</width>
+       <height>89</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Markers</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_8">
+      <item row="0" column="0">
+       <widget class="QComboBox" name="comboBox_markers"/>
+      </item>
+     </layout>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

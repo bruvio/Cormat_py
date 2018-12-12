@@ -214,6 +214,14 @@ class Ui_MainWindow(object):
         self.exit_button = QtGui.QPushButton(self.groupBox_8)
         self.exit_button.setGeometry(QtCore.QRect(240, 550, 84, 25))
         self.exit_button.setObjectName(_fromUtf8("exit_button"))
+        self.groupBox_9 = QtGui.QGroupBox(self.groupBox_8)
+        self.groupBox_9.setGeometry(QtCore.QRect(120, 230, 103, 89))
+        self.groupBox_9.setObjectName(_fromUtf8("groupBox_9"))
+        self.gridLayout_8 = QtGui.QGridLayout(self.groupBox_9)
+        self.gridLayout_8.setObjectName(_fromUtf8("gridLayout_8"))
+        self.comboBox_markers = QtGui.QComboBox(self.groupBox_9)
+        self.comboBox_markers.setObjectName(_fromUtf8("comboBox_markers"))
+        self.gridLayout_8.addWidget(self.comboBox_markers, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1472, 20))
@@ -268,5 +276,6 @@ class Ui_MainWindow(object):
         self.radioButton_statusflag_2.setText(_translate("MainWindow", "2", None))
         self.radioButton_statusflag_5.setText(_translate("MainWindow", "5", None))
         self.exit_button.setText(_translate("MainWindow", "exit", None))
+        self.groupBox_9.setTitle(_translate("MainWindow", "Markers", None))
 
 from canvas import Canvas
