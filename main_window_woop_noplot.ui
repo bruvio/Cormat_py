@@ -192,16 +192,6 @@
      </widget>
     </widget>
    </widget>
-   <widget class="QWidget" name="widget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>1070</x>
-      <y>610</y>
-      <width>381</width>
-      <height>191</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QGroupBox" name="groupBox_8">
     <property name="geometry">
      <rect>
@@ -502,6 +492,16 @@
       </item>
      </layout>
     </widget>
+   </widget>
+   <widget class="QPlainTextEdit" name="plainTextEdit">
+    <property name="geometry">
+     <rect>
+      <x>1070</x>
+      <y>610</y>
+      <width>381</width>
+      <height>191</height>
+     </rect>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

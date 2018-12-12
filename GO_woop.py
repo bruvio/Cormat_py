@@ -61,52 +61,20 @@ plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 
 logger = logging.getLogger(__name__)
 
-# Uncomment below for terminal log messages
-# logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# class QPlainTextEditLogger(logging.Handler):
-#     def __init__(self, parent):
-#         super().__init__()
-#         self.widget = QtGui.QPlainTextEdit(parent)
-#         self.widget.setReadOnly(True)
-#
-#     def emit(self, record):
-#         msg = self.format(record)
-#         self.widget.appendPlainText(msg)
-# class QPlainTextEditLogger(logging.Handler):
-#     def __init__(self, parent):
-#         super().__init__()
-#         self.widget = QtGui.QPlainTextEdit(parent)
-#         self.widget.setReadOnly(True)
-#
-#     def emit(self, record):
-#         msg = self.format(record)
-#         self.widget.appendPlainText(msg)
-#
-#
-# class MyDialog(QtGui.QDialog, QPlainTextEditLogger):
-#     def _(self, parent=None):
-#         super().__init__(parent)
-#
-#         logTextBox = QPlainTextEditLogger(self)
-#         # You can format what is printed to text box
-#         logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-#         logging.getLogger().addHandler(logTextBox)
-#         # You can control the logging level
-#         logging.getLogger().setLevel(logging.DEBUG)
-#
-#         self._button = QtGui.QPushButton(self)
-#         self._button.setText('Test Me')
-#
-#         layout = QtGui.QVBoxLayout()
-#         # Add the new logging box widget to the layout
-#         layout.addWidget(logTextBox.widget)
-#         layout.addWidget(self._button)
-#         self.setLayout(layout)
 
 
+class QPlainTextEditLogger(logging.Handler):
+    def __init__(self, parent):
+        super().__init__()
+        self.widget = QtGui.QPlainTextEdit(parent)
+        self.widget.setReadOnly(True)
 
-class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
+    def emit(self, record):
+        msg = self.format(record)
+        self.widget.appendPlainText(msg)
+
+
+class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
     """
 
     Main control function for Woop GUI.
@@ -121,13 +89,18 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow):
         """
         Setup the GUI, and connect the buttons to functions.
         """
-        # log_handler = QPlainTextEditLogger( < parent
-        # widget >)
-        # logging.getLogger().addHandler(log_handler)
+
 
         import os
         super(woop, self).__init__(parent)
         self.setupUi(self)
+        logTextBox = QPlainTextEditLogger(self)
+        # You can format what is printed to text box
+        # logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        logging.getLogger().addHandler(logTextBox)
+        # You can control the logging level
+        logging.getLogger().setLevel(logging.DEBUG)
+
 
 
         # toolBar1 = NavigationToolbar(self.widget_LID1, self)
@@ -1150,21 +1123,7 @@ def main():
     MainWindow.showMaximized()
     app.exec_()
 
-    # app = None
-    # if (not QtGui.QApplication.instance()):
-    #     app = QtGui.QApplication([])
-    # dlg = MyDialog()
-    # dlg.show()
-    # dlg.raise_()
-    # if (app):
-    #     app.exec_()
 
-    # app = QtGui.QApplication(sys.argv)
-    # MainWindow = QtGui.QMainWindow()
-    # ui = bruvio_tool()
-    # ui.setupUi(MainWindow)
-    # MainWindow.show()
-    # sys.exit(app.exec_())
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Run GO_woop')
