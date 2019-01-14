@@ -18,6 +18,9 @@ import sys
 import logging
 import argparse
 import pdb
+
+#from pickle import dump,load
+import pickle
 from os import listdir
 #  pdb.set_trace()
 from consts import Consts
@@ -64,6 +67,13 @@ logger = logging.getLogger(__name__)
 
 
 class QPlainTextEditLogger(logging.Handler):
+    """
+    class that defines a handler to write logging message inside the GUI
+    the geometry and position of the TextEdit is defined here, not by QT designer
+    """
+
+
+
     def __init__(self, parent):
         super().__init__()
         self.widget = QtGui.QPlainTextEdit(parent)
@@ -306,10 +316,51 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         #run code by default
         self.button_read_pulse.click()
+
+
         # self.pushButton_reset.setEnabled(False)
         # self.pushButton_plot.setEnabled(False)
         # self.pushButton_zoom.setEnabled(False)
 
+    # ------------------------
+    def load_pickle(self):
+        logging.info('loading pulse data')
+        # Python 3: open(..., 'rb')
+        with open('./saved/' + str(self.pulse) + '.pkl',
+                  'rb') as f:
+
+            [self.pulse, self.KG1_data,
+             self.KG4_data, self.MAG_data, self.PELLETS_data,
+             self.ELM_data, self.HRTS_data,
+             self.NBI_data, self.is_dis, self.dis_time,
+             self.LIDAR_data] = pickle.load(f)
+        f.close()
+        with open('./saved/' + str(self.pulse) + '_kg1.pkl',
+                  'rb') as f:  # Python 3: open(..., 'rb')
+            self.KG1_data = pickle.load(f)
+        f.close()
+        logging.info('data loaded')
+
+    # ------------------------
+    def save_to_pickle(self):
+        logging.info('saving pulse data')
+        with open('./saved/' + str(self.pulse) + '.pkl', 'wb') as f:
+            pickle.dump(
+                [self.pulse, self.KG1_data,
+                 self.KG4_data, self.MAG_data, self.PELLETS_data,
+                 self.ELM_data, self.HRTS_data,
+                 self.NBI_data, self.is_dis, self.dis_time,
+                 self.LIDAR_data], f)
+        f.close()
+        logging.info('data saved')
+
+    # ------------------------
+    def save_kg1(self):
+        logging.info('saving KG1 data')
+        with open('./saved/' + str(self.pulse) + '_kg1.pkl', 'wb') as f:
+            pickle.dump(self.KG1_data,f)
+        f.close()
+        logging.info('kg1 data saved')
 
 
 
@@ -333,96 +384,18 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
 
-        logger.info("Reading data for pulse {}".format(str(self.pulse)))
 
-        # -------------------------------
-        # 1. Read in Magnetics data
-        # -------------------------------
-        logger.info("\n             Reading in magnetics data.")
-        MAG_data = MagData(self.constants)
-        success = MAG_data.read_data(self.pulse)
-        self.MAG_data = MAG_data
-
-        # -------------------------------
-        # 2. Read in KG1 data
-        # -------------------------------
-        logger.info("\n             Reading in KG1 data.")
-        KG1_data = Kg1PPFData(self.constants,self.pulse)
-        self.KG1_data = KG1_data
-
-        read_uid = self.comboBox_readuid.currentText()
-
-        success = KG1_data.read_data(self.pulse, read_uid=read_uid)
-
-        # Exit if there were no good signals
-        # If success == 1 it means that at least one channel was not available. But this shouldn't stop the rest of the code
-        # from running.
-        if success != 0 and success != 1:
-            # success = 11: Validated PPF data is already available for all channels
-            # success = 8: No good JPF data was found
-            # success = 9: JPF data was bad
-            sys.exit(success)
-
-            # -------------------------------
-        # -------------------------------
-        # 4. Read in KG4 data
-        # -------------------------------
-        logger.info("\n             Reading in KG4 data.")
-        KG4_data = Kg4Data(self.constants)
-        KG4_data.read_data(self.MAG_data, self.pulse)
-        self.KG4_data = KG4_data
-        # pdb.set_trace()
-
-        # -------------------------------
-        # 5. Read in pellet signals
-        # -------------------------------
-        logger.info("\n             Reading in pellet data.")
-        PELLETS_data = PelletData(self.constants)
-        PELLETS_data.read_data(self.pulse)
-        self.PELLETS_data = PELLETS_data
-        # -------------------------------
-        # 6. Read in NBI data.
-        # -------------------------------
-        logger.info("\n             Reading in NBI data.")
-        NBI_data = NBIData(self.constants)
-        NBI_data.read_data(self.pulse)
-        self.NBI_data = NBI_data
-        # -------------------------------
-        # 7. Check for a disruption, and set status flag near the disruption to 4
-        #    If there was no disruption then dis_time elements are set to -1.
-        #    dis_time is a 2 element list, being the window around the disruption.
-        #    Within this time window the code will not make corrections.
-        # -------------------------------
-        logger.info("\n             Find disruption.")
-        is_dis, dis_time = find_disruption(self.pulse, self.constants, self.KG1_data)
-        logger.info("Time of disruption {}".format(dis_time))
-
-        # -------------------------------
-        # 8. Read in Be-II signals, and find ELMs
-        # -------------------------------
-        logger.info("\n             Reading in ELMs data.")
-        ELM_data = ElmsData(self.constants, self.pulse, dis_time=dis_time[0])
-        self.ELM_data = ELM_data
-        # -------------------------------
-        # 9. Read HRTS data
-        # # -------------------------------
-        logger.info("\n             Reading in HRTS data.")
-        HRTS_data = HRTSData(self.constants)
-        HRTS_data.read_data(self.pulse)
-        self.HRTS_data = HRTS_data
-        # # # # -------------------------------
-        # # # 10. Read LIDAR data
-        # # # -------------------------------
-        logger.info("\n             Reading in LIDAR data.")
-        LIDAR_data = LIDARData(self.constants)
-        LIDAR_data.read_data(self.pulse)
-        self.LIDAR_data = LIDAR_data
-        # #
+        exists = os.path.isfile('./saved/'+str(self.pulse)+'.pkl')
 
 
-        #TO DO
-        #ADD SAVE DATA
-        # DUMP TO PICKLE FILE
+        if self.checkBox_newpulse.isChecked(True):
+            self.readdata()
+        elif exists & self.checkBox_newpulse.isChecked(False):
+            self.load_pickle()
+        else:
+        # read data
+            self.readdata()
+
 
 
 
@@ -544,7 +517,104 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         plt.figure()
         chan = 1
 
-# ------------------------
+
+
+# -----------------------
+    def readdata(self):
+        logger.info("Reading data for pulse {}".format(str(self.pulse)))
+
+        # -------------------------------
+        # 1. Read in Magnetics data
+        # -------------------------------
+        logger.info("\n             Reading in magnetics data.")
+        MAG_data = MagData(self.constants)
+        success = MAG_data.read_data(self.pulse)
+        self.MAG_data = MAG_data
+
+        # -------------------------------
+        # 2. Read in KG1 data
+        # -------------------------------
+        logger.info("\n             Reading in KG1 data.")
+        KG1_data = Kg1PPFData(self.constants, self.pulse)
+        self.KG1_data = KG1_data
+
+        read_uid = self.comboBox_readuid.currentText()
+
+        success = KG1_data.read_data(self.pulse, read_uid=read_uid)
+
+        # Exit if there were no good signals
+        # If success == 1 it means that at least one channel was not available. But this shouldn't stop the rest of the code
+        # from running.
+        if success != 0 and success != 1:
+            # success = 11: Validated PPF data is already available for all channels
+            # success = 8: No good JPF data was found
+            # success = 9: JPF data was bad
+            sys.exit(success)
+
+            # -------------------------------
+        # -------------------------------
+        # 4. Read in KG4 data
+        # -------------------------------
+        logger.info("\n             Reading in KG4 data.")
+        KG4_data = Kg4Data(self.constants)
+        KG4_data.read_data(self.MAG_data, self.pulse)
+        self.KG4_data = KG4_data
+        # pdb.set_trace()
+
+        # -------------------------------
+        # 5. Read in pellet signals
+        # -------------------------------
+        logger.info("\n             Reading in pellet data.")
+        PELLETS_data = PelletData(self.constants)
+        PELLETS_data.read_data(self.pulse)
+        self.PELLETS_data = PELLETS_data
+        # -------------------------------
+        # 6. Read in NBI data.
+        # -------------------------------
+        logger.info("\n             Reading in NBI data.")
+        NBI_data = NBIData(self.constants)
+        NBI_data.read_data(self.pulse)
+        self.NBI_data = NBI_data
+        # -------------------------------
+        # 7. Check for a disruption, and set status flag near the disruption to 4
+        #    If there was no disruption then dis_time elements are set to -1.
+        #    dis_time is a 2 element list, being the window around the disruption.
+        #    Within this time window the code will not make corrections.
+        # -------------------------------
+        logger.info("\n             Find disruption.")
+        is_dis, dis_time = find_disruption(self.pulse, self.constants,
+                                           self.KG1_data)
+        self.is_dis = is_dis
+        self.dis_time = dis_time
+        logger.info("Time of disruption {}".format(dis_time))
+
+        # -------------------------------
+        # 8. Read in Be-II signals, and find ELMs
+        # -------------------------------
+        logger.info("\n             Reading in ELMs data.")
+        ELM_data = ElmsData(self.constants, self.pulse, dis_time=dis_time[0])
+        self.ELM_data = ELM_data
+        # -------------------------------
+        # 9. Read HRTS data
+        # # -------------------------------
+        logger.info("\n             Reading in HRTS data.")
+        HRTS_data = HRTSData(self.constants)
+        HRTS_data.read_data(self.pulse)
+        self.HRTS_data = HRTS_data
+        # # # # -------------------------------
+        # # # 10. Read LIDAR data
+        # # # -------------------------------
+        logger.info("\n             Reading in LIDAR data.")
+        LIDAR_data = LIDARData(self.constants)
+        LIDAR_data.read_data(self.pulse)
+        self.LIDAR_data = LIDAR_data
+
+        # save data to pickle
+        self.save_to_pickle()
+        # save KG1 data on different file (needed later when applying corrections)
+        self.save_kg1()
+
+    # ------------------------
     def plot_2nd_trace(self):
             # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
             self.s2ndtrace = self.comboBox_2ndtrace.currentText()
@@ -1057,7 +1127,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
 
-    # ----------------------------
+# ----------------------------
     def handle_exit_button(self):
         """
         Exit the application
