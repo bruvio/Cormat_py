@@ -38,10 +38,20 @@ class Kg1PPFData:
         self.jxb = {}
         self.bp_dcn = {}
         self.bp_met = {}
+
+        # Time dependent status flags
         self.status = {}
+        self.global_status = {}
         self.kg1rt = {}
         self.type = ""
         self.mode = ""
+
+        # PPF data: If a KG1 PPF has already been written,
+        # and the status flag of the data is 1,2 or 3
+        # (ie. it has already been validated), then
+        # this data is just copied over to the output file,
+        # no further corrections are made.
+        self.ppf = {}
 
     # ------------------------
     def read_data(self, shot_no, read_uid="JETPPF"):
@@ -66,7 +76,13 @@ class Kg1PPFData:
             #     logger.log(5, "PPF data chan {}".format(status))
             if density.data is not None:
                 self.density[chan] = density
-                self.status[chan] = status
+                # self.status[chan] = status
+                # if chan in self.density.keys() and chan in self.vibration.keys():
+                self.status[chan] = SignalBase(self.constants)
+                self.status[chan].data = np.zeros(
+                        len(self.density[chan].time))
+                self.status[chan].time = self.density[chan].time
+                self.global_status[chan] = 0
             # else:
             #     return False
             else:
@@ -90,6 +106,13 @@ class Kg1PPFData:
 
             if vibration.data is not None:
                 self.vibration[chan] = vibration
+                # self.status[chan] = status
+                # if chan in self.density.keys() and chan in self.vibration.keys():
+                self.status[chan] = SignalBase(self.constants)
+                self.status[chan].data = np.zeros(
+                        len(self.density[chan].time))
+                self.status[chan].time = self.density[chan].time
+                self.global_status[chan] = 0
 
         for chan in self.constants.kg1r_ppf_fj_dcn.keys():
             nodename = self.constants.kg1r_ppf_fj_dcn[chan]
@@ -265,3 +288,42 @@ class Kg1PPFData:
                                             nt=1, status=None)
 
         return write_err, itref
+
+    # ------------------------
+    def set_status(self, lid, new_status, time=None, index=None):
+        """
+        Set time-dependent status flags for lid.
+
+        If neither time or index are given, set status flags for all time points
+
+        :param lid: LID number to set status for
+        :param new_status: status to be set
+        :param time: time, or time range in which to set status.
+        :param index: index, or index range in which to set status.
+        """
+        if lid not in self.status.keys() or new_status < 0 or new_status > 4:
+            return
+
+        # Set status for all time points
+        if time is None and index is None:
+            self.status[lid].data[:] = new_status
+            return
+
+        # Find indices to set from time
+        if time is not None and len(time) == 1:
+            index = np.where(np.isclose(self.status[lid].time, time, atol=0.00005, rtol=1e-6))[0]
+        elif time is not None and len(time) == 2:
+            index = [(np.abs(self.status[lid].time - time[0])).argmin(),
+                     (np.abs(self.status[lid].time - time[1])).argmin()]
+
+        # Set status flags
+        if index is not None:
+            if len(index) == 2:
+                self.status[lid].data[index[0]:index[1]] = new_status
+                logger.debug("Chan {}: Setting status to {} between {}-{}".format(lid, new_status,
+                                                                                      self.status[lid].time[index[0]],
+                                                                                      self.status[lid].time[index[1]]))
+            else:
+                self.status[lid].data[index] = new_status
+                logger.debug("Chan {}: Setting status to {} for time point {}".format(lid, new_status,
+                                                                                   self.status[lid].time[index]))

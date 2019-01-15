@@ -26,6 +26,7 @@ from os import listdir
 from consts import Consts
 # from kg1_consts import Kg1Consts
 from mag_data import MagData
+from areyousure_gui import Ui_areyousure_window
 # from kg1_data import Kg1Data
 from kg1_ppf_data import Kg1PPFData
 from kg4_data import Kg4Data
@@ -113,7 +114,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # You can control the logging level
         logging.getLogger().setLevel(logging.DEBUG)
 
-
+        self.checkBox_newpulse.setChecked(False)
 
         # toolBar1 = NavigationToolbar(self.widget_LID1, self)
         # toolBar2 = NavigationToolbar(self.widget_LID2, self)
@@ -182,24 +183,21 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.workfold = cwd
         self.home = cwd
         parent= Path(self.home)
-        
-        
-        
-        
-        
 
-        
-        self.edge2dfold = str(parent.parent)+'/EDGE2D'
+        self.edge2dfold = str(parent.parent) + '/EDGE2D'
         if "USR" in os.environ:
             logging.debug('USR in env')
-            #self.owner = os.getenv('USR')
+            # self.owner = os.getenv('USR')
             self.owner = os.getlogin()
         else:
-                logging.debug('using getuser to authenticate')
-                import getpass
-                self.owner = getpass.getuser()
-                
+            logging.debug('using getuser to authenticate')
+            import getpass
+            self.owner = getpass.getuser()
+
         logging.debug('this is your username {}'.format(self.owner))
+        # :TODO
+        #     if self.owner not in read_uis list then disable write ppf and hide write_uid combobox
+
         self.homefold = os.path.join(os.sep, 'u', self.owner)
         logging.debug('this is your homefold {}'.format(self.homefold))
 
@@ -219,6 +217,16 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         except KeyError:
             logger.error("Could not read in configuration file consts.ini")
             sys.exit(65)
+        
+        # list of authorized user to write KG1 ppfs
+        read_uis = []
+        for user in self.constants.readusers.keys():
+            user_name = self.constants.readusers[user]
+            read_uis.append(user_name)
+        
+
+        
+
 
 
 
@@ -227,24 +235,21 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.PathTranfile = None
 
         self.PathCatalog = '/home'
-        read_uis = []
+
         write_uis = []
 
-        for user in self.constants.readusers.keys():
+
+        # for user in self.constants.writeusers.keys():
+        #     user_name = self.constants.writeusers[user]
+        #     write_uis.append(user_name)
+
         # users = [u for u in listdir(self.PathCatalog)]
+        write_uis = []
         # users=sorted(users)
-        # users.insert(0,'JETPPF')
-            user_name = self.constants.readusers[user]
-            read_uis.append(user_name)
-        for user in self.constants.writeusers.keys():
-        # users = [u for u in listdir(self.PathCatalog)]
-        # users=sorted(users)
-        # users.insert(0,'JETPPF')
-            user_name = self.constants.writeusers[user]
-            write_uis.append(user_name)
+        write_uis.insert(0,'JETPPF')
         # users.append('JETPPF')
         # users.append('chain1')
-        # users.append(self.owner)
+        write_uis.append(self.owner)
 
 
         # fsm = Qt.QFileSystemModel()
@@ -315,7 +320,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.button_normalize.setEnabled(False)
 
         #run code by default
-        self.button_read_pulse.click()
+
+        # self.button_read_pulse.click()
 
 
         # self.pushButton_reset.setEnabled(False)
@@ -373,8 +379,39 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 # ------------------------
     def handle_readbutton(self):
+        # self.widget_LID1.figure.clear()
+        # self.widget_LID1.draw()
+
+        self.widget_LID2.figure.clear()
+        self.widget_LID2.draw()
+
+        self.widget_LID3.figure.clear()
+        self.widget_LID3.draw()
+
+        self.widget_LID4.figure.clear()
+        self.widget_LID4.draw()
+
+        self.widget_LID5.figure.clear()
+        self.widget_LID5.draw()
+
+        self.widget_LID6.figure.clear()
+        self.widget_LID6.draw()
+
+        self.widget_LID7.figure.clear()
+        self.widget_LID7.draw()
+
+        self.widget_LID8.figure.clear()
+        self.widget_LID8.draw()
+
+        self.widget_LID_ALL.figure.clear()
+        self.widget_LID_ALL.draw()
+
+        self.widget_MIR.figure.clear()
+        self.widget_MIR.draw()
+
         # read pulse number
         self.pulse = int(self.lineEdit_jpn.text())
+        logger.info("Reading data for pulse {}".format(str(self.pulse)))
 
         # -------------------------------
         # 0. Read in KG1 variables and config data.
@@ -388,17 +425,48 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         exists = os.path.isfile('./saved/'+str(self.pulse)+'.pkl')
 
 
-        if self.checkBox_newpulse.isChecked(True):
-            self.readdata()
-        elif exists & self.checkBox_newpulse.isChecked(False):
-            self.load_pickle()
+        # if (exists == False) & (self.checkBox_newpulse.isChecked() == True):
+        #     self.readdata()
+        # if exists & (self.checkBox_newpulse.isChecked() == False):
+        #     logging.info('pulse data already downloaded')
+        #     self.load_pickle()
+        # elif exists & (self.checkBox_newpulse.isChecked() == True):
+        #     logging.info('pulse data already downloaded - you are requesting to download again')
+        #     self.areyousure_window = QtGui.QMainWindow()
+        #     self.ui_areyousure = Ui_areyousure_window()
+        #     self.ui_areyousure.setupUi(self.areyousure_window)
+        #     self.areyousure_window.show()
+        #
+        #     self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_yes)
+        #     self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+
+        # else:
+        #     self.areyousure_window = QtGui.QMainWindow()
+        #     self.ui_areyousure = Ui_areyousure_window()
+        #     self.ui_areyousure.setupUi(self.areyousure_window)
+        #     self.areyousure_window.show()
+        #
+        #     self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_yes)
+        #     self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+
+
+
+        if exists:
+            if  (self.checkBox_newpulse.isChecked() == False):
+
+                logging.info('pulse data already downloaded')
+                self.load_pickle()
+            else:
+                logging.info('pulse data already downloaded - you are requesting to download again')
+                self.areyousure_window = QtGui.QMainWindow()
+                self.ui_areyousure = Ui_areyousure_window()
+                self.ui_areyousure.setupUi(self.areyousure_window)
+                self.areyousure_window.show()
+
+                self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_yes)
+                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
         else:
-        # read data
             self.readdata()
-
-
-
-
 
 
 
@@ -515,13 +583,47 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # ax3.plot(a,b,'k')
 
         plt.figure()
-        chan = 1
+        # chan = 1
+
+    # ----------------------------
+    def handle_no(self):
+        """
+        functions that ask to confirm if user wants NOT to proceed
+
+        to set read data for selected pulse
+    """
 
 
+        logging.debug('pressed %s button', self.ui_areyousure.pushButton_NO.text())
+        logging.debug('go back and perform a different action')
+
+
+        self.ui_areyousure.pushButton_NO.setChecked(False)
+
+        self.areyousure_window.hide()
+
+    # ----------------------------
+    def handle_yes(self):
+        """
+        functions that ask to confirm if user wants to proceed
+
+        to set read data for selected pulse
+        """
+        logging.debug('pressed %s button',
+                      self.ui_areyousure.pushButton_YES.text())
+        logging.debug('continue')
+        self.readdata()
+
+
+        self.ui_areyousure.pushButton_YES.setChecked(False)
+
+        self.areyousure_window.hide()
 
 # -----------------------
     def readdata(self):
-        logger.info("Reading data for pulse {}".format(str(self.pulse)))
+
+
+
 
         # -------------------------------
         # 1. Read in Magnetics data

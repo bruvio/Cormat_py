@@ -44,13 +44,15 @@ def find_disruption(shot_no, constants, kg1_signals=None):
     dis_window = [disruption_signal.data[0] - constants.dis_window,
                   disruption_signal.data[0] + constants.dis_window]
 
+    logger.log(5, "There was a disruption at {}, window is {}-{}.".format(disruption_signal.data[0],
+                                                                          dis_window[0], dis_window[1]))
+
     # Set the status flag around the disruption time to 4 for all kg1_signals
     if kg1_signals is not None:
         for chan in kg1_signals.status.keys():
             # Set status to 3
             kg1_signals.set_status(chan, 3, time=dis_window)
 
-    logger.log(5, "There was a disruption at {}, window is {}-{}.".format(disruption_signal.data[0],
-                                                                          dis_window[0], dis_window[1]))
+
 
     return True, dis_window
