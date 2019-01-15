@@ -379,8 +379,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 # ------------------------
     def handle_readbutton(self):
-        # self.widget_LID1.figure.clear()
-        # self.widget_LID1.draw()
+
+        self.widget_LID1.figure.clear()
+        self.widget_LID1.draw()
 
         self.widget_LID2.figure.clear()
         self.widget_LID2.draw()
@@ -408,77 +409,6 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         self.widget_MIR.figure.clear()
         self.widget_MIR.draw()
-
-        # read pulse number
-        self.pulse = int(self.lineEdit_jpn.text())
-        logger.info("Reading data for pulse {}".format(str(self.pulse)))
-
-        # -------------------------------
-        # 0. Read in KG1 variables and config data.
-        # -------------------------------
-        # Read in signal names and configuration data
-
-
-
-
-
-        exists = os.path.isfile('./saved/'+str(self.pulse)+'.pkl')
-
-
-        # if (exists == False) & (self.checkBox_newpulse.isChecked() == True):
-        #     self.readdata()
-        # if exists & (self.checkBox_newpulse.isChecked() == False):
-        #     logging.info('pulse data already downloaded')
-        #     self.load_pickle()
-        # elif exists & (self.checkBox_newpulse.isChecked() == True):
-        #     logging.info('pulse data already downloaded - you are requesting to download again')
-        #     self.areyousure_window = QtGui.QMainWindow()
-        #     self.ui_areyousure = Ui_areyousure_window()
-        #     self.ui_areyousure.setupUi(self.areyousure_window)
-        #     self.areyousure_window.show()
-        #
-        #     self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_yes)
-        #     self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-
-        # else:
-        #     self.areyousure_window = QtGui.QMainWindow()
-        #     self.ui_areyousure = Ui_areyousure_window()
-        #     self.ui_areyousure.setupUi(self.areyousure_window)
-        #     self.areyousure_window.show()
-        #
-        #     self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_yes)
-        #     self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-
-
-
-        if exists:
-            if  (self.checkBox_newpulse.isChecked() == False):
-
-                logging.info('pulse data already downloaded')
-                self.load_pickle()
-            else:
-                logging.info('pulse data already downloaded - you are requesting to download again')
-                self.areyousure_window = QtGui.QMainWindow()
-                self.ui_areyousure = Ui_areyousure_window()
-                self.ui_areyousure.setupUi(self.areyousure_window)
-                self.areyousure_window.show()
-
-                self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_yes)
-                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-        else:
-            self.readdata()
-
-
-
-
-
-        # self.button_plot.setEnabled(True)
-        self.button_check_pulse.setEnabled(True)
-        self.button_save.setEnabled(True)
-        self.button_normalize.setEnabled(True)
-        self.pushButton_apply.setEnabled(True)
-        self.pushButton_makeperm.setEnabled(True)
-        self.pushButton_undo.setEnabled(True)
 
         ax1 = self.widget_LID1.figure.add_subplot(111)
 
@@ -521,22 +451,50 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
 
+        # read pulse number
+        self.pulse = int(self.lineEdit_jpn.text())
+        logger.info("Reading data for pulse {}".format(str(self.pulse)))
+
+        # -------------------------------
+        # 0. Read in KG1 variables and config data.
+        # -------------------------------
+        # Read in signal names and configuration data
 
 
 
-        # ax1.plot()
-        # ax2.plot()
-        # ax3.plot()
-        # ax4.plot()
-        # ax5.plot()
-        # ax6.plot()
-        # ax7.plot()
-        # ax8.plot()
-        #
-        # ax51.plot()
-        # ax61.plot()
-        # ax71.plot()
-        # ax81.plot()
+
+
+        exists = os.path.isfile('./saved/'+str(self.pulse)+'.pkl')
+
+
+        if exists:
+            if  (self.checkBox_newpulse.isChecked() == False):
+
+                logging.info('pulse data already downloaded')
+                self.load_pickle()
+            else:
+                logging.info('pulse data already downloaded - you are requesting to download again')
+                self.areyousure_window = QtGui.QMainWindow()
+                self.ui_areyousure = Ui_areyousure_window()
+                self.ui_areyousure.setupUi(self.areyousure_window)
+                self.areyousure_window.show()
+
+                self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_yes)
+                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+        else:
+            self.readdata()
+
+
+
+
+
+        # self.button_plot.setEnabled(True)
+        self.button_check_pulse.setEnabled(True)
+        self.button_save.setEnabled(True)
+        self.button_normalize.setEnabled(True)
+        self.pushButton_apply.setEnabled(True)
+        self.pushButton_makeperm.setEnabled(True)
+        self.pushButton_undo.setEnabled(True)
 
 
         for chan in self.KG1_data.density.keys():
@@ -552,7 +510,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             # self.ax_all.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)
 
             # draw_widget(chan)
-            # self.widget_LID1.draw()
+            self.widget_LID1.draw()
 
             if chan >4:
                 name1='MIR'+str(chan)
@@ -582,8 +540,37 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # self.widget_LID2.draw()
         # ax3.plot(a,b,'k')
 
-        plt.figure()
+        # plt.figure()
         # chan = 1
+        # self.widget_LID1.figure.clear()
+        self.widget_LID1.draw()
+        #
+        # self.widget_LID2.figure.clear()
+        self.widget_LID2.draw()
+        #
+        # self.widget_LID3.figure.clear()
+        self.widget_LID3.draw()
+        #
+        # self.widget_LID4.figure.clear()
+        self.widget_LID4.draw()
+        #
+        # self.widget_LID5.figure.clear()
+        self.widget_LID5.draw()
+        #
+        # self.widget_LID6.figure.clear()
+        self.widget_LID6.draw()
+        #
+        # self.widget_LID7.figure.clear()
+        self.widget_LID7.draw()
+        #
+        # self.widget_LID8.figure.clear()
+        self.widget_LID8.draw()
+
+        # self.widget_LID_ALL.figure.clear()
+        self.widget_LID_ALL.draw()
+
+        # self.widget_MIR.figure.clear()
+        self.widget_MIR.draw()
 
     # ----------------------------
     def handle_no(self):
