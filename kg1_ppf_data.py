@@ -1,7 +1,6 @@
 """
 Class to read and store KG1 PPF data for one channel.
 Reads in LIDX, FCX, MIRX, JXBX, TYPX
-
 Needs modifying so it would work with old KG1V & new KG1V dtypes
 """
 
@@ -22,55 +21,80 @@ __author__ = "L. Kogan"
 class Kg1PPFData:
 
     # ------------------------
-    def __init__(self, constants):
+    def __init__(self, constants,pulse):
         """
         Init function
-
         :param constants: instance of Kg1Consts class
         """
         self.constants = constants
+        self.pulse = pulse
+        self.dda = "KG1V"
+        self.density = {}
+        self.vibration = {}
+        self.fj_dcn = {}
+        self.fj_met = {}
+        self.jxb = {}
+        self.bp_dcn = {}
+        self.bp_met = {}
 
-        self.dda = "KG1R"
-        self.density = None
-        self.vibration = None
-        self.fj_dcn = None
-        self.fj_met = None
-        self.jxb = None
-        self.bp_dcn = None
-        self.bp_met = None
-        self.status = 0
+        # Time dependent status flags
+        self.status = {}
+        self.global_status = {}
+        self.kg1rt = {}
         self.type = ""
         self.mode = ""
 
+        # PPF data: If a KG1 PPF has already been written,
+        # and the status flag of the data is 1,2 or 3
+        # (ie. it has already been validated), then
+        # this data is just copied over to the output file,
+        # no further corrections are made.
+        self.ppf = {}
+
     # ------------------------
-    def read_data(self, shot_no, chan, read_uid="JETPPF", all_status=False):
+    def read_data(self, shot_no, read_uid="JETPPF"):
         """
         Read in PPF data for KG1V for a given channel
-
         :param shot_no: shot number
         :param chan: channel
         :param read_uid: read UID
         :param all_status: if True, then read in even if status flag is 4
         :return: True if data was read in successfully, False otherwise
         """
-        if chan in self.constants.kg1r_ppf_ne.keys():
-            nodename = self.constants.kg1r_ppf_ne[chan]
+        for chan in self.constants.kg1v.keys():
+            nodename = self.constants.kg1v[chan]
             density = SignalBase(self.constants)
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
             status = density.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
 
             # We are only interested in keeping the data if it has already been validated
-            if density.data is not None and (0 < status < 4) and not all_status:
-                logger.log(5, "PPF data chan {}".format(status))
-                self.density = density
-                self.status = status
+            # if density.data is not None and (0 < status < 4) and not all_status:
+            #     logger.log(5, "PPF data chan {}".format(status))
+            if density.data is not None:
+                self.density[chan] = density
+                # self.status[chan] = status
+                # if chan in self.density.keys() and chan in self.vibration.keys():
+                self.status[chan] = SignalBase(self.constants)
+                self.status[chan].data = np.zeros(
+                        len(self.density[chan].time))
+                self.status[chan].time = self.density[chan].time
+                self.global_status[chan] = 0
+            # else:
+            #     return False
             else:
                 return False
-        else:
-            return False
 
-        if chan in self.constants.kg1r_ppf_vib.keys():
+        for chan in self.constants.kg1rt.keys():
+            node_name = self.constants.kg1rt[chan]
+            kg1rt_signal = SignalBase(self.constants)
+            kg1rt_signal.read_data_jpf(node_name, shot_no)
+            if kg1rt_signal.data is not None:
+                self.kg1rt[chan] = kg1rt_signal
+
+
+
+        for chan in self.constants.kg1r_ppf_vib.keys():
             nodename = self.constants.kg1r_ppf_vib[chan]
             vibration = SignalBase(self.constants)
             dda = nodename[:nodename.find('/')]
@@ -78,9 +102,16 @@ class Kg1PPFData:
             status = vibration.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
 
             if vibration.data is not None:
-                self.vibration = vibration
+                self.vibration[chan] = vibration
+                # self.status[chan] = status
+                # if chan in self.density.keys() and chan in self.vibration.keys():
+                self.status[chan] = SignalBase(self.constants)
+                self.status[chan].data = np.zeros(
+                        len(self.density[chan].time))
+                self.status[chan].time = self.density[chan].time
+                self.global_status[chan] = 0
 
-        if chan in self.constants.kg1r_ppf_fj_dcn.keys():
+        for chan in self.constants.kg1r_ppf_fj_dcn.keys():
             nodename = self.constants.kg1r_ppf_fj_dcn[chan]
             fj = SignalBase(self.constants)
 
@@ -89,9 +120,9 @@ class Kg1PPFData:
             status = fj.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
 
             if fj.data is not None:
-                self.fj_dcn = fj
+                self.fj_dcn[chan] = fj
 
-        if chan in self.constants.kg1r_ppf_fj_met.keys():
+        for chan in self.constants.kg1r_ppf_fj_met.keys():
             nodename = self.constants.kg1r_ppf_fj_met[chan]
             fj = SignalBase(self.constants)
 
@@ -100,9 +131,9 @@ class Kg1PPFData:
             status = fj.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
 
             if fj.data is not None:
-                self.fj_met = fj
+                self.fj_met[chan] = fj
 
-        if chan in self.constants.kg1r_ppf_bp_dcn.keys():
+        for chan in self.constants.kg1r_ppf_bp_dcn.keys():
             nodename = self.constants.kg1r_ppf_bp_dcn[chan]
             bp = SignalBase(self.constants)
 
@@ -111,9 +142,9 @@ class Kg1PPFData:
             status = bp.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
 
             if bp.data is not None:
-                self.bp_dcn = bp
+                self.bp_dcn[chan] = bp
 
-        if chan in self.constants.kg1r_ppf_bp_met.keys():
+        for chan in self.constants.kg1r_ppf_bp_met.keys():
             nodename = self.constants.kg1r_ppf_bp_met[chan]
             bp = SignalBase(self.constants)
 
@@ -122,9 +153,9 @@ class Kg1PPFData:
             status = bp.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
 
             if bp.data is not None:
-                self.bp_met = bp
+                self.bp_met[chan] = bp
 
-        if chan in self.constants.kg1r_ppf_jxb.keys():
+        for chan in self.constants.kg1r_ppf_jxb.keys():
             nodename = self.constants.kg1r_ppf_jxb[chan]
             jxb = SignalBase(self.constants)
             dda = nodename[:nodename.find('/')]
@@ -132,9 +163,9 @@ class Kg1PPFData:
             status = jxb.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
 
             if jxb.data is not None:
-                self.jxb = jxb
+                self.jxb[chan] = jxb
 
-        if chan in self.constants.kg1r_ppf_type.keys():
+        for chan in self.constants.kg1r_ppf_type.keys():
             nodename = self.constants.kg1r_ppf_type[chan]
             sig_type = SignalBase(self.constants)
             dda = nodename[:nodename.find('/')]
@@ -144,7 +175,7 @@ class Kg1PPFData:
             if sig_type.data is not None:
                 ind_type = sig_type.ihdata.find("SIG TYPE:")+len("SIG TYPE:")+1
                 ind_chan = sig_type.ihdata.find("CH.")-1
-                self.type = sig_type.ihdata[ind_type:ind_chan]
+                self.type[chan] = sig_type.ihdata[ind_type:ind_chan]
 
         return True
 
@@ -152,7 +183,6 @@ class Kg1PPFData:
     def write_data(self, chan, shot_no, itref):
         """
         Write data to PPF system
-
         :param chan: channel
         :param shot_no: shot number
         :param itref: itref to use for the timebase
@@ -254,3 +284,40 @@ class Kg1PPFData:
                                             nt=1, status=None)
 
         return write_err, itref
+
+    # ------------------------
+    def set_status(self, lid, new_status, time=None, index=None):
+        """
+        Set time-dependent status flags for lid.
+        If neither time or index are given, set status flags for all time points
+        :param lid: LID number to set status for
+        :param new_status: status to be set
+        :param time: time, or time range in which to set status.
+        :param index: index, or index range in which to set status.
+        """
+        if lid not in self.status.keys() or new_status < 0 or new_status > 4:
+            return
+
+        # Set status for all time points
+        if time is None and index is None:
+            self.status[lid].data[:] = new_status
+            return
+
+        # Find indices to set from time
+        if time is not None and len(time) == 1:
+            index = np.where(np.isclose(self.status[lid].time, time, atol=0.00005, rtol=1e-6))[0]
+        elif time is not None and len(time) == 2:
+            index = [(np.abs(self.status[lid].time - time[0])).argmin(),
+                     (np.abs(self.status[lid].time - time[1])).argmin()]
+
+        # Set status flags
+        if index is not None:
+            if len(index) == 2:
+                self.status[lid].data[index[0]:index[1]] = new_status
+                logger.debug("Chan {}: Setting status to {} between {}-{}".format(lid, new_status,
+                                                                                      self.status[lid].time[index[0]],
+                                                                                      self.status[lid].time[index[1]]))
+            else:
+                self.status[lid].data[index] = new_status
+                logger.debug("Chan {}: Setting status to {} for time point {}".format(lid, new_status,
+                                                                                   self.status[lid].time[index]))

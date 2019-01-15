@@ -123,7 +123,11 @@ class Kg1Data:
             # ------------------
             # First try to read in PPF data for KG1R DDA
             # ------------------
+<<<<<<< HEAD
             ppfdata = Kg1PPFData(self.constants)
+=======
+            ppfdata = Kg1PPFData(self.constants,shot_no)
+>>>>>>> savedata
             read_ppf = ppfdata.read_data(shot_no, chan, read_uid=read_uid, all_status=ignore_ppf)
 
             if read_ppf:
@@ -131,7 +135,11 @@ class Kg1Data:
 
                 # Only need to read the MODE dtype once (it is the same for all channels)
                 if len(self.ppf) == 1:
+<<<<<<< HEAD
                     signal_mode.read_data_ppf('KG1R', 'MODE', shot_no, read_bad=False, read_uid=read_uid)
+=======
+                    signal_mode.read_data_ppf('KG1V', 'MODE', shot_no, read_bad=False, read_uid=read_uid)
+>>>>>>> savedata
                     self.ppf[chan].mode = signal_mode.ihdata[36:]
                 else:
                     self.ppf[chan].mode = signal_mode.ihdata[36:]
@@ -139,6 +147,7 @@ class Kg1Data:
                 if not ignore_ppf:
                     continue
 
+<<<<<<< HEAD
             # ------------------
             # If no PPF data (or only un-validated PPF data) was stored for this channel,
             # read in JPF data
@@ -155,6 +164,9 @@ class Kg1Data:
                 read_status = max(self._read_best_data(chan, shot_no), read_status)
             else:
                 read_status = max(self._read_specific_data(chan, signal_type, shot_no), read_status)
+=======
+
+>>>>>>> savedata
 
             # If any of the channels were unavailable, set return code to 1
             if read_status != 0:
@@ -194,6 +206,7 @@ class Kg1Data:
             # It will be 10 if some data was available, but it was bad.
             return read_status
 
+<<<<<<< HEAD
         logger.info("""The following channels have already been validated.
                They will not be reprocessed. {}""".format(self.ppf.keys()))
 
@@ -577,6 +590,13 @@ class Kg1Data:
                       pformat=[2])
 
         phase_ld.data = new_data
+=======
+
+
+        return return_code
+
+
+>>>>>>> savedata
 
     # ------------------------
     def set_status(self, lid, new_status, time=None, index=None):

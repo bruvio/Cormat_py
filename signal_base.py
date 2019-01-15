@@ -8,7 +8,8 @@ import logging
 
 import numpy as np
 from scipy import signal
-from getdat import getdat, getsca
+# from getdat import getdat, getsca
+from getdat import *
 from ppf import ppfgo, ppfget, ppfssr, ppfuid
 
 from wv_denoise import wv_denoise
@@ -24,10 +25,8 @@ import numpy as np
 def decimate_ZP(x, q, n=None, ftype='iir', axis=-1, zero_phase=False):
     """
     Downsample the signal by using a filter.
-
     By default, an order 8 Chebyshev type I filter is used.  A 30 point FIR
     filter with hamming window is used if `ftype` is 'fir'.
-
     Parameters
     ----------
     x : ndarray
@@ -46,7 +45,6 @@ def decimate_ZP(x, q, n=None, ftype='iir', axis=-1, zero_phase=False):
     -------
     y : ndarray
         The down-sampled signal.
-
     See also
     --------
     resample
@@ -55,7 +53,6 @@ def decimate_ZP(x, q, n=None, ftype='iir', axis=-1, zero_phase=False):
     -----
     The ``zero_phase`` keyword was added in 0.17.0.
     The possibility to use instances of ``lti`` as ``ftype`` was added in 0.17.0.
-
     """
     
     if not isinstance(q, int):
@@ -101,7 +98,6 @@ class SignalBase():
     def __init__(self, constants):
         """
         Initialise variables to hold the data and filtered data.
-
         :param constants: Instance of Kg1Consts, containing useful constants & node names
         """
         self.constants = constants
@@ -114,7 +110,6 @@ class SignalBase():
     def read_data_ppf(self, dda, dtype, shot_no, read_bad=False, read_uid="JETPPF", seq=0):
         """
         Read in and store PPF data
-
         :param dda: DDA
         :param dtype: DTYPE
         :param shot_no: shot number
@@ -154,7 +149,6 @@ class SignalBase():
     def read_data_jpf(self, signal_name, shot_no, use_64bit=False):
         """
         Read in and store JPF data
-
         :param signal_name: Node name for JPF
         :param shot_no: shot number
         :param use_64bit: If set to true the data is stored as 64 bit float
@@ -181,7 +175,6 @@ class SignalBase():
     def read_data_jpf_1D(self, signal_name, shot_no):
         """
         Read in JPF data with only one dimension
-
         :param signal_name: signal name
         :param shot_no: shot number
         """
@@ -198,14 +191,12 @@ class SignalBase():
     def filter_signal(self, family, ncoeff=None, percent=None, start_time=0, end_time=0):
         """
         Filter the signal using wavelet filtering
-
         :param family: wavelet family to use for filtering
         :param ncoeff: number of coefficients to retain in the filtering
         :param percent: percentage of coefficients to retain in the filtering
         :param start_time: Time from which to start the filtering
         :param end_time: Time to finish the filtering
         :return: numpy array containing the filtered data from start_time - end_time
-
         """
 
         ind_start, ind_end = self.get_time_inds(start_time, end_time)
@@ -216,11 +207,9 @@ class SignalBase():
     def get_time_inds(self, start_time, end_time):
         """
         Get the index of the times corresponding to start_time and end_time
-
         :param start_time: start time
         :param end_time: end time
         :return: index of start_time, index of end_time
-
         """
         ind_start = 0
         ind_end = np.size(self.data)-1
@@ -243,10 +232,8 @@ class SignalBase():
         by
         -interpolation,
         -zeropadding
-
         :param resample_method: method to use, only "interp" implemented atm.
         :return: numpy array of resampled data
-
         """
         if resample_method == "interp":
             return np.interp(new_time, self.time, self.data)
@@ -299,10 +286,8 @@ class SignalBase():
     def get_differences(self, npoints):
         """
         Get the difference between the data npoints apart.
-
         :param npoints: Number of points over which to calculate the difference
         :return: numpy array of difference
-
         """
         diff = self.data[npoints:] - self.data[0:-1*npoints]
         return diff
@@ -311,10 +296,8 @@ class SignalBase():
     def get_second_differences(self, npoints):
         """
         Get the second differential over npoints
-
         :param npoints: Number of points over which to calculate the difference
         :return: numpy array of second differential
-
         """
         diff = self.data[npoints:] - self.data[0:-1*npoints]
         diff_second = diff[1:] - diff[0:-1]
@@ -324,10 +307,7 @@ class SignalBase():
     def delete_points(self, ind_points):
         """
         Delete points with indices ind_points
-
         :param ind_points: indices of points to delete
-
         """
         self.data = np.delete(self.data, ind_points)
         self.time = np.delete(self.time, ind_points)
-
