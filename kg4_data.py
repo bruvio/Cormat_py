@@ -141,11 +141,12 @@ class Kg4Data:
                       colours=["blue"], pformat=[1], show=True,
                       title="KG4 Cotton Mutton status. Chan {}".format(
                           cm_chan))
-            if xg_elld_signal.data.all() == 1.0:
+            if xg_elld_signal.data is not None:
+                if xg_elld_signal.data.all() == 1.0:
                 # if signal status is 1 than read density signal
 
-                dmsg = "KG4 CM status chan {} is ok".format(cm_chan)
-                logger.log(5, dmsg)
+                    dmsg = "KG4 CM status chan {} is ok".format(cm_chan)
+                    logger.log(5, dmsg)
                 # pdb.set_trace()
             # if xg_elld_signal.data is not None:
             #     # Only keep points where there is ip
@@ -175,9 +176,9 @@ class Kg4Data:
             #     self.xg_elld_signal[cm_chan] = xg_elld_signal
 
         # for cm_chan in self.constants.kg4_xg-ell.keys():
-                node_name1 = self.constants.kg4_xg_ell[cm_chan]
-                xg_ell_signal = SignalBase(self.constants)
-                xg_ell_signal.read_data_jpf(node_name1, shot_no)
+                    node_name1 = self.constants.kg4_xg_ell[cm_chan]
+                    xg_ell_signal = SignalBase(self.constants)
+                    xg_ell_signal.read_data_jpf(node_name1, shot_no)
                 # pdb.set_trace()
 
 
