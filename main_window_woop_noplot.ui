@@ -39,7 +39,7 @@
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;LID1&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>9</number>
     </property>
     <widget class="QWidget" name="tab_LID1">
      <attribute name="title">
@@ -151,6 +151,36 @@
       <string>LID8</string>
      </attribute>
      <widget class="Canvas" name="widget_LID8" native="true">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1041</width>
+        <height>781</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_11">
+     <attribute name="title">
+      <string>LID 1-4</string>
+     </attribute>
+     <widget class="Canvas" name="widget_LID_14" native="true">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1041</width>
+        <height>781</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_12">
+     <attribute name="title">
+      <string>LID 5-8</string>
+     </attribute>
+     <widget class="Canvas" name="widget_LID_58" native="true">
       <property name="geometry">
        <rect>
         <x>0</x>

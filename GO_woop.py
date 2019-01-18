@@ -174,6 +174,12 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.widget_LID_ALL.figure.clear()
         self.widget_LID_ALL.draw()
 
+        self.widget_LID_14.figure.clear()
+        self.widget_LID_14.draw()
+
+        self.widget_LID_58.figure.clear()
+        self.widget_LID_58.draw()
+
         self.widget_MIR.figure.clear()
         self.widget_MIR.draw()
 
@@ -404,6 +410,12 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.widget_LID8.figure.clear()
         self.widget_LID8.draw()
 
+        self.widget_LID_14.figure.clear()
+        self.widget_LID_14.draw()
+
+        self.widget_LID_58.figure.clear()
+        self.widget_LID_58.draw()
+
         self.widget_LID_ALL.figure.clear()
         self.widget_LID_ALL.draw()
 
@@ -429,6 +441,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         ax81 = self.widget_LID8.figure.add_subplot(212)
 
         ax_all = self.widget_LID_ALL.figure.add_subplot(111)
+        ax_14 = self.widget_LID_14.figure.add_subplot(111)
+        ax_58 = self.widget_LID_58.figure.add_subplot(111)
 
         ax_mir = self.widget_MIR.figure.add_subplot(111)
 
@@ -440,6 +454,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.ax1 = ax6
         self.ax1 = ax7
         self.ax1 = ax8
+        self.ax_14 = ax_14
+        self.ax_58 = ax_58
 
         self.ax51 = ax51
         self.ax61 = ax61
@@ -505,6 +521,18 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             vars()[ax_name].legend()
             self.ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x')
             self.ax_all.legend()
+            if chan < 5:
+                self.ax_14.plot(self.KG1_data.density[chan].time,
+                                 self.KG1_data.density[chan].data, label=name,
+                                 marker='x')
+                self.ax_14.legend()
+
+            if chan > 4:
+                self.ax_58.plot(self.KG1_data.density[chan].time,
+                                 self.KG1_data.density[chan].data, label=name,
+                                 marker='x')
+                self.ax_58.legend()
+
             # exec(
             #     'self.' + ax_name + '.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)')
             # self.ax_all.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)
@@ -566,8 +594,14 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # self.widget_LID8.figure.clear()
         self.widget_LID8.draw()
 
+        # self.widget_LID_14.figure.clear()
+        self.widget_LID_14.draw()
+
         # self.widget_LID_ALL.figure.clear()
         self.widget_LID_ALL.draw()
+
+        # self.widget_LID_58.figure.clear()
+        self.widget_LID_58.draw()
 
         # self.widget_MIR.figure.clear()
         self.widget_MIR.draw()
