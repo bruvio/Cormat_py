@@ -95,7 +95,17 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
     """
+    def _initialize_widget(self,widget):
+        widget.figure.clear()
+        widget.draw()
 
+        widget.setLayout(QtGui.QVBoxLayout())
+        widget.layout().setContentsMargins(0, 710, 50, -0)#(left, top, right, bottom)
+        widget.layout().setSpacing(0)
+        toolbar = NavigationToolbar(widget, self)
+        widget.layout().addWidget(toolbar)
+        widget.figure.clear()
+        widget.draw()
 
     # ----------------------------
     def __init__(self, parent=None):
@@ -116,72 +126,23 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         self.checkBox_newpulse.setChecked(False)
 
-        # toolBar1 = NavigationToolbar(self.widget_LID1, self)
-        # toolBar2 = NavigationToolbar(self.widget_LID2, self)
-        # toolBar3 = NavigationToolbar(self.widget_LID3, self)
-        # toolBar4 = NavigationToolbar(self.widget_LID4, self)
-        # toolBar5 = NavigationToolbar(self.widget_LID5, self)
-        # toolBar6 = NavigationToolbar(self.widget_LID6, self)
-        # toolBar7 = NavigationToolbar(self.widget_LID7, self)
-        # toolBar8 = NavigationToolbar(self.widget_LID8, self)
-        # toolBarALL = NavigationToolbar(self.widget_LID_ALL, self)
-        # toolBarMIR = NavigationToolbar(self.widget_MIR, self)
-        # self.addToolBar(toolBar1)
-        # self.addToolBar(toolBar2)
-        # self.addToolBar(toolBar3)
-        # self.addToolBar(toolBar4)
-        # self.addToolBar(toolBar5)
-        # self.addToolBar(toolBar6)
-        # self.addToolBar(toolBar7)
-        # self.addToolBar(toolBar8)
-        # self.addToolBar(toolBarALL)
-        # self.addToolBar(toolBarMIR)
 
 
-        self.widget_LID1.figure.clear()
-        self.widget_LID1.draw()
+        self._initialize_widget(self.widget_LID1)
+        self._initialize_widget(self.widget_LID2)
+        self._initialize_widget(self.widget_LID3)
+        self._initialize_widget(self.widget_LID4)
+        self._initialize_widget(self.widget_LID5)
+        self._initialize_widget(self.widget_LID6)
+        self._initialize_widget(self.widget_LID7)
+        self._initialize_widget(self.widget_LID8)
+        self._initialize_widget(self.widget_LID_14)
+        self._initialize_widget(self.widget_LID_58)
+        self._initialize_widget(self.widget_LID_ALL)
+        self._initialize_widget(self.widget_MIR)
 
-        # self.navi_toolbar = NavigationToolbar( self.widget_LID1, self) #createa navigation toolbar for our plot canvas
 
-        # self.vbl = QtGui.QVBoxLayout()
-        # self.vbl.addWidget( self.widget_LID1 )
-        # self.vbl.addWidget(self.navi_toolbar)
-        # self.setLayout( self.vbl )
-        # self.navigation_toolbar = NavigationToolbar(self.widget_LID1, self)
-        # self.navigation_toolbar.update()
 
-        self.widget_LID2.figure.clear()
-        self.widget_LID2.draw()
-
-        self.widget_LID3.figure.clear()
-        self.widget_LID3.draw()
-
-        self.widget_LID4.figure.clear()
-        self.widget_LID4.draw()
-
-        self.widget_LID5.figure.clear()
-        self.widget_LID5.draw()
-
-        self.widget_LID6.figure.clear()
-        self.widget_LID6.draw()
-
-        self.widget_LID7.figure.clear()
-        self.widget_LID7.draw()
-
-        self.widget_LID8.figure.clear()
-        self.widget_LID8.draw()
-
-        self.widget_LID_ALL.figure.clear()
-        self.widget_LID_ALL.draw()
-
-        self.widget_LID_14.figure.clear()
-        self.widget_LID_14.draw()
-
-        self.widget_LID_58.figure.clear()
-        self.widget_LID_58.draw()
-
-        self.widget_MIR.figure.clear()
-        self.widget_MIR.draw()
 
 
         logging.debug('start')
