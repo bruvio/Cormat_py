@@ -34,6 +34,7 @@ from elms_data import ElmsData
 from pellet_data import PelletData
 from nbi_data import NBIData
 from hrts_data import HRTSData
+from signal_base import SignalBase
 from lidar_data import LIDARData
 from find_disruption import find_disruption
 import woop
@@ -65,7 +66,8 @@ plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 
 logger = logging.getLogger(__name__)
 
-
+def norm(data):
+    return (data)/(max(data)-min(data))
 
 class QPlainTextEditLogger(logging.Handler):
     """
@@ -394,6 +396,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.widget_MIR.figure.clear()
         self.widget_MIR.draw()
 
+        self.kg1_original = {}
+        self.kg1_norm = {}
+
         # define now two gridspecs
         # gs is the gridspec per channels 1-4
         # gs1 is the gridspec for channels 5-8
@@ -503,6 +508,13 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             ax_name=  'ax'+str(chan)
             name='LID'+str(chan)
             widget_name='widget_LID'+str(chan)
+            self.kg1_original[chan] = SignalBase(self.constants)
+            self.kg1_norm[chan] = SignalBase(self.constants)
+
+            self.kg1_original[chan].time = self.KG1_data.density[chan].time
+            self.kg1_original[chan].data = self.KG1_data.density[chan].data
+            self.kg1_norm[chan].data = norm(self.KG1_data.density[chan].data)
+
             vars()[ax_name].plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x', color='b',linestyle= 'None')
             vars()[ax_name].legend()
             ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x',linestyle= 'None')
@@ -831,6 +843,12 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         :return:
         """
         # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
+
+
+        self.secondtrace_original = {}
+        self.secondtrace_norm = {}
+
+
         self.s2ndtrace = self.comboBox_2ndtrace.currentText()
 
 
@@ -895,13 +913,15 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             ax_name = 'ax' + str(chan)
             name = 'LID' + str(chan)
             widget_name = 'widget_LID' + str(chan)
+
             vars()[ax_name].plot(self.KG1_data.density[chan].time,
                                  self.KG1_data.density[chan].data,
                                  label=name, marker='x', color='b',linestyle= 'None')
             vars()[ax_name].legend()
-            self.widget_LID1.draw()
+            # self.widget_LID1.draw()
 
             if chan > 4:
+                # channels 5-8 have mirror movement
                 name1 = 'MIR' + str(chan)
                 ax_name1 = 'ax' + str(chan) + str(1)
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
@@ -925,18 +945,25 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                     name = 'HRTS ch.' + str(chan)
                     widget_name = 'widget_LID' + str(chan)
 
+                    self.secondtrace_original[chan] = SignalBase(self.constants)
+                    self.secondtrace_norm[chan] = SignalBase(self.constants)
+
+                    self.secondtrace_original[chan].time = self.HRTS_data.density[chan].time
+                    self.secondtrace_original[chan].data = self.HRTS_data.density[chan].data
+                    self.secondtrace_norm[chan].data = norm(self.HRTS_data.density[chan].data)
+
                     vars()[ax_name].plot(self.HRTS_data.density[chan].time,
                                          self.HRTS_data.density[chan].data,
                                          label=name, marker='o',
                                          color='orange')
 
-                    if chan > 4:
-                        ax_name1 = 'ax' + str(chan) + str(1)
-                        widget_name1 = 'widget_LID' + str(chan) + str(1)
-                        vars()[ax_name].plot(
-                            self.HRTS_data.density[chan].time,
-                            self.HRTS_data.density[chan].data, label=name,
-                            marker='o', color='orange')
+                    # if chan > 4:
+                    #     ax_name1 = 'ax' + str(chan) + str(1)
+                    #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    #     vars()[ax_name].plot(
+                    #         self.HRTS_data.density[chan].time,
+                    #         self.HRTS_data.density[chan].data, label=name,
+                    #         marker='o', color='orange')
 
         if self.s2ndtrace == 'Lidar':
             if len(self.LIDAR_data.density[chan].time) == 0:
@@ -948,18 +975,28 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                     name = 'HRTS ch.' + str(chan)
                     widget_name = 'widget_LID' + str(chan)
 
+                    self.secondtrace_original[chan] = SignalBase(self.constants)
+                    self.secondtrace_norm[chan] = SignalBase(self.constants)
+
+                    self.secondtrace_original[chan].time = self.LIDAR_data.density[chan].time
+                    self.secondtrace_original[chan].data = self.LIDAR_data.density[chan].data
+                    self.secondtrace_norm[chan].data = norm(self.LIDAR_data.density[chan].data)
+
+
+
+
                     vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
                                          self.LIDAR_data.density[chan].data,
                                          label=name, marker='o',
                                          color='green')
 
-                    if chan > 4:
-                        ax_name1 = 'ax' + str(chan) + str(1)
-                        widget_name1 = 'widget_LID' + str(chan) + str(1)
-                        vars()[ax_name].plot(
-                            self.LIDAR_data.density[chan].time,
-                            self.LIDAR_data.density[chan].data, label=name,
-                            marker='o', color='green')
+                    # if chan > 4:
+                    #     ax_name1 = 'ax' + str(chan) + str(1)
+                    #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    #     vars()[ax_name].plot(
+                    #         self.LIDAR_data.density[chan].time,
+                    #         self.LIDAR_data.density[chan].data, label=name,
+                    #         marker='o', color='green')
 
         if self.s2ndtrace == 'Far':
          if self.KG4_data.faraday is not None:
@@ -972,17 +1009,27 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 name = 'Far ch.' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
 
+                self.secondtrace_original[chan] = SignalBase(self.constants)
+                self.secondtrace_norm[chan] = SignalBase(self.constants)
+
+                self.secondtrace_original[chan].time = self.KG4_data.faraday[
+                    chan].time
+                self.secondtrace_original[chan].data = self.KG4_data.faraday[
+                    chan].data
+                self.secondtrace_norm[chan].data = norm(
+                    self.KG4_data.faraday[chan].data)
+
                 vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
                                      self.KG4_data.faraday[chan].data,
                                      label=name, marker='o', color='red')
 
-                if chan > 4:
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    widget_name1 = 'widget_LID' + str(chan) + str(1)
-                    vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
-                                         self.KG4_data.faraday[chan].data,
-                                         label=name, marker='o',
-                                         color='red')
+                # if chan > 4:
+                #     ax_name1 = 'ax' + str(chan) + str(1)
+                #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+                #     vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
+                #                          self.KG4_data.faraday[chan].data,
+                #                          label=name, marker='o',
+                #                          color='red')
 
         if self.s2ndtrace == 'CM':
          if self.KG4_data.xg_ell_signal is not None:
@@ -996,17 +1043,27 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 name = 'CM ch.' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
 
+                self.secondtrace_original[chan] = SignalBase(self.constants)
+                self.secondtrace_norm[chan] = SignalBase(self.constants)
+
+                self.secondtrace_original[chan].time = self.KG4_data.xg_ell_signal[
+                    chan].time
+                self.secondtrace_original[chan].data = self.KG4_data.xg_ell_signal[
+                    chan].data
+                self.secondtrace_norm[chan].data = norm(
+                    self.KG4_data.xg_ell_signal[chan].data)
+
                 vars()[ax_name].plot(self.KG4_data.xg_ell_signal[chan].time,
                                      self.KG4_data.xg_ell_signal[chan].data,
                                      label=name, marker='o', color='purple')
 
-                if chan > 4:
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    widget_name1 = 'widget_LID' + str(chan) + str(1)
-                    vars()[ax_name].plot(
-                        self.KG4_data.xg_ell_signal[chan].time,
-                        self.KG4_data.xg_ell_signal[chan].data, label=name,
-                        marker='o', color='purple')
+                # if chan > 4:
+                #     ax_name1 = 'ax' + str(chan) + str(1)
+                #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+                #     vars()[ax_name].plot(
+                #         self.KG4_data.xg_ell_signal[chan].time,
+                #         self.KG4_data.xg_ell_signal[chan].data, label=name,
+                #         marker='o', color='purple')
 
         if self.s2ndtrace == 'KG1_RT':
          if self.KG4_data.density is not None:
@@ -1019,17 +1076,27 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 name = 'KG1 RT ch.' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
 
+                self.secondtrace_original[chan] = SignalBase(self.constants)
+                self.secondtrace_norm[chan] = SignalBase(self.constants)
+
+                self.secondtrace_original[chan].time = self.KG1_data.kg1rt[
+                    chan].time
+                self.secondtrace_original[chan].data = self.KG1_data.kg1rt[
+                    chan].data
+                self.secondtrace_norm[chan].data = norm(
+                    self.KG1_data.kg1rt[chan].data)
+
                 vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
                                      self.KG1_data.kg1rt[chan].data,
                                      label=name, marker='o', color='brown')
 
-                if chan > 4:
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    widget_name1 = 'widget_LID' + str(chan) + str(1)
-                    vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
-                                         self.KG1_data.kg1rt[chan].data,
-                                         label=name, marker='o',
-                                         color='brown')
+                # if chan > 4:
+                #     ax_name1 = 'ax' + str(chan) + str(1)
+                #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+                #     vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
+                #                          self.KG1_data.kg1rt[chan].data,
+                #                          label=name, marker='o',
+                #                          color='brown')
 
         if self.s2ndtrace == 'BremS':
             logging.debug('not implemented yet')
