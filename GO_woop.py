@@ -394,49 +394,62 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.widget_MIR.figure.clear()
         self.widget_MIR.draw()
 
-        ax1 = self.widget_LID1.figure.add_subplot(111)
+        # define now two gridspecs
+        # gs is the gridspec per channels 1-4
+        # gs1 is the gridspec for channels 5-8
+        # when plotting markers they will allocate space to plot markers in a subplot under current plot
 
-        ax2 = self.widget_LID2.figure.add_subplot(111)
-        ax3 = self.widget_LID3.figure.add_subplot(111)
-        ax4 = self.widget_LID4.figure.add_subplot(111)
+        # gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])# working: creates canvas with 2 columns in the ratio 1/3
 
-        ax5 = self.widget_LID5.figure.add_subplot(211)
-        ax51 = self.widget_LID5.figure.add_subplot(212)
+        heights = [4]
+        gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
+        heights1 = [3, 3]
+        gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
 
-        ax6 = self.widget_LID6.figure.add_subplot(211)
-        ax61 = self.widget_LID6.figure.add_subplot(212)
+        ax1 = self.widget_LID1.figure.add_subplot(gs[0])
 
-        ax7 = self.widget_LID7.figure.add_subplot(211)
-        ax71 = self.widget_LID7.figure.add_subplot(212)
+        ax2 = self.widget_LID2.figure.add_subplot(gs[0])
 
-        ax8 = self.widget_LID8.figure.add_subplot(211)
-        ax81 = self.widget_LID8.figure.add_subplot(212)
+        ax3 = self.widget_LID3.figure.add_subplot(gs[0])
 
-        ax_all = self.widget_LID_ALL.figure.add_subplot(111)
-        ax_14 = self.widget_LID_14.figure.add_subplot(111)
-        ax_58 = self.widget_LID_58.figure.add_subplot(111)
+        ax4 = self.widget_LID4.figure.add_subplot(gs[0])
 
-        ax_mir = self.widget_MIR.figure.add_subplot(111)
+        ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
+        ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
 
-        self.ax1 = ax1
-        self.ax1 = ax2
-        self.ax1 = ax3
-        self.ax1 = ax4
-        self.ax1 = ax5
-        self.ax1 = ax6
-        self.ax1 = ax7
-        self.ax1 = ax8
-        self.ax_14 = ax_14
-        self.ax_58 = ax_58
+        ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
+        ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
 
-        self.ax51 = ax51
-        self.ax61 = ax61
-        self.ax71 = ax71
-        self.ax81 = ax81
+        ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
+        ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
 
-        self.ax_all = ax_all
-        self.ax_mir = ax_mir
+        ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
+        ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
 
+        ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
+        ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
+        ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
+
+        ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
+
+        # self.ax1 = ax1
+        # self.ax1 = ax2
+        # self.ax1 = ax3
+        # self.ax1 = ax4
+        # self.ax1 = ax5
+        # self.ax1 = ax6
+        # self.ax1 = ax7
+        # self.ax1 = ax8
+        # self.ax_14 = ax_14
+        # self.ax_58 = ax_58
+        #
+        # self.ax51 = ax51
+        # self.ax61 = ax61
+        # self.ax71 = ax71
+        # self.ax81 = ax81
+        #
+        # self.ax_all = ax_all
+        # self.ax_mir = ax_mir
 
 
         # read pulse number
@@ -490,21 +503,21 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             ax_name=  'ax'+str(chan)
             name='LID'+str(chan)
             widget_name='widget_LID'+str(chan)
-            vars()[ax_name].plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x', color='b')
+            vars()[ax_name].plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x', color='b',linestyle= 'None')
             vars()[ax_name].legend()
-            self.ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x')
-            self.ax_all.legend()
+            ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x',linestyle= 'None')
+            ax_all.legend()
             if chan < 5:
-                self.ax_14.plot(self.KG1_data.density[chan].time,
+                ax_14.plot(self.KG1_data.density[chan].time,
                                  self.KG1_data.density[chan].data, label=name,
-                                 marker='x')
-                self.ax_14.legend()
+                                 marker='x',linestyle= 'None')
+                ax_14.legend()
 
             if chan > 4:
-                self.ax_58.plot(self.KG1_data.density[chan].time,
+                ax_58.plot(self.KG1_data.density[chan].time,
                                  self.KG1_data.density[chan].data, label=name,
-                                 marker='x')
-                self.ax_58.legend()
+                                 marker='x',linestyle= 'None')
+                ax_58.legend()
 
             self.widget_LID1.draw()
 
@@ -512,12 +525,13 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 name1='MIR'+str(chan)
                 ax_name1 = 'ax' + str(chan)+str(1)
                 widget_name1 = 'widget_LID' + str(chan)+str(1)
+                axx = vars()[ax_name1]
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data,marker='x',label=name1, color='b')
+                                      self.KG1_data.vibration[chan].data,marker='x',label=name1, color='b',linestyle= 'None')
                 vars()[ax_name1].legend()
-                self.ax_mir.plot(self.KG1_data.vibration[chan].time,
-                                 self.KG1_data.vibration[chan].data,marker='x',label=name1)
-                self.ax_mir.legend()
+                ax_mir.plot(self.KG1_data.vibration[chan].time,
+                                 self.KG1_data.vibration[chan].data,marker='x',label=name1,linestyle= 'None')
+                ax_mir.legend()
                 # draw_widget(chan)
 
         # update canvas
@@ -562,6 +576,131 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                       self.ui_areyousure.pushButton_YES.text())
         logging.debug('continue')
         self.readdata()
+
+        # define now two gridspecs
+        # gs is the gridspec per channels 1-4
+        # gs1 is the gridspec for channels 5-8
+        # when plotting markers they will allocate space to plot markers in a subplot under current plot
+
+        # gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])# working: creates canvas with 2 columns in the ratio 1/3
+
+        heights = [4]
+        gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
+        heights1 = [3, 3]
+        gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
+
+        ax1 = self.widget_LID1.figure.add_subplot(gs[0])
+
+        ax2 = self.widget_LID2.figure.add_subplot(gs[0])
+
+        ax3 = self.widget_LID3.figure.add_subplot(gs[0])
+
+        ax4 = self.widget_LID4.figure.add_subplot(gs[0])
+
+        ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
+        ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
+
+        ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
+        ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
+
+        ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
+        ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
+
+        ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
+        ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
+
+        ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
+        ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
+        ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
+
+        ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
+
+        # self.ax1 = ax1
+        # self.ax1 = ax2
+        # self.ax1 = ax3
+        # self.ax1 = ax4
+        # self.ax1 = ax5
+        # self.ax1 = ax6
+        # self.ax1 = ax7
+        # self.ax1 = ax8
+        # self.ax_14 = ax_14
+        # self.ax_58 = ax_58
+        #
+        # self.ax51 = ax51
+        # self.ax61 = ax61
+        # self.ax71 = ax71
+        # self.ax81 = ax81
+        #
+        # self.ax_all = ax_all
+        # self.ax_mir = ax_mir
+
+        # self.button_plot.setEnabled(True)
+        self.button_check_pulse.setEnabled(True)
+        self.button_save.setEnabled(True)
+        self.button_normalize.setEnabled(True)
+        self.pushButton_apply.setEnabled(True)
+        self.pushButton_makeperm.setEnabled(True)
+        self.pushButton_undo.setEnabled(True)
+
+        # -------------------------------
+        # 0. PLOT KG1 data.
+        # -------------------------------
+
+        for chan in self.KG1_data.density.keys():
+            ax_name = 'ax' + str(chan)
+            name = 'LID' + str(chan)
+            widget_name = 'widget_LID' + str(chan)
+            vars()[ax_name].plot(self.KG1_data.density[chan].time,
+                                 self.KG1_data.density[chan].data, label=name,
+                                 marker='x', color='b',linestyle= 'None')
+            vars()[ax_name].legend()
+            ax_all.plot(self.KG1_data.density[chan].time,
+                             self.KG1_data.density[chan].data, label=name,
+                             marker='x',linestyle= 'None')
+            ax_all.legend()
+            if chan < 5:
+                ax_14.plot(self.KG1_data.density[chan].time,
+                                self.KG1_data.density[chan].data, label=name,
+                                marker='x',linestyle= 'None')
+                ax_14.legend()
+
+            if chan > 4:
+                ax_58.plot(self.KG1_data.density[chan].time,
+                                self.KG1_data.density[chan].data, label=name,
+                                marker='x',linestyle= 'None')
+                ax_58.legend()
+
+            self.widget_LID1.draw()
+
+            if chan > 4:
+                name1 = 'MIR' + str(chan)
+                ax_name1 = 'ax' + str(chan) + str(1)
+
+                widget_name1 = 'widget_LID' + str(chan) + str(1)
+                vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
+                                      self.KG1_data.vibration[chan].data,
+                                      marker='x', label=name1, color='b',linestyle= 'None')
+
+                vars()[ax_name1].legend()
+                ax_mir.plot(self.KG1_data.vibration[chan].time,
+                                 self.KG1_data.vibration[chan].data, marker='x',linestyle= 'None',
+                                 label=name1)
+                ax_mir.legend()
+                # draw_widget(chan)
+
+        # update canvas
+        self.widget_LID1.draw()
+        self.widget_LID2.draw()
+        self.widget_LID3.draw()
+        self.widget_LID4.draw()
+        self.widget_LID5.draw()
+        self.widget_LID6.draw()
+        self.widget_LID7.draw()
+        self.widget_LID8.draw()
+        self.widget_LID_14.draw()
+        self.widget_LID_ALL.draw()
+        self.widget_LID_58.draw()
+        self.widget_MIR.draw()
 
 
         self.ui_areyousure.pushButton_YES.setChecked(False)
@@ -720,27 +859,36 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.widget_LID8.figure.clear()
         self.widget_LID8.draw()
 
-        ax1 = self.widget_LID1.figure.add_subplot(111)
+        heights = [4]
+        gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
+        heights1 = [3, 3]
+        gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
 
-        ax2 = self.widget_LID2.figure.add_subplot(111)
-        ax3 = self.widget_LID3.figure.add_subplot(111)
-        ax4 = self.widget_LID4.figure.add_subplot(111)
+        ax1 = self.widget_LID1.figure.add_subplot(gs[0])
 
-        ax5 = self.widget_LID5.figure.add_subplot(211)
-        ax51 = self.widget_LID5.figure.add_subplot(212)
+        ax2 = self.widget_LID2.figure.add_subplot(gs[0])
 
-        ax6 = self.widget_LID6.figure.add_subplot(211)
-        ax61 = self.widget_LID6.figure.add_subplot(212)
+        ax3 = self.widget_LID3.figure.add_subplot(gs[0])
 
-        ax7 = self.widget_LID7.figure.add_subplot(211)
-        ax71 = self.widget_LID7.figure.add_subplot(212)
+        ax4 = self.widget_LID4.figure.add_subplot(gs[0])
 
-        ax8 = self.widget_LID8.figure.add_subplot(211)
-        ax81 = self.widget_LID8.figure.add_subplot(212)
+        ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
+        ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
 
-        ax_all = self.widget_LID_ALL.figure.add_subplot(111)
+        ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
+        ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
 
-        ax_mir = self.widget_MIR.figure.add_subplot(111)
+        ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
+        ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
+
+        ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
+        ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
+
+        ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
+        ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
+        ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
+
+        ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
 
         # for every channel in KG1 (8 channels)
         for chan in self.KG1_data.density.keys():
@@ -749,7 +897,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             widget_name = 'widget_LID' + str(chan)
             vars()[ax_name].plot(self.KG1_data.density[chan].time,
                                  self.KG1_data.density[chan].data,
-                                 label=name, marker='x', color='b')
+                                 label=name, marker='x', color='b',linestyle= 'None')
             vars()[ax_name].legend()
             self.widget_LID1.draw()
 
@@ -759,7 +907,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
                                       self.KG1_data.vibration[chan].data,
-                                      marker='x', label=name1, color='b')
+                                      marker='x', label=name1, color='b',linestyle= 'None')
                 vars()[ax_name1].legend()
 
 
@@ -935,9 +1083,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
 
-        ax_all = self.widget_LID_ALL.figure.add_subplot(111)
+        # ax_all = self.widget_LID_ALL.figure.add_subplot(111)
 
-        ax_mir = self.widget_MIR.figure.add_subplot(111)
+        # ax_mir = self.widget_MIR.figure.add_subplot(111)
 
         # define now two gridspecs
         # gs is the gridspec per channels 1-4
@@ -955,13 +1103,13 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         ax1_marker = self.widget_LID1.figure.add_subplot(gs[1], sharex=ax1)
 
         ax2 = self.widget_LID2.figure.add_subplot(gs[0])
-        ax2_marker = self.widget_LID2.figure.add_subplot(gs[1], sharex=ax1)
+        ax2_marker = self.widget_LID2.figure.add_subplot(gs[1], sharex=ax2)
 
         ax3 = self.widget_LID3.figure.add_subplot(gs[0])
-        ax3_marker = self.widget_LID3.figure.add_subplot(gs[1], sharex=ax1)
+        ax3_marker = self.widget_LID3.figure.add_subplot(gs[1], sharex=ax3)
 
         ax4 = self.widget_LID4.figure.add_subplot(gs[0])
-        ax4_marker = self.widget_LID4.figure.add_subplot(gs[1], sharex=ax1)
+        ax4_marker = self.widget_LID4.figure.add_subplot(gs[1], sharex=ax4)
 
 
 
@@ -1001,33 +1149,17 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                                  self.KG1_data.density[chan].data,
                                  label=name, marker='x', color='b')
             vars()[ax_name].legend()
-            # self.ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x')
-            # self.ax_all.legend()
-            # exec(
-            #     'self.' + ax_name + '.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)')
-            # self.ax_all.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)
-
-            # draw_widget(chan)
             self.widget_LID1.draw()
 
             if chan > 4:
                 name1 = 'MIR' + str(chan)
                 ax_name1 = 'ax' + str(chan) + str(1)
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
-                # vars()[ax_name].plot(kg1_data.density[chan].time,
-                #                      kg1_data.density[chan].data,'b',label=name,,marker='x')
-                # # exec('self.'+ax_name1+'.plot(KG1_data.density[chan].time,KG1_data.density[chan].data,''bx'')')
-                # # draw_widget(chan)
-                # exec(
-                #     'self.' + ax_name1 + '.plot(KG1_data.vibration[chan].time,KG1_data.vibration[chan].data)')
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
                                       self.KG1_data.vibration[chan].data,
                                       marker='x', label=name1, color='b')
                 vars()[ax_name1].legend()
-                # self.ax_mir.plot(self.KG1_data.vibration[chan].time,
-                #                  self.KG1_data.vibration[chan].data,marker='x',label=name1)
-                # self.ax_mir.legend()
-                # draw_widget(chan)
+
 
         if self.marker is not None:
             logging.info('plotting marker {}'.format(self.marker))
@@ -1214,7 +1346,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 #------------------------
     def handle_normalizebutton(self):
-
+        snd = self.sender()
         pass
 
 #------------------------
