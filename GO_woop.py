@@ -51,7 +51,7 @@ from ppf import *
 from PyQt4 import Qt, QtCore,QtGui
 from matplotlib import cm
 from plotdata import Ui_plotdata_window
-
+from matplotlib import gridspec
 from scipy import interpolate
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
@@ -95,7 +95,25 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
     """
+    def _initialize_widget(self,widget):
+        """
+        function that:
+         - initialises every tab (widget)
+         - add layout
+         - add navigation toolbar and position it at the bottom of the tab
+        :param widget:
+        :return:
+        """
+        widget.figure.clear()
+        widget.draw()
 
+        widget.setLayout(QtGui.QVBoxLayout())
+        widget.layout().setContentsMargins(0, 710, 50, -0)#(left, top, right, bottom)
+        widget.layout().setSpacing(0)
+        toolbar = NavigationToolbar(widget, self)
+        widget.layout().addWidget(toolbar)
+        widget.figure.clear()
+        widget.draw()
 
     # ----------------------------
     def __init__(self, parent=None):
@@ -107,6 +125,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         import os
         super(woop, self).__init__(parent)
         self.setupUi(self)
+        ###setting up the logger to write inside a Text box
+
         logTextBox = QPlainTextEditLogger(self)
         # You can format what is printed to text box
         # logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
@@ -114,70 +134,28 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # You can control the logging level
         logging.getLogger().setLevel(logging.DEBUG)
 
+        #initialising new pulse checkbox to false
         self.checkBox_newpulse.setChecked(False)
 
-        # toolBar1 = NavigationToolbar(self.widget_LID1, self)
-        # toolBar2 = NavigationToolbar(self.widget_LID2, self)
-        # toolBar3 = NavigationToolbar(self.widget_LID3, self)
-        # toolBar4 = NavigationToolbar(self.widget_LID4, self)
-        # toolBar5 = NavigationToolbar(self.widget_LID5, self)
-        # toolBar6 = NavigationToolbar(self.widget_LID6, self)
-        # toolBar7 = NavigationToolbar(self.widget_LID7, self)
-        # toolBar8 = NavigationToolbar(self.widget_LID8, self)
-        # toolBarALL = NavigationToolbar(self.widget_LID_ALL, self)
-        # toolBarMIR = NavigationToolbar(self.widget_MIR, self)
-        # self.addToolBar(toolBar1)
-        # self.addToolBar(toolBar2)
-        # self.addToolBar(toolBar3)
-        # self.addToolBar(toolBar4)
-        # self.addToolBar(toolBar5)
-        # self.addToolBar(toolBar6)
-        # self.addToolBar(toolBar7)
-        # self.addToolBar(toolBar8)
-        # self.addToolBar(toolBarALL)
-        # self.addToolBar(toolBarMIR)
+
+        # initialising tabs
+        self._initialize_widget(self.widget_LID1)
+        self._initialize_widget(self.widget_LID2)
+        self._initialize_widget(self.widget_LID3)
+        self._initialize_widget(self.widget_LID4)
+        self._initialize_widget(self.widget_LID5)
+        self._initialize_widget(self.widget_LID6)
+        self._initialize_widget(self.widget_LID7)
+        self._initialize_widget(self.widget_LID8)
+        self._initialize_widget(self.widget_LID_14)
+        self._initialize_widget(self.widget_LID_58)
+        self._initialize_widget(self.widget_LID_ALL)
+        self._initialize_widget(self.widget_MIR)
 
 
-        self.widget_LID1.figure.clear()
-        self.widget_LID1.draw()
-
-        # self.navi_toolbar = NavigationToolbar( self.widget_LID1, self) #createa navigation toolbar for our plot canvas
-
-        # self.vbl = QtGui.QVBoxLayout()
-        # self.vbl.addWidget( self.widget_LID1 )
-        # self.vbl.addWidget(self.navi_toolbar)
-        # self.setLayout( self.vbl )
-        # self.navigation_toolbar = NavigationToolbar(self.widget_LID1, self)
-        # self.navigation_toolbar.update()
-
-        self.widget_LID2.figure.clear()
-        self.widget_LID2.draw()
-
-        self.widget_LID3.figure.clear()
-        self.widget_LID3.draw()
-
-        self.widget_LID4.figure.clear()
-        self.widget_LID4.draw()
-
-        self.widget_LID5.figure.clear()
-        self.widget_LID5.draw()
-
-        self.widget_LID6.figure.clear()
-        self.widget_LID6.draw()
-
-        self.widget_LID7.figure.clear()
-        self.widget_LID7.draw()
-
-        self.widget_LID8.figure.clear()
-        self.widget_LID8.draw()
-
-        self.widget_LID_ALL.figure.clear()
-        self.widget_LID_ALL.draw()
-
-        self.widget_MIR.figure.clear()
-        self.widget_MIR.draw()
 
 
+        # initialising folders
         logging.debug('start')
         cwd = os.getcwd()
         self.workfold = cwd
@@ -404,6 +382,12 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.widget_LID8.figure.clear()
         self.widget_LID8.draw()
 
+        self.widget_LID_14.figure.clear()
+        self.widget_LID_14.draw()
+
+        self.widget_LID_58.figure.clear()
+        self.widget_LID_58.draw()
+
         self.widget_LID_ALL.figure.clear()
         self.widget_LID_ALL.draw()
 
@@ -429,6 +413,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         ax81 = self.widget_LID8.figure.add_subplot(212)
 
         ax_all = self.widget_LID_ALL.figure.add_subplot(111)
+        ax_14 = self.widget_LID_14.figure.add_subplot(111)
+        ax_58 = self.widget_LID_58.figure.add_subplot(111)
 
         ax_mir = self.widget_MIR.figure.add_subplot(111)
 
@@ -440,6 +426,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.ax1 = ax6
         self.ax1 = ax7
         self.ax1 = ax8
+        self.ax_14 = ax_14
+        self.ax_58 = ax_58
 
         self.ax51 = ax51
         self.ax61 = ax61
@@ -455,24 +443,21 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.pulse = int(self.lineEdit_jpn.text())
         logger.info("Reading data for pulse {}".format(str(self.pulse)))
 
-        # -------------------------------
-        # 0. Read in KG1 variables and config data.
-        # -------------------------------
-        # Read in signal names and configuration data
 
 
-
-
-
+        #check if KG1 data for selected pulse already exists in 'saved' folder
         exists = os.path.isfile('./saved/'+str(self.pulse)+'.pkl')
 
 
         if exists:
+
             if  (self.checkBox_newpulse.isChecked() == False):
+                # if exists and new pulse checkbox is not checked then load data
 
                 logging.info('pulse data already downloaded')
                 self.load_pickle()
             else:
+                # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
                 logging.info('pulse data already downloaded - you are requesting to download again')
                 self.areyousure_window = QtGui.QMainWindow()
                 self.ui_areyousure = Ui_areyousure_window()
@@ -482,6 +467,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_yes)
                 self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
         else:
+            #if data not exists read it and overwrite
             self.readdata()
 
 
@@ -496,6 +482,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.pushButton_makeperm.setEnabled(True)
         self.pushButton_undo.setEnabled(True)
 
+        # -------------------------------
+        # 0. PLOT KG1 data.
+        # -------------------------------
 
         for chan in self.KG1_data.density.keys():
             ax_name=  'ax'+str(chan)
@@ -505,23 +494,24 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             vars()[ax_name].legend()
             self.ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x')
             self.ax_all.legend()
-            # exec(
-            #     'self.' + ax_name + '.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)')
-            # self.ax_all.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)
+            if chan < 5:
+                self.ax_14.plot(self.KG1_data.density[chan].time,
+                                 self.KG1_data.density[chan].data, label=name,
+                                 marker='x')
+                self.ax_14.legend()
 
-            # draw_widget(chan)
+            if chan > 4:
+                self.ax_58.plot(self.KG1_data.density[chan].time,
+                                 self.KG1_data.density[chan].data, label=name,
+                                 marker='x')
+                self.ax_58.legend()
+
             self.widget_LID1.draw()
 
             if chan >4:
                 name1='MIR'+str(chan)
                 ax_name1 = 'ax' + str(chan)+str(1)
                 widget_name1 = 'widget_LID' + str(chan)+str(1)
-                # vars()[ax_name].plot(kg1_data.density[chan].time,
-                #                      kg1_data.density[chan].data,'b',label=name,,marker='x')
-                # # exec('self.'+ax_name1+'.plot(KG1_data.density[chan].time,KG1_data.density[chan].data,''bx'')')
-                # # draw_widget(chan)
-                # exec(
-                #     'self.' + ax_name1 + '.plot(KG1_data.vibration[chan].time,KG1_data.vibration[chan].data)')
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
                                       self.KG1_data.vibration[chan].data,marker='x',label=name1, color='b')
                 vars()[ax_name1].legend()
@@ -530,46 +520,18 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 self.ax_mir.legend()
                 # draw_widget(chan)
 
-        # plt.show()
-        #
-        # a=[x for x in range(10)]
-        # b=np.square(a)
-        # ax1.plot(a,b,'r')
-        # self.widget_LID1.draw()
-        # ax2.plot(a,b,'b')
-        # self.widget_LID2.draw()
-        # ax3.plot(a,b,'k')
-
-        # plt.figure()
-        # chan = 1
-        # self.widget_LID1.figure.clear()
+        # update canvas
         self.widget_LID1.draw()
-        #
-        # self.widget_LID2.figure.clear()
         self.widget_LID2.draw()
-        #
-        # self.widget_LID3.figure.clear()
         self.widget_LID3.draw()
-        #
-        # self.widget_LID4.figure.clear()
         self.widget_LID4.draw()
-        #
-        # self.widget_LID5.figure.clear()
         self.widget_LID5.draw()
-        #
-        # self.widget_LID6.figure.clear()
         self.widget_LID6.draw()
-        #
-        # self.widget_LID7.figure.clear()
         self.widget_LID7.draw()
-        #
-        # self.widget_LID8.figure.clear()
         self.widget_LID8.draw()
-
-        # self.widget_LID_ALL.figure.clear()
+        self.widget_LID_14.draw()
         self.widget_LID_ALL.draw()
-
-        # self.widget_MIR.figure.clear()
+        self.widget_LID_58.draw()
         self.widget_MIR.draw()
 
     # ----------------------------
@@ -608,6 +570,23 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 # -----------------------
     def readdata(self):
+        """
+        function that reads data as described in const.ini
+
+        reads:
+        - mag data
+        - pellet data
+        - elm data
+        - kg1 data
+        - kg4 data
+        - nbi data
+        - hrts data
+        - lidar data
+
+
+
+        :return: save data to pickle files: one just for KG1 (pulsename_kg1) and one for everything else (pulsename.pkl)
+        """
 
 
 
@@ -705,259 +684,18 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
     # ------------------------
     def plot_2nd_trace(self):
-            # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
-            self.s2ndtrace = self.comboBox_2ndtrace.currentText()
+        """
+        function that plots a second trace in the tabs(each canvas)
+        at the moment clears the canvas and re-plot everything
+        so probably a little slow.
 
-            # self.widget_LID8.draw()
-
-            self.widget_LID1.figure.clear()
-            self.widget_LID1.draw()
-
-            self.widget_LID2.figure.clear()
-            self.widget_LID2.draw()
-
-            self.widget_LID3.figure.clear()
-            self.widget_LID3.draw()
-
-            self.widget_LID4.figure.clear()
-            self.widget_LID4.draw()
-
-            self.widget_LID5.figure.clear()
-            self.widget_LID5.draw()
-
-            self.widget_LID6.figure.clear()
-            self.widget_LID6.draw()
-
-            self.widget_LID7.figure.clear()
-            self.widget_LID7.draw()
-
-            self.widget_LID8.figure.clear()
-            self.widget_LID8.draw()
-
-            ax1 = self.widget_LID1.figure.add_subplot(111)
-
-            ax2 = self.widget_LID2.figure.add_subplot(111)
-            ax3 = self.widget_LID3.figure.add_subplot(111)
-            ax4 = self.widget_LID4.figure.add_subplot(111)
-
-            ax5 = self.widget_LID5.figure.add_subplot(211)
-            ax51 = self.widget_LID5.figure.add_subplot(212)
-
-            ax6 = self.widget_LID6.figure.add_subplot(211)
-            ax61 = self.widget_LID6.figure.add_subplot(212)
-
-            ax7 = self.widget_LID7.figure.add_subplot(211)
-            ax71 = self.widget_LID7.figure.add_subplot(212)
-
-            ax8 = self.widget_LID8.figure.add_subplot(211)
-            ax81 = self.widget_LID8.figure.add_subplot(212)
-
-            ax_all = self.widget_LID_ALL.figure.add_subplot(111)
-
-            ax_mir = self.widget_MIR.figure.add_subplot(111)
-
-            for chan in self.KG1_data.density.keys():
-                ax_name = 'ax' + str(chan)
-                name = 'LID' + str(chan)
-                widget_name = 'widget_LID' + str(chan)
-                vars()[ax_name].plot(self.KG1_data.density[chan].time,
-                                     self.KG1_data.density[chan].data,
-                                     label=name, marker='x', color='b')
-                vars()[ax_name].legend()
-                # self.ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x')
-                # self.ax_all.legend()
-                # exec(
-                #     'self.' + ax_name + '.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)')
-                # self.ax_all.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)
-
-                # draw_widget(chan)
-                self.widget_LID1.draw()
-
-                if chan > 4:
-                    name1 = 'MIR' + str(chan)
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    widget_name1 = 'widget_LID' + str(chan) + str(1)
-                    # vars()[ax_name].plot(kg1_data.density[chan].time,
-                    #                      kg1_data.density[chan].data,'b',label=name,,marker='x')
-                    # # exec('self.'+ax_name1+'.plot(KG1_data.density[chan].time,KG1_data.density[chan].data,''bx'')')
-                    # # draw_widget(chan)
-                    # exec(
-                    #     'self.' + ax_name1 + '.plot(KG1_data.vibration[chan].time,KG1_data.vibration[chan].data)')
-                    vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                          self.KG1_data.vibration[chan].data,
-                                          marker='x', label=name1, color='b')
-                    vars()[ax_name1].legend()
-                    # self.ax_mir.plot(self.KG1_data.vibration[chan].time,
-                    #                  self.KG1_data.vibration[chan].data,marker='x',label=name1)
-                    # self.ax_mir.legend()
-                    # draw_widget(chan)
-
-            logging.info('plotting second trace {}'.format(self.s2ndtrace))
-            if self.s2ndtrace == None:
-                logging.info('no second trace selected')
-            if self.s2ndtrace == 'HRTS':
-                # if len(self.HRTS_data.density[chan].time) == 0:
-                #     logging.info('NO HRTS data')
-                # else:
-                    for chan in self.HRTS_data.density.keys():
-                        ax_name = 'ax' + str(chan)
-                        name = 'HRTS ch.' + str(chan)
-                        widget_name = 'widget_LID' + str(chan)
-
-                        vars()[ax_name].plot(self.HRTS_data.density[chan].time,
-                                             self.HRTS_data.density[chan].data,
-                                             label=name, marker='o',
-                                             color='orange')
-
-                        if chan > 4:
-                            ax_name1 = 'ax' + str(chan) + str(1)
-                            widget_name1 = 'widget_LID' + str(chan) + str(1)
-                            vars()[ax_name].plot(
-                                self.HRTS_data.density[chan].time,
-                                self.HRTS_data.density[chan].data, label=name,
-                                marker='o', color='orange')
-
-            if self.s2ndtrace == 'Lidar':
-                if len(self.LIDAR_data.density[chan].time) == 0:
-                    logging.info('NO LIDAR data')
-                else:
-
-                    for chan in self.KG1_data.constants.kg1v.keys():
-                        ax_name = 'ax' + str(chan)
-                        name = 'HRTS ch.' + str(chan)
-                        widget_name = 'widget_LID' + str(chan)
-
-                        vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
-                                             self.LIDAR_data.density[chan].data,
-                                             label=name, marker='o',
-                                             color='green')
-
-                        if chan > 4:
-                            ax_name1 = 'ax' + str(chan) + str(1)
-                            widget_name1 = 'widget_LID' + str(chan) + str(1)
-                            vars()[ax_name].plot(
-                                self.LIDAR_data.density[chan].time,
-                                self.LIDAR_data.density[chan].data, label=name,
-                                marker='o', color='green')
-
-            if self.s2ndtrace == 'Far':
-                # if len(self.KG4_data.faraday[chan].time) == 0:
-                #     logging.info('NO Far data')
-                # else:
-
-                for chan in self.KG4_data.faraday.keys():
-                    ax_name = 'ax' + str(chan)
-                    name = 'Far ch.' + str(chan)
-                    widget_name = 'widget_LID' + str(chan)
-
-                    vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
-                                         self.KG4_data.faraday[chan].data,
-                                         label=name, marker='o', color='red')
-
-                    if chan > 4:
-                        ax_name1 = 'ax' + str(chan) + str(1)
-                        widget_name1 = 'widget_LID' + str(chan) + str(1)
-                        vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
-                                             self.KG4_data.faraday[chan].data,
-                                             label=name, marker='o',
-                                             color='red')
-
-            if self.s2ndtrace == 'CM':
-
-                # if len(self.KG4_data.xg_ell_signal[chan].time) == 0:
-                #     logging.info('NO CM data')
-                # else:
-
-                for chan in self.KG4_data.xg_ell_signal.keys():
-                    ax_name = 'ax' + str(chan)
-                    name = 'CM ch.' + str(chan)
-                    widget_name = 'widget_LID' + str(chan)
-
-                    vars()[ax_name].plot(self.KG4_data.xg_ell_signal[chan].time,
-                                         self.KG4_data.xg_ell_signal[chan].data,
-                                         label=name, marker='o', color='purple')
-
-                    if chan > 4:
-                        ax_name1 = 'ax' + str(chan) + str(1)
-                        widget_name1 = 'widget_LID' + str(chan) + str(1)
-                        vars()[ax_name].plot(
-                            self.KG4_data.xg_ell_signal[chan].time,
-                            self.KG4_data.xg_ell_signal[chan].data, label=name,
-                            marker='o', color='purple')
-
-            if self.s2ndtrace == 'KG1_RT':
-                # if len(self.KG4_data.density[chan].time) == 0:
-                #     logging.info('NO KG1_RT data')
-                # else:
-
-                for chan in self.KG4_data.density.keys():
-                    ax_name = 'ax' + str(chan)
-                    name = 'KG1 RT ch.' + str(chan)
-                    widget_name = 'widget_LID' + str(chan)
-
-                    vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
-                                         self.KG1_data.kg1rt[chan].data,
-                                         label=name, marker='o', color='brown')
-
-                    if chan > 4:
-                        ax_name1 = 'ax' + str(chan) + str(1)
-                        widget_name1 = 'widget_LID' + str(chan) + str(1)
-                        vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
-                                             self.KG1_data.kg1rt[chan].data,
-                                             label=name, marker='o',
-                                             color='brown')
-
-            if self.s2ndtrace == 'BremS':
-                logging.debug('not implemented yet')
-
-                # for chan in self.LIDAR_data.constants.kg1v.keys():
-                #     ax_name = 'ax' + str(chan)
-                #     name = 'HRTS ch.' + str(chan)
-                #     widget_name = 'widget_LID' + str(chan)
-                #
-                #     vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
-                #                          self.LIDAR_data.density[chan].data,label=name,marker='o', color='r')
-                #
-                #     self.widget_LID1.draw()
-                #
-                #
-                #     if chan > 4:
-                #         ax_name1 = 'ax' + str(chan) + str(1)
-                #         widget_name1 = 'widget_LID' + str(chan) + str(1)
-                #         vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
-                #                              self.LIDAR_data.density[chan].data,label=name,marker='o', color='r')
-
-            # self.widget_LID1.figure.clear()
-            self.widget_LID1.draw()
-            #
-            # self.widget_LID2.figure.clear()
-            self.widget_LID2.draw()
-            #
-            # self.widget_LID3.figure.clear()
-            self.widget_LID3.draw()
-            #
-            # self.widget_LID4.figure.clear()
-            self.widget_LID4.draw()
-            #
-            # self.widget_LID5.figure.clear()
-            self.widget_LID5.draw()
-            #
-            # self.widget_LID6.figure.clear()
-            self.widget_LID6.draw()
-            #
-            # self.widget_LID7.figure.clear()
-            self.widget_LID7.draw()
-            #
-            # self.widget_LID8.figure.clear()
-            self.widget_LID8.draw()
-
-# ------------------------
-    def plot_markers(self):
+        :return:
+        """
         # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
-        self.marker = self.comboBox_markers.currentText()
+        self.s2ndtrace = self.comboBox_2ndtrace.currentText()
 
-        # self.widget_LID8.draw()
 
+        # initialize and clean canvas
         self.widget_LID1.figure.clear()
         self.widget_LID1.draw()
 
@@ -1004,6 +742,257 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         ax_mir = self.widget_MIR.figure.add_subplot(111)
 
+        # for every channel in KG1 (8 channels)
+        for chan in self.KG1_data.density.keys():
+            ax_name = 'ax' + str(chan)
+            name = 'LID' + str(chan)
+            widget_name = 'widget_LID' + str(chan)
+            vars()[ax_name].plot(self.KG1_data.density[chan].time,
+                                 self.KG1_data.density[chan].data,
+                                 label=name, marker='x', color='b')
+            vars()[ax_name].legend()
+            self.widget_LID1.draw()
+
+            if chan > 4:
+                name1 = 'MIR' + str(chan)
+                ax_name1 = 'ax' + str(chan) + str(1)
+                widget_name1 = 'widget_LID' + str(chan) + str(1)
+                vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
+                                      self.KG1_data.vibration[chan].data,
+                                      marker='x', label=name1, color='b')
+                vars()[ax_name1].legend()
+
+
+        logging.info('plotting second trace {}'.format(self.s2ndtrace))
+        if self.s2ndtrace == None:
+            logging.info('no second trace selected')
+        if self.s2ndtrace == 'HRTS':
+            #check HRTS data exist
+            if self.HRTS_data is not None:
+            # if len(self.HRTS_data.density[chan].time) == 0:
+            #     logging.info('NO HRTS data')
+            # else:
+                for chan in self.HRTS_data.density.keys():
+                    ax_name = 'ax' + str(chan)
+                    name = 'HRTS ch.' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
+
+                    vars()[ax_name].plot(self.HRTS_data.density[chan].time,
+                                         self.HRTS_data.density[chan].data,
+                                         label=name, marker='o',
+                                         color='orange')
+
+                    if chan > 4:
+                        ax_name1 = 'ax' + str(chan) + str(1)
+                        widget_name1 = 'widget_LID' + str(chan) + str(1)
+                        vars()[ax_name].plot(
+                            self.HRTS_data.density[chan].time,
+                            self.HRTS_data.density[chan].data, label=name,
+                            marker='o', color='orange')
+
+        if self.s2ndtrace == 'Lidar':
+            if len(self.LIDAR_data.density[chan].time) == 0:
+                logging.info('NO LIDAR data')
+            else:
+
+                for chan in self.KG1_data.constants.kg1v.keys():
+                    ax_name = 'ax' + str(chan)
+                    name = 'HRTS ch.' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
+
+                    vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
+                                         self.LIDAR_data.density[chan].data,
+                                         label=name, marker='o',
+                                         color='green')
+
+                    if chan > 4:
+                        ax_name1 = 'ax' + str(chan) + str(1)
+                        widget_name1 = 'widget_LID' + str(chan) + str(1)
+                        vars()[ax_name].plot(
+                            self.LIDAR_data.density[chan].time,
+                            self.LIDAR_data.density[chan].data, label=name,
+                            marker='o', color='green')
+
+        if self.s2ndtrace == 'Far':
+         if self.KG4_data.faraday is not None:
+            # if len(self.KG4_data.faraday[chan].time) == 0:
+            #     logging.info('NO Far data')
+            # else:
+
+            for chan in self.KG4_data.faraday.keys():
+                ax_name = 'ax' + str(chan)
+                name = 'Far ch.' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+
+                vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
+                                     self.KG4_data.faraday[chan].data,
+                                     label=name, marker='o', color='red')
+
+                if chan > 4:
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
+                                         self.KG4_data.faraday[chan].data,
+                                         label=name, marker='o',
+                                         color='red')
+
+        if self.s2ndtrace == 'CM':
+         if self.KG4_data.xg_ell_signal is not None:
+
+            # if len(self.KG4_data.xg_ell_signal[chan].time) == 0:
+            #     logging.info('NO CM data')
+            # else:
+
+            for chan in self.KG4_data.xg_ell_signal.keys():
+                ax_name = 'ax' + str(chan)
+                name = 'CM ch.' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+
+                vars()[ax_name].plot(self.KG4_data.xg_ell_signal[chan].time,
+                                     self.KG4_data.xg_ell_signal[chan].data,
+                                     label=name, marker='o', color='purple')
+
+                if chan > 4:
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    vars()[ax_name].plot(
+                        self.KG4_data.xg_ell_signal[chan].time,
+                        self.KG4_data.xg_ell_signal[chan].data, label=name,
+                        marker='o', color='purple')
+
+        if self.s2ndtrace == 'KG1_RT':
+         if self.KG4_data.density is not None:
+            # if len(self.KG4_data.density[chan].time) == 0:
+            #     logging.info('NO KG1_RT data')
+            # else:
+
+            for chan in self.KG4_data.density.keys():
+                ax_name = 'ax' + str(chan)
+                name = 'KG1 RT ch.' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+
+                vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
+                                     self.KG1_data.kg1rt[chan].data,
+                                     label=name, marker='o', color='brown')
+
+                if chan > 4:
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
+                                         self.KG1_data.kg1rt[chan].data,
+                                         label=name, marker='o',
+                                         color='brown')
+
+        if self.s2ndtrace == 'BremS':
+            logging.debug('not implemented yet')
+
+        # update canvas
+        self.widget_LID1.draw()
+        self.widget_LID2.draw()
+        self.widget_LID3.draw()
+        self.widget_LID4.draw()
+        self.widget_LID5.draw()
+        self.widget_LID6.draw()
+        self.widget_LID7.draw()
+        self.widget_LID8.draw()
+
+
+# ------------------------
+    def plot_markers(self):
+        """
+        function that plots a marker traces in the tabs(each canvas)
+        This version creates sub plot inside the canvas
+        :return:
+        """
+        # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
+        self.marker = self.comboBox_markers.currentText()
+
+        # self.widget_LID8.draw()
+
+        self.widget_LID1.figure.clear()
+        self.widget_LID1.draw()
+
+        self.widget_LID2.figure.clear()
+        self.widget_LID2.draw()
+
+        self.widget_LID3.figure.clear()
+        self.widget_LID3.draw()
+
+        self.widget_LID4.figure.clear()
+        self.widget_LID4.draw()
+
+        self.widget_LID5.figure.clear()
+        self.widget_LID5.draw()
+
+        self.widget_LID6.figure.clear()
+        self.widget_LID6.draw()
+
+        self.widget_LID7.figure.clear()
+        self.widget_LID7.draw()
+
+        self.widget_LID8.figure.clear()
+        self.widget_LID8.draw()
+
+
+
+        ax_all = self.widget_LID_ALL.figure.add_subplot(111)
+
+        ax_mir = self.widget_MIR.figure.add_subplot(111)
+
+        # define now two gridspecs
+        # gs is the gridspec per channels 1-4
+        # gs1 is the gridspec for channels 5-8
+        # when plotting markers they will allocate space to plot markers in a subplot under current plot
+
+        # gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])# working: creates canvas with 2 columns in the ratio 1/3
+        heights = [3, 1]
+        gs = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights)
+        #
+        heights1 = [3, 3, 1]
+        gs1 = gridspec.GridSpec(ncols=1, nrows=3, height_ratios=heights1)
+
+        ax1 = self.widget_LID1.figure.add_subplot(gs[0])
+        ax1_marker = self.widget_LID1.figure.add_subplot(gs[1], sharex=ax1)
+
+        ax2 = self.widget_LID2.figure.add_subplot(gs[0])
+        ax2_marker = self.widget_LID2.figure.add_subplot(gs[1], sharex=ax1)
+
+        ax3 = self.widget_LID3.figure.add_subplot(gs[0])
+        ax3_marker = self.widget_LID3.figure.add_subplot(gs[1], sharex=ax1)
+
+        ax4 = self.widget_LID4.figure.add_subplot(gs[0])
+        ax4_marker = self.widget_LID4.figure.add_subplot(gs[1], sharex=ax1)
+
+
+
+        ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
+        ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
+        ax5_marker = self.widget_LID5.figure.add_subplot(gs1[2], sharex=ax5)
+
+        ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
+        ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
+        ax6_marker = self.widget_LID6.figure.add_subplot(gs1[2], sharex=ax6)
+
+        ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
+        ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
+        ax7_marker = self.widget_LID7.figure.add_subplot(gs1[2], sharex=ax7)
+
+        ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
+        ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
+        ax8_marker = self.widget_LID8.figure.add_subplot(gs1[2], sharex=ax8)
+
+        # define now other gridspecs
+        # gs2 is the gridspec per channels 1-4
+        # gs21 is the gridspec for channels 5-8
+        # when plotting NO markers they will reset to standard plots
+
+        heights2 = [4]
+        gs2 = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights2)
+        heights21 = [3, 3]
+        gs21 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights21)
+
+
+
         for chan in self.KG1_data.density.keys():
             ax_name = 'ax' + str(chan)
             name = 'LID' + str(chan)
@@ -1040,27 +1029,61 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 # self.ax_mir.legend()
                 # draw_widget(chan)
 
-        logging.info('plotting marker {}'.format(self.marker))
-        if self.marker == None:
+        if self.marker is not None:
+            logging.info('plotting marker {}'.format(self.marker))
+        if self.marker == 'None':
             logging.info('no marker selected')
+
+            # if no marker hide axis showing markers
+            ax1_marker.set_visible(False)
+            ax2_marker.set_visible(False)
+            ax3_marker.set_visible(False)
+            ax4_marker.set_visible(False)
+            ax5_marker.set_visible(False)
+            ax6_marker.set_visible(False)
+            ax7_marker.set_visible(False)
+            ax8_marker.set_visible(False)
+            # use the second group of Gridspec and rearrange plots
+            ax1.set_position(gs2[0].get_position(self.widget_LID1.figure))
+            ax2.set_position(gs2[0].get_position(self.widget_LID2.figure))
+            ax3.set_position(gs2[0].get_position(self.widget_LID3.figure))
+            ax4.set_position(gs2[0].get_position(self.widget_LID4.figure))
+
+            ax5.set_position(gs21[0].get_position(self.widget_LID5.figure))
+            ax51.set_position(gs21[1].get_position(self.widget_LID5.figure))
+            ax6.set_position(gs21[0].get_position(self.widget_LID5.figure))
+            ax61.set_position(gs21[1].get_position(self.widget_LID5.figure))
+            ax7.set_position(gs21[0].get_position(self.widget_LID5.figure))
+            ax71.set_position(gs21[1].get_position(self.widget_LID5.figure))
+            ax8.set_position(gs21[0].get_position(self.widget_LID5.figure))
+            ax81.set_position(gs21[1].get_position(self.widget_LID5.figure))
+
+
+
+
+
+
+
+
         if self.marker == 'ELMs':
-            for chan in self.KG1_data.density.keys():
-                        ax_name = 'ax' + str(chan)
+            if self.ELM_data.elm_times is not None:
+                for chan in self.KG1_data.density.keys():
+                        ax_name = 'ax' + str(chan)+'_marker'
                         # name = 'HRTS ch.' + str(chan)
                         widget_name = 'widget_LID' + str(chan)
 
                         vars()[ax_name].plot(self.ELM_data.elms_signal.time, self.ELM_data.elms_signal.data,
                                              color='black')
-                        if self.ELM_data.elm_times is not None:
-                            for vert in self.ELM_data.elm_times:
-                                vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
-                                                     linewidth=2, color="red")
-                        # if len(self.ELM_data.elm_times) > 0:
-                            for horz in [self.ELM_data.UP_THRESH, self.ELM_data.DOWN_THRESH]:
-                                vars()[ax_name].axhline(y=horz, xmin=0, xmax=1,
-                                                linewidth=2, color="cyan")
-                        else:
-                            logging.info('No ELMs marker')
+
+                        for vert in self.ELM_data.elm_times:
+                            vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
+                                                 linewidth=2, color="red")
+                    # if len(self.ELM_data.elm_times) > 0:
+                        for horz in [self.ELM_data.UP_THRESH, self.ELM_data.DOWN_THRESH]:
+                            vars()[ax_name].axhline(y=horz, xmin=0, xmax=1,
+                                            linewidth=2, color="cyan")
+            else:
+                logging.info('No ELMs marker')
 
                         # if chan > 4:
                         #     ax_name1 = 'ax' + str(chan) + str(1)
@@ -1070,69 +1093,54 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                         #         self.HRTS_data.density[chan].data, label=name,
                         #         marker='o', color='orange')
 
-                        # make_plot([[elms_signal.time, elms_signal.data],
-                        #            [elms_signal.time, data_filt],
-                        #            [elms_signal.time[0:-10], first_deriv],
-                        #            [elms_signal.time, elms_signal.data],
-                        #            [elms_signal.time, elms_signal.data]],
-                        #           labels=["Be-II", "filt", "1st deriv",
-                        #                   "starts", "ends"],
-                        #           colours=["blue", "green", "green", "blue",
-                        #                    "blue"],
-                        #           pformat=[2, 1, 1, 1],
-                        #           show=True,
-                        #           vert_lines=[elm_times, [],
-                        #                       elms_signal.time[ind_start],
-                        #                       elms_signal.time[ind_end]],
-                        #           horz_lines=[[], [self.UP_THRESH,
-                        #                            self.DOWN_THRESH], [], []],
-                        #           title="Be-II signal & 1st derivative used for ELM finding, detected elm times shown.")
-
         if self.marker == 'MAGNETICs':
-            for chan in self.KG1_data.density.keys():
-                ax_name = 'ax' + str(chan)
-                # name = 'HRTS ch.' + str(chan)
-                widget_name = 'widget_LID' + str(chan)
+            if (self.MAG_data.start_ip) > 0:
+                for chan in self.KG1_data.density.keys():
+                    ax_name = 'ax' + str(chan)+'_marker'
+                    # name = 'HRTS ch.' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
 
-                if (self.MAG_data.start_ip) > 0:
+
                     for vert in [self.MAG_data.start_ip, self.MAG_data.end_ip]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
                                             linewidth=2, color="red")
                     for vert in [self.MAG_data.start_flattop, self.MAG_data.end_flattop]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
                                             linewidth=2, color="green")
-                else:
-                    logging.info('No MAGNETICs marker')
+            else:
+                logging.info('No MAGNETICs marker')
 
 
         if self.marker == 'NBI':
-            for chan in self.KG1_data.density.keys():
-                        ax_name = 'ax' + str(chan)
+            if (self.NBI_data.start_nbi) > 0.0:
+                for chan in self.KG1_data.density.keys():
+                        ax_name = 'ax' + str(chan)+'_marker'
                         # name = 'HRTS ch.' + str(chan)
                         widget_name = 'widget_LID' + str(chan)
 
-                        if (self.NBI_data.start_nbi) > 0.0:
-                            for vert in [self.NBI_data.start_nbi, self.NBI_data.end_nbi]:
-                                vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
+
+                        for vert in [self.NBI_data.start_nbi, self.NBI_data.end_nbi]:
+                            vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
                                                     linewidth=2, color="red")
-                        else:
-                            logging.info('No NBI marker')
+            else:
+                logging.info('No NBI marker')
 
 
 
 
         if self.marker == 'PELLETs':
-            for chan in self.KG1_data.density.keys():
-                ax_name = 'ax' + str(chan)
-                # name = 'HRTS ch.' + str(chan)
-                widget_name = 'widget_LID' + str(chan)
+            if self.PELLETS_data.time_pellets is not None:
+                for chan in self.KG1_data.density.keys():
+                    ax_name = 'ax' + str(chan)+'_marker'
+                    # name = 'HRTS ch.' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
 
-                if self.PELLETS_data.time_pellets is not None:
+
                     for vert in [self.PELLETS_data.time_pellets]:
-                      vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
-                                            linewidth=2, color="red")
-                else:
-                    logging.info('No PELLET marker')
+                          vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
+                                                linewidth=2, color="red")
+            else:
+                logging.info('No PELLET marker')
 
 
             # pass
@@ -1159,12 +1167,20 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         #
         # self.widget_LID8.figure.clear()
         self.widget_LID8.draw()
-#------------------------
+
+    # ------------------------
+
     def handle_checkbutton(self):
         pass
 
 #------------------------
     def handle_savebutton(self):
+        """
+        save data
+        user can save either Status Flags or ppf (and SF)
+        :return:
+        """
+
         # -------------------------------
         # 13. Write data to PPF
         #     Don't allow for writing of new PPF if write UID is JETPPF and test is true.
@@ -1198,6 +1214,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 #------------------------
     def handle_normalizebutton(self):
+
         pass
 
 #------------------------
