@@ -34,6 +34,7 @@ from elms_data import ElmsData
 from pellet_data import PelletData
 from nbi_data import NBIData
 from hrts_data import HRTSData
+from signal_base import SignalBase
 from lidar_data import LIDARData
 from find_disruption import find_disruption
 import woop
@@ -65,7 +66,8 @@ plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 
 logger = logging.getLogger(__name__)
 
-
+def norm(data):
+    return (data)/(max(data)-min(data))
 
 class QPlainTextEditLogger(logging.Handler):
     """
@@ -269,9 +271,12 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # self.pushButton_zoom.clicked.connect(self.handle_zoombutton)
         # self.pushButton_reset.clicked.connect(self.handle_resetbutton)
         self.button_read_pulse.clicked.connect(self.handle_readbutton)
-        self.button_check_pulse.clicked.connect(self.handle_checkbutton)
+        # self.button_check_pulse.clicked.connect(self.handle_checkbutton)
         self.button_save.clicked.connect(self.handle_savebutton)
+
         self.button_normalize.clicked.connect(self.handle_normalizebutton)
+        self.button_restore.clicked.connect(self.handle_button_restore)
+
         self.pushButton_apply.clicked.connect(self.handle_applybutton)
         self.pushButton_makeperm.clicked.connect(self.handle_makepermbutton)
         self.pushButton_undo.clicked.connect(self.handle_undobutton)
@@ -294,8 +299,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.pushButton_apply.setEnabled(False)
         self.pushButton_makeperm.setEnabled(False)
         self.pushButton_undo.setEnabled(False)
-        self.button_check_pulse.setEnabled(False)
-        self.button_normalize.setEnabled(False)
+        # self.button_check_pulse.setEnabled(False)
+        self.button_restore.setEnabled(False)
 
         #run code by default
 
@@ -358,6 +363,10 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 # ------------------------
     def handle_readbutton(self):
 
+        #disable "normalize" and "restore" buttons
+        self.button_normalize.setEnabled(False)
+        self.button_restore.setEnabled(False)
+
         self.widget_LID1.figure.clear()
         self.widget_LID1.draw()
 
@@ -394,48 +403,46 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.widget_MIR.figure.clear()
         self.widget_MIR.draw()
 
-        ax1 = self.widget_LID1.figure.add_subplot(111)
+        self.kg1_original = {}
+        self.kg1_norm = {}
 
-        ax2 = self.widget_LID2.figure.add_subplot(111)
-        ax3 = self.widget_LID3.figure.add_subplot(111)
-        ax4 = self.widget_LID4.figure.add_subplot(111)
+        # define now two gridspecs
+        # gs is the gridspec per channels 1-4
+        # gs1 is the gridspec for channels 5-8
+        # when plotting markers they will allocate space to plot markers in a subplot under current plot
 
-        ax5 = self.widget_LID5.figure.add_subplot(211)
-        ax51 = self.widget_LID5.figure.add_subplot(212)
+        # gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])# working: creates canvas with 2 columns in the ratio 1/3
 
-        ax6 = self.widget_LID6.figure.add_subplot(211)
-        ax61 = self.widget_LID6.figure.add_subplot(212)
+        heights = [4]
+        gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
+        heights1 = [3, 3]
+        gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
 
-        ax7 = self.widget_LID7.figure.add_subplot(211)
-        ax71 = self.widget_LID7.figure.add_subplot(212)
+        ax1 = self.widget_LID1.figure.add_subplot(gs[0])
 
-        ax8 = self.widget_LID8.figure.add_subplot(211)
-        ax81 = self.widget_LID8.figure.add_subplot(212)
+        ax2 = self.widget_LID2.figure.add_subplot(gs[0])
 
-        ax_all = self.widget_LID_ALL.figure.add_subplot(111)
-        ax_14 = self.widget_LID_14.figure.add_subplot(111)
-        ax_58 = self.widget_LID_58.figure.add_subplot(111)
+        ax3 = self.widget_LID3.figure.add_subplot(gs[0])
 
-        ax_mir = self.widget_MIR.figure.add_subplot(111)
+        ax4 = self.widget_LID4.figure.add_subplot(gs[0])
 
-        self.ax1 = ax1
-        self.ax1 = ax2
-        self.ax1 = ax3
-        self.ax1 = ax4
-        self.ax1 = ax5
-        self.ax1 = ax6
-        self.ax1 = ax7
-        self.ax1 = ax8
-        self.ax_14 = ax_14
-        self.ax_58 = ax_58
+        ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
+        ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
 
-        self.ax51 = ax51
-        self.ax61 = ax61
-        self.ax71 = ax71
-        self.ax81 = ax81
+        ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
+        ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
 
-        self.ax_all = ax_all
-        self.ax_mir = ax_mir
+        ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
+        ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
+
+        ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
+        ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
+
+        ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
+        ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
+        ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
+
+        ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
 
 
 
@@ -475,9 +482,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
         # self.button_plot.setEnabled(True)
-        self.button_check_pulse.setEnabled(True)
+        # self.button_check_pulse.setEnabled(True)
         self.button_save.setEnabled(True)
-        self.button_normalize.setEnabled(True)
         self.pushButton_apply.setEnabled(True)
         self.pushButton_makeperm.setEnabled(True)
         self.pushButton_undo.setEnabled(True)
@@ -490,21 +496,26 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             ax_name=  'ax'+str(chan)
             name='LID'+str(chan)
             widget_name='widget_LID'+str(chan)
-            vars()[ax_name].plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x', color='b')
+
+
+            self.kg1_norm[chan] = SignalBase(self.constants)
+            self.kg1_norm[chan].data = norm(self.KG1_data.density[chan].data)
+
+            vars()[ax_name].plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x', color='b',linestyle= 'None')
             vars()[ax_name].legend()
-            self.ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x')
-            self.ax_all.legend()
+            ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x',linestyle= 'None')
+            ax_all.legend()
             if chan < 5:
-                self.ax_14.plot(self.KG1_data.density[chan].time,
+                ax_14.plot(self.KG1_data.density[chan].time,
                                  self.KG1_data.density[chan].data, label=name,
-                                 marker='x')
-                self.ax_14.legend()
+                                 marker='x',linestyle= 'None')
+                ax_14.legend()
 
             if chan > 4:
-                self.ax_58.plot(self.KG1_data.density[chan].time,
+                ax_58.plot(self.KG1_data.density[chan].time,
                                  self.KG1_data.density[chan].data, label=name,
-                                 marker='x')
-                self.ax_58.legend()
+                                 marker='x',linestyle= 'None')
+                ax_58.legend()
 
             self.widget_LID1.draw()
 
@@ -512,12 +523,13 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 name1='MIR'+str(chan)
                 ax_name1 = 'ax' + str(chan)+str(1)
                 widget_name1 = 'widget_LID' + str(chan)+str(1)
+                axx = vars()[ax_name1]
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data,marker='x',label=name1, color='b')
+                                      self.KG1_data.vibration[chan].data,marker='x',label=name1, color='b',linestyle= 'None')
                 vars()[ax_name1].legend()
-                self.ax_mir.plot(self.KG1_data.vibration[chan].time,
-                                 self.KG1_data.vibration[chan].data,marker='x',label=name1)
-                self.ax_mir.legend()
+                ax_mir.plot(self.KG1_data.vibration[chan].time,
+                                 self.KG1_data.vibration[chan].data,marker='x',label=name1,linestyle= 'None')
+                ax_mir.legend()
                 # draw_widget(chan)
 
         # update canvas
@@ -562,6 +574,123 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                       self.ui_areyousure.pushButton_YES.text())
         logging.debug('continue')
         self.readdata()
+
+        #disable "normalize" and "restore" buttons
+        self.button_normalize.setEnabled(False)
+        self.button_restore.setEnabled(False)
+
+        # define now two gridspecs
+        # gs is the gridspec per channels 1-4
+        # gs1 is the gridspec for channels 5-8
+        # when plotting markers they will allocate space to plot markers in a subplot under current plot
+
+        # gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])# working: creates canvas with 2 columns in the ratio 1/3
+
+        heights = [4]
+        gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
+        heights1 = [3, 3]
+        gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
+
+        ax1 = self.widget_LID1.figure.add_subplot(gs[0])
+
+        ax2 = self.widget_LID2.figure.add_subplot(gs[0])
+
+        ax3 = self.widget_LID3.figure.add_subplot(gs[0])
+
+        ax4 = self.widget_LID4.figure.add_subplot(gs[0])
+
+        ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
+        ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
+
+        ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
+        ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
+
+        ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
+        ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
+
+        ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
+        ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
+
+        ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
+        ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
+        ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
+
+        ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
+
+
+
+        # self.button_plot.setEnabled(True)
+        # self.button_check_pulse.setEnabled(True)
+        self.button_save.setEnabled(True)
+        # self.button_normalize.setEnabled(True)
+        # self.button_restore.setEnabled(True)
+        self.pushButton_apply.setEnabled(True)
+        self.pushButton_makeperm.setEnabled(True)
+        self.pushButton_undo.setEnabled(True)
+
+        # -------------------------------
+        # 0. PLOT KG1 data.
+        # -------------------------------
+
+        for chan in self.KG1_data.density.keys():
+            ax_name = 'ax' + str(chan)
+            name = 'LID' + str(chan)
+            widget_name = 'widget_LID' + str(chan)
+
+            self.kg1_norm[chan] = SignalBase(self.constants)
+            self.kg1_norm[chan].data = norm(self.KG1_data.density[chan].data)
+
+            vars()[ax_name].plot(self.KG1_data.density[chan].time,
+                                 self.KG1_data.density[chan].data, label=name,
+                                 marker='x', color='b',linestyle= 'None')
+            vars()[ax_name].legend()
+            ax_all.plot(self.KG1_data.density[chan].time,
+                             self.KG1_data.density[chan].data, label=name,
+                             marker='x',linestyle= 'None')
+            ax_all.legend()
+            if chan < 5:
+                ax_14.plot(self.KG1_data.density[chan].time,
+                                self.KG1_data.density[chan].data, label=name,
+                                marker='x',linestyle= 'None')
+                ax_14.legend()
+
+            if chan > 4:
+                ax_58.plot(self.KG1_data.density[chan].time,
+                                self.KG1_data.density[chan].data, label=name,
+                                marker='x',linestyle= 'None')
+                ax_58.legend()
+
+            self.widget_LID1.draw()
+
+            if chan > 4:
+                name1 = 'MIR' + str(chan)
+                ax_name1 = 'ax' + str(chan) + str(1)
+
+                widget_name1 = 'widget_LID' + str(chan) + str(1)
+                vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
+                                      self.KG1_data.vibration[chan].data,
+                                      marker='x', label=name1, color='b',linestyle= 'None')
+
+                vars()[ax_name1].legend()
+                ax_mir.plot(self.KG1_data.vibration[chan].time,
+                                 self.KG1_data.vibration[chan].data, marker='x',linestyle= 'None',
+                                 label=name1)
+                ax_mir.legend()
+                # draw_widget(chan)
+
+        # update canvas
+        self.widget_LID1.draw()
+        self.widget_LID2.draw()
+        self.widget_LID3.draw()
+        self.widget_LID4.draw()
+        self.widget_LID5.draw()
+        self.widget_LID6.draw()
+        self.widget_LID7.draw()
+        self.widget_LID8.draw()
+        self.widget_LID_14.draw()
+        self.widget_LID_ALL.draw()
+        self.widget_LID_58.draw()
+        self.widget_MIR.draw()
 
 
         self.ui_areyousure.pushButton_YES.setChecked(False)
@@ -692,6 +821,12 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         :return:
         """
         # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
+
+
+        self.secondtrace_original = {}
+        self.secondtrace_norm = {}
+
+
         self.s2ndtrace = self.comboBox_2ndtrace.currentText()
 
 
@@ -720,51 +855,62 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.widget_LID8.figure.clear()
         self.widget_LID8.draw()
 
-        ax1 = self.widget_LID1.figure.add_subplot(111)
+        heights = [4]
+        gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
+        heights1 = [3, 3]
+        gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
 
-        ax2 = self.widget_LID2.figure.add_subplot(111)
-        ax3 = self.widget_LID3.figure.add_subplot(111)
-        ax4 = self.widget_LID4.figure.add_subplot(111)
+        ax1 = self.widget_LID1.figure.add_subplot(gs[0])
 
-        ax5 = self.widget_LID5.figure.add_subplot(211)
-        ax51 = self.widget_LID5.figure.add_subplot(212)
+        ax2 = self.widget_LID2.figure.add_subplot(gs[0])
 
-        ax6 = self.widget_LID6.figure.add_subplot(211)
-        ax61 = self.widget_LID6.figure.add_subplot(212)
+        ax3 = self.widget_LID3.figure.add_subplot(gs[0])
 
-        ax7 = self.widget_LID7.figure.add_subplot(211)
-        ax71 = self.widget_LID7.figure.add_subplot(212)
+        ax4 = self.widget_LID4.figure.add_subplot(gs[0])
 
-        ax8 = self.widget_LID8.figure.add_subplot(211)
-        ax81 = self.widget_LID8.figure.add_subplot(212)
+        ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
+        ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
 
-        ax_all = self.widget_LID_ALL.figure.add_subplot(111)
+        ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
+        ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
 
-        ax_mir = self.widget_MIR.figure.add_subplot(111)
+        ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
+        ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
+
+        ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
+        ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
+
+        # ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
+        # ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
+        # ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
+        #
+        # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
 
         # for every channel in KG1 (8 channels)
         for chan in self.KG1_data.density.keys():
             ax_name = 'ax' + str(chan)
             name = 'LID' + str(chan)
             widget_name = 'widget_LID' + str(chan)
+
             vars()[ax_name].plot(self.KG1_data.density[chan].time,
                                  self.KG1_data.density[chan].data,
-                                 label=name, marker='x', color='b')
+                                 label=name, marker='x', color='b',linestyle= 'None')
             vars()[ax_name].legend()
-            self.widget_LID1.draw()
+            # self.widget_LID1.draw()
 
             if chan > 4:
+                # channels 5-8 have mirror movement
                 name1 = 'MIR' + str(chan)
                 ax_name1 = 'ax' + str(chan) + str(1)
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
                                       self.KG1_data.vibration[chan].data,
-                                      marker='x', label=name1, color='b')
+                                      marker='x', label=name1, color='b',linestyle= 'None')
                 vars()[ax_name1].legend()
 
 
         logging.info('plotting second trace {}'.format(self.s2ndtrace))
-        if self.s2ndtrace == None:
+        if self.s2ndtrace == 'None':
             logging.info('no second trace selected')
         if self.s2ndtrace == 'HRTS':
             #check HRTS data exist
@@ -777,18 +923,26 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                     name = 'HRTS ch.' + str(chan)
                     widget_name = 'widget_LID' + str(chan)
 
+                    self.secondtrace_original[chan] = SignalBase(self.constants)
+                    self.secondtrace_norm[chan] = SignalBase(self.constants)
+
+                    self.secondtrace_original[chan].time = self.HRTS_data.density[chan].time
+                    self.secondtrace_original[chan].data = self.HRTS_data.density[chan].data
+                    self.secondtrace_norm[chan].data = norm(self.HRTS_data.density[chan].data)
+
                     vars()[ax_name].plot(self.HRTS_data.density[chan].time,
                                          self.HRTS_data.density[chan].data,
                                          label=name, marker='o',
                                          color='orange')
+                    vars()[ax_name].legend()
 
-                    if chan > 4:
-                        ax_name1 = 'ax' + str(chan) + str(1)
-                        widget_name1 = 'widget_LID' + str(chan) + str(1)
-                        vars()[ax_name].plot(
-                            self.HRTS_data.density[chan].time,
-                            self.HRTS_data.density[chan].data, label=name,
-                            marker='o', color='orange')
+                    # if chan > 4:
+                    #     ax_name1 = 'ax' + str(chan) + str(1)
+                    #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    #     vars()[ax_name].plot(
+                    #         self.HRTS_data.density[chan].time,
+                    #         self.HRTS_data.density[chan].data, label=name,
+                    #         marker='o', color='orange')
 
         if self.s2ndtrace == 'Lidar':
             if len(self.LIDAR_data.density[chan].time) == 0:
@@ -800,18 +954,29 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                     name = 'HRTS ch.' + str(chan)
                     widget_name = 'widget_LID' + str(chan)
 
+                    self.secondtrace_original[chan] = SignalBase(self.constants)
+                    self.secondtrace_norm[chan] = SignalBase(self.constants)
+
+                    self.secondtrace_original[chan].time = self.LIDAR_data.density[chan].time
+                    self.secondtrace_original[chan].data = self.LIDAR_data.density[chan].data
+                    self.secondtrace_norm[chan].data = norm(self.LIDAR_data.density[chan].data)
+
+
+
+
                     vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
                                          self.LIDAR_data.density[chan].data,
                                          label=name, marker='o',
                                          color='green')
+                    vars()[ax_name].legend()
 
-                    if chan > 4:
-                        ax_name1 = 'ax' + str(chan) + str(1)
-                        widget_name1 = 'widget_LID' + str(chan) + str(1)
-                        vars()[ax_name].plot(
-                            self.LIDAR_data.density[chan].time,
-                            self.LIDAR_data.density[chan].data, label=name,
-                            marker='o', color='green')
+                    # if chan > 4:
+                    #     ax_name1 = 'ax' + str(chan) + str(1)
+                    #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    #     vars()[ax_name].plot(
+                    #         self.LIDAR_data.density[chan].time,
+                    #         self.LIDAR_data.density[chan].data, label=name,
+                    #         marker='o', color='green')
 
         if self.s2ndtrace == 'Far':
          if self.KG4_data.faraday is not None:
@@ -824,17 +989,28 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 name = 'Far ch.' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
 
+                self.secondtrace_original[chan] = SignalBase(self.constants)
+                self.secondtrace_norm[chan] = SignalBase(self.constants)
+
+                self.secondtrace_original[chan].time = self.KG4_data.faraday[
+                    chan].time
+                self.secondtrace_original[chan].data = self.KG4_data.faraday[
+                    chan].data
+                self.secondtrace_norm[chan].data = norm(
+                    self.KG4_data.faraday[chan].data)
+
                 vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
                                      self.KG4_data.faraday[chan].data,
                                      label=name, marker='o', color='red')
+                vars()[ax_name].legend()
 
-                if chan > 4:
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    widget_name1 = 'widget_LID' + str(chan) + str(1)
-                    vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
-                                         self.KG4_data.faraday[chan].data,
-                                         label=name, marker='o',
-                                         color='red')
+                # if chan > 4:
+                #     ax_name1 = 'ax' + str(chan) + str(1)
+                #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+                #     vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
+                #                          self.KG4_data.faraday[chan].data,
+                #                          label=name, marker='o',
+                #                          color='red')
 
         if self.s2ndtrace == 'CM':
          if self.KG4_data.xg_ell_signal is not None:
@@ -848,17 +1024,28 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 name = 'CM ch.' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
 
+                self.secondtrace_original[chan] = SignalBase(self.constants)
+                self.secondtrace_norm[chan] = SignalBase(self.constants)
+
+                self.secondtrace_original[chan].time = self.KG4_data.xg_ell_signal[
+                    chan].time
+                self.secondtrace_original[chan].data = self.KG4_data.xg_ell_signal[
+                    chan].data
+                self.secondtrace_norm[chan].data = norm(
+                    self.KG4_data.xg_ell_signal[chan].data)
+
                 vars()[ax_name].plot(self.KG4_data.xg_ell_signal[chan].time,
                                      self.KG4_data.xg_ell_signal[chan].data,
                                      label=name, marker='o', color='purple')
+                vars()[ax_name].legend()
 
-                if chan > 4:
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    widget_name1 = 'widget_LID' + str(chan) + str(1)
-                    vars()[ax_name].plot(
-                        self.KG4_data.xg_ell_signal[chan].time,
-                        self.KG4_data.xg_ell_signal[chan].data, label=name,
-                        marker='o', color='purple')
+                # if chan > 4:
+                #     ax_name1 = 'ax' + str(chan) + str(1)
+                #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+                #     vars()[ax_name].plot(
+                #         self.KG4_data.xg_ell_signal[chan].time,
+                #         self.KG4_data.xg_ell_signal[chan].data, label=name,
+                #         marker='o', color='purple')
 
         if self.s2ndtrace == 'KG1_RT':
          if self.KG4_data.density is not None:
@@ -871,17 +1058,28 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 name = 'KG1 RT ch.' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
 
+                self.secondtrace_original[chan] = SignalBase(self.constants)
+                self.secondtrace_norm[chan] = SignalBase(self.constants)
+
+                self.secondtrace_original[chan].time = self.KG1_data.kg1rt[
+                    chan].time
+                self.secondtrace_original[chan].data = self.KG1_data.kg1rt[
+                    chan].data
+                self.secondtrace_norm[chan].data = norm(
+                    self.KG1_data.kg1rt[chan].data)
+
                 vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
                                      self.KG1_data.kg1rt[chan].data,
                                      label=name, marker='o', color='brown')
+                vars()[ax_name].legend()
 
-                if chan > 4:
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    widget_name1 = 'widget_LID' + str(chan) + str(1)
-                    vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
-                                         self.KG1_data.kg1rt[chan].data,
-                                         label=name, marker='o',
-                                         color='brown')
+                # if chan > 4:
+                #     ax_name1 = 'ax' + str(chan) + str(1)
+                #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+                #     vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
+                #                          self.KG1_data.kg1rt[chan].data,
+                #                          label=name, marker='o',
+                #                          color='brown')
 
         if self.s2ndtrace == 'BremS':
             logging.debug('not implemented yet')
@@ -895,6 +1093,10 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.widget_LID6.draw()
         self.widget_LID7.draw()
         self.widget_LID8.draw()
+
+        #only now activate button "normalize" and "restore"
+        self.button_normalize.setEnabled(True)
+        self.button_restore.setEnabled(True)
 
 
 # ------------------------
@@ -935,9 +1137,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
 
-        ax_all = self.widget_LID_ALL.figure.add_subplot(111)
+        # ax_all = self.widget_LID_ALL.figure.add_subplot(111)
 
-        ax_mir = self.widget_MIR.figure.add_subplot(111)
+        # ax_mir = self.widget_MIR.figure.add_subplot(111)
 
         # define now two gridspecs
         # gs is the gridspec per channels 1-4
@@ -955,13 +1157,13 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         ax1_marker = self.widget_LID1.figure.add_subplot(gs[1], sharex=ax1)
 
         ax2 = self.widget_LID2.figure.add_subplot(gs[0])
-        ax2_marker = self.widget_LID2.figure.add_subplot(gs[1], sharex=ax1)
+        ax2_marker = self.widget_LID2.figure.add_subplot(gs[1], sharex=ax2)
 
         ax3 = self.widget_LID3.figure.add_subplot(gs[0])
-        ax3_marker = self.widget_LID3.figure.add_subplot(gs[1], sharex=ax1)
+        ax3_marker = self.widget_LID3.figure.add_subplot(gs[1], sharex=ax3)
 
         ax4 = self.widget_LID4.figure.add_subplot(gs[0])
-        ax4_marker = self.widget_LID4.figure.add_subplot(gs[1], sharex=ax1)
+        ax4_marker = self.widget_LID4.figure.add_subplot(gs[1], sharex=ax4)
 
 
 
@@ -999,35 +1201,19 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             widget_name = 'widget_LID' + str(chan)
             vars()[ax_name].plot(self.KG1_data.density[chan].time,
                                  self.KG1_data.density[chan].data,
-                                 label=name, marker='x', color='b')
+                                 label=name, marker='x', color='b',linestyle= 'None')
             vars()[ax_name].legend()
-            # self.ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x')
-            # self.ax_all.legend()
-            # exec(
-            #     'self.' + ax_name + '.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)')
-            # self.ax_all.plot(KG1_data.density[chan].time, KG1_data.density[chan].data)
-
-            # draw_widget(chan)
             self.widget_LID1.draw()
 
             if chan > 4:
                 name1 = 'MIR' + str(chan)
                 ax_name1 = 'ax' + str(chan) + str(1)
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
-                # vars()[ax_name].plot(kg1_data.density[chan].time,
-                #                      kg1_data.density[chan].data,'b',label=name,,marker='x')
-                # # exec('self.'+ax_name1+'.plot(KG1_data.density[chan].time,KG1_data.density[chan].data,''bx'')')
-                # # draw_widget(chan)
-                # exec(
-                #     'self.' + ax_name1 + '.plot(KG1_data.vibration[chan].time,KG1_data.vibration[chan].data)')
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
                                       self.KG1_data.vibration[chan].data,
-                                      marker='x', label=name1, color='b')
+                                      marker='x', label=name1, color='b',linestyle= 'None')
                 vars()[ax_name1].legend()
-                # self.ax_mir.plot(self.KG1_data.vibration[chan].time,
-                #                  self.KG1_data.vibration[chan].data,marker='x',label=name1)
-                # self.ax_mir.legend()
-                # draw_widget(chan)
+
 
         if self.marker is not None:
             logging.info('plotting marker {}'.format(self.marker))
@@ -1215,9 +1401,251 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 #------------------------
     def handle_normalizebutton(self):
 
-        pass
+        if self.s2ndtrace == 'None':
+            pass
+        else:
+            logging.info('normalizing')
+            snd = self.sender()
 
-#------------------------
+            self.widget_LID1.figure.clear()
+            self.widget_LID1.draw()
+
+            self.widget_LID2.figure.clear()
+            self.widget_LID2.draw()
+
+            self.widget_LID3.figure.clear()
+            self.widget_LID3.draw()
+
+            self.widget_LID4.figure.clear()
+            self.widget_LID4.draw()
+
+            self.widget_LID5.figure.clear()
+            self.widget_LID5.draw()
+
+            self.widget_LID6.figure.clear()
+            self.widget_LID6.draw()
+
+            self.widget_LID7.figure.clear()
+            self.widget_LID7.draw()
+
+            self.widget_LID8.figure.clear()
+            self.widget_LID8.draw()
+
+            heights = [4]
+            gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
+            heights1 = [3, 3]
+            gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
+
+            ax1 = self.widget_LID1.figure.add_subplot(gs[0])
+
+            ax2 = self.widget_LID2.figure.add_subplot(gs[0])
+
+            ax3 = self.widget_LID3.figure.add_subplot(gs[0])
+
+            ax4 = self.widget_LID4.figure.add_subplot(gs[0])
+
+            ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
+            ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
+
+            ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
+            ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
+
+            ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
+            ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
+
+            ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
+            ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
+
+            # ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
+            # ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
+            # ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
+            #
+            # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
+            if self.s2ndtrace == 'HRTS':
+                color = 'orange'
+            if self.s2ndtrace == 'Lidar':
+                color = 'green'
+            if self.s2ndtrace == 'Far':
+                color = 'red'
+            if self.s2ndtrace == 'CM':
+                color = 'purple'
+            if self.s2ndtrace == 'KG1_RT':
+                color = 'brown'
+            if self.s2ndtrace == 'BremS':
+                color = 'grey'
+
+            # for every channel in KG1 (8 channels)
+
+
+
+            for chan in self.KG1_data.density.keys():
+                ax_name = 'ax' + str(chan)
+                name = 'LID' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+                vars()[ax_name].plot(self.KG1_data.density[chan].time,
+                                     self.kg1_norm[chan].data,
+                                     label=name, marker='x', color='b',
+                                     linestyle='None')
+                vars()[ax_name].legend()
+
+                name = self.s2ndtrace + ' ch.' + str(chan)
+                vars()[ax_name].plot(self.secondtrace_original[chan].time,
+                                     self.secondtrace_norm[chan].data,
+                                     label=name, marker='o',
+                                     color=color)
+                vars()[ax_name].legend()
+                # self.widget_LID1.draw()
+
+                if chan > 4:
+                    # channels 5-8 have mirror movement
+                    name1 = 'MIR' + str(chan)
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
+                                          self.KG1_data.vibration[chan].data,
+                                          marker='x', label=name1, color='b',
+                                          linestyle='None')
+                    vars()[ax_name1].legend()
+
+            # update canvas
+            self.widget_LID1.draw()
+            self.widget_LID2.draw()
+            self.widget_LID3.draw()
+            self.widget_LID4.draw()
+            self.widget_LID5.draw()
+            self.widget_LID6.draw()
+            self.widget_LID7.draw()
+            self.widget_LID8.draw()
+            # self.widget_LID_14.draw()
+            # self.widget_LID_ALL.draw()
+            # self.widget_LID_58.draw()
+            # self.widget_MIR.draw()
+            logging.info('signals have been normalized')
+
+    #------------------------
+    def handle_button_restore(self):
+
+        if self.s2ndtrace == 'None':
+            pass
+        else:
+            logging.info('restoring signals to original amplitude')
+            snd = self.sender()
+
+
+            self.widget_LID1.figure.clear()
+            self.widget_LID1.draw()
+
+            self.widget_LID2.figure.clear()
+            self.widget_LID2.draw()
+
+            self.widget_LID3.figure.clear()
+            self.widget_LID3.draw()
+
+            self.widget_LID4.figure.clear()
+            self.widget_LID4.draw()
+
+            self.widget_LID5.figure.clear()
+            self.widget_LID5.draw()
+
+            self.widget_LID6.figure.clear()
+            self.widget_LID6.draw()
+
+            self.widget_LID7.figure.clear()
+            self.widget_LID7.draw()
+
+            self.widget_LID8.figure.clear()
+            self.widget_LID8.draw()
+
+            heights = [4]
+            gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
+            heights1 = [3, 3]
+            gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
+
+            ax1 = self.widget_LID1.figure.add_subplot(gs[0])
+
+            ax2 = self.widget_LID2.figure.add_subplot(gs[0])
+
+            ax3 = self.widget_LID3.figure.add_subplot(gs[0])
+
+            ax4 = self.widget_LID4.figure.add_subplot(gs[0])
+
+            ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
+            ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
+
+            ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
+            ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
+
+            ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
+            ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
+
+            ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
+            ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
+
+            # ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
+            # ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
+            # ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
+            #
+            # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
+            if self.s2ndtrace == 'HRTS':
+                color = 'orange'
+            if self.s2ndtrace == 'Lidar':
+                color = 'green'
+            if self.s2ndtrace == 'Far':
+                color = 'red'
+            if self.s2ndtrace == 'CM':
+                color = 'purple'
+            if self.s2ndtrace == 'KG1_RT':
+                color = 'brown'
+            if self.s2ndtrace == 'BremS':
+                color = 'grey'
+            # for every channel in KG1 (8 channels)
+
+
+            for chan in self.KG1_data.density.keys():
+                ax_name = 'ax' + str(chan)
+                name = 'LID' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+                vars()[ax_name].plot(self.KG1_data.density[chan].time,
+                                     self.KG1_data.density[chan].data,
+                                     label=name, marker='x', color='b',
+                                     linestyle='None')
+                vars()[ax_name].legend()
+
+                name = self.s2ndtrace + ' ch.' + str(chan)
+                vars()[ax_name].plot(self.secondtrace_original[chan].time,
+                                     self.secondtrace_original[chan].data,
+                                     label=name, marker='o',
+                                     color=color)
+                vars()[ax_name].legend()
+                # self.widget_LID1.draw()
+
+                if chan > 4:
+                    # channels 5-8 have mirror movement
+                    name1 = 'MIR' + str(chan)
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                    vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
+                                          self.KG1_data.vibration[chan].data,
+                                          marker='x', label=name1, color='b',
+                                          linestyle='None')
+                    vars()[ax_name1].legend()
+
+            # update canvas
+            self.widget_LID1.draw()
+            self.widget_LID2.draw()
+            self.widget_LID3.draw()
+            self.widget_LID4.draw()
+            self.widget_LID5.draw()
+            self.widget_LID6.draw()
+            self.widget_LID7.draw()
+            self.widget_LID8.draw()
+            # self.widget_LID_14.draw()
+            # self.widget_LID_ALL.draw()
+            # self.widget_LID_58.draw()
+            # self.widget_MIR.draw()
+            logging.info('signals have been restored')
+
+    #------------------------
     def handle_applybutton(self):
         pass
 
