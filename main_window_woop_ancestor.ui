@@ -254,13 +254,6 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="2">
-       <widget class="QPushButton" name="button_check_pulse">
-        <property name="text">
-         <string>check Status</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="1" colspan="2">
        <widget class="QComboBox" name="comboBox_readuid">
         <property name="editable">
@@ -358,8 +351,8 @@
       <rect>
        <x>230</x>
        <y>230</y>
-       <width>103</width>
-       <height>89</height>
+       <width>121</width>
+       <height>111</height>
       </rect>
      </property>
      <property name="title">
@@ -373,6 +366,13 @@
        <widget class="QPushButton" name="button_normalize">
         <property name="text">
          <string>normalize</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="button_restore">
+        <property name="text">
+         <string>restore</string>
         </property>
        </widget>
       </item>
@@ -507,10 +507,10 @@
     <widget class="QGroupBox" name="groupBox_9">
      <property name="geometry">
       <rect>
-       <x>120</x>
+       <x>112</x>
        <y>230</y>
-       <width>103</width>
-       <height>89</height>
+       <width>111</width>
+       <height>61</height>
       </rect>
      </property>
      <property name="title">
