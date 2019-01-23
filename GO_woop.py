@@ -525,10 +525,10 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 widget_name1 = 'widget_LID' + str(chan)+str(1)
                 axx = vars()[ax_name1]
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data,marker='x',label=name1, color='b',linestyle= 'None')
+                                      self.KG1_data.vibration[chan].data*1e6,marker='x',label=name1, color='b',linestyle= 'None')
                 vars()[ax_name1].legend()
                 ax_mir.plot(self.KG1_data.vibration[chan].time,
-                                 self.KG1_data.vibration[chan].data,marker='x',label=name1,linestyle= 'None')
+                                 self.KG1_data.vibration[chan].data*1e6,marker='x',label=name1,linestyle= 'None')
                 ax_mir.legend()
                 # draw_widget(chan)
 
@@ -668,12 +668,12 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data,
+                                      self.KG1_data.vibration[chan].data*1e6,
                                       marker='x', label=name1, color='b',linestyle= 'None')
 
                 vars()[ax_name1].legend()
                 ax_mir.plot(self.KG1_data.vibration[chan].time,
-                                 self.KG1_data.vibration[chan].data, marker='x',linestyle= 'None',
+                                 self.KG1_data.vibration[chan].data*1e6, marker='x',linestyle= 'None',
                                  label=name1)
                 ax_mir.legend()
                 # draw_widget(chan)
@@ -904,7 +904,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 ax_name1 = 'ax' + str(chan) + str(1)
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data,
+                                      self.KG1_data.vibration[chan].data*1e6,
                                       marker='x', label=name1, color='b',linestyle= 'None')
                 vars()[ax_name1].legend()
 
@@ -1210,7 +1210,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 ax_name1 = 'ax' + str(chan) + str(1)
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data,
+                                      self.KG1_data.vibration[chan].data*1e6,
                                       marker='x', label=name1, color='b',linestyle= 'None')
                 vars()[ax_name1].legend()
 
@@ -1502,7 +1502,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                     ax_name1 = 'ax' + str(chan) + str(1)
                     widget_name1 = 'widget_LID' + str(chan) + str(1)
                     vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                          self.KG1_data.vibration[chan].data,
+                                          self.KG1_data.vibration[chan].data*1e6,
                                           marker='x', label=name1, color='b',
                                           linestyle='None')
                     vars()[ax_name1].legend()
@@ -1625,7 +1625,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                     ax_name1 = 'ax' + str(chan) + str(1)
                     widget_name1 = 'widget_LID' + str(chan) + str(1)
                     vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                          self.KG1_data.vibration[chan].data,
+                                          self.KG1_data.vibration[chan].data*1e6,
                                           marker='x', label=name1, color='b',
                                           linestyle='None')
                     vars()[ax_name1].legend()
