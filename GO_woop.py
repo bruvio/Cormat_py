@@ -156,7 +156,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self._initialize_widget(self.widget_LID_ALL)
         self._initialize_widget(self.widget_MIR)
 
-
+        #set tabwidget index to 0 - lid1 is the tab shown at startup
+        # self.tabWidget.setCurrentWidget(self.tabWidget.findChild(tabWidget, 'tab_LID1'))
+        self.tabWidget.setCurrentIndex(0)
 
 
         # initialising folders
@@ -316,8 +318,22 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         #set status flag radio buttons to false
         self.groupBox_statusflag.setEnabled(False)
 
-        # self.checkBox.toggled.connect(
-        #     lambda: self.checkstateJSON(self.ui_plotdata.checkBox))
+        #check selected tab
+        self.tabWidget.connect(self.tabWidget,
+                               QtCore.SIGNAL("currentChanged(int)"),
+                               self.tabSelected)
+        # self.tabWidget.(
+        #     lambda: self.tabWidget.currentIndex())
+    # ------------------------
+    def tabSelected(self, arg=None):
+        # print('\n\t tabSelected() current Tab index =', arg)
+        print('\n\t Query: current Tab index =', arg)
+    # ------------------------
+    # def whatTab(self):
+    #     currentIndex=self.tabWidget.currentIndex()
+    #     currentWidget=self.tabWidget.currentWidget()
+
+
 
     # ------------------------
     def load_pickle(self):
@@ -338,6 +354,16 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         f.close()
         logging.info('\n data loaded')
         logging.info('%s has the following SF %s', str(self.pulse), self.SF_list)
+
+        [self.SF_ch1,
+         self.SF_ch2,
+         self.SF_ch3,
+         self.SF_ch4,
+         self.SF_ch5,
+         self.SF_ch6,
+         self.SF_ch7,
+         self.SF_ch8] = self.SF_list
+
 
     # ------------------------
     def save_to_pickle(self):
@@ -367,6 +393,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         #status flag groupbox is disabled
         self.groupBox_statusflag.setEnabled(False)
+        self.tabWidget.setCurrentIndex(0)
 
 
         #disable "normalize" and "restore" buttons
@@ -472,6 +499,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 logging.info('\n')
                 logging.info('pulse data already downloaded')
                 self.load_pickle()
+                self.tabWidget.setCurrentIndex(0)
             else:
                 logging.info('\n')
                 # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
@@ -483,8 +511,10 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
                 self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_yes)
                 self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+
         else:
             #if data not exists read it and overwrite
+            self.tabWidget.setCurrentIndex(0)
             self.readdata()
 
 
@@ -723,6 +753,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         #now status flag groupbox can be enabled
         self.groupBox_statusflag.setEnabled(True)
 
+        self.tabWidget.setCurrentIndex(0)
+
 # -----------------------
     def readdata(self):
         """
@@ -835,6 +867,15 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         #read status flag
 
         self.SF_list = check_SF(self.read_uid,self.pulse)
+
+        [self.SF_ch1,
+         self.SF_ch2,
+         self.SF_ch3,
+         self.SF_ch4,
+         self.SF_ch5,
+         self.SF_ch6,
+         self.SF_ch7,
+         self.SF_ch8 ] = self.SF_list
 
         # save data to pickle
         self.save_to_pickle()
@@ -1509,6 +1550,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             # ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
             #
             # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
+            # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
             if self.s2ndtrace == 'HRTS':
                 color = 'orange'
             if self.s2ndtrace == 'Lidar':
@@ -1709,6 +1751,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
     def set_status_flag(self):
         pass
 
+    def check_current_tab(self):
+        return self.QTabWidget.currentWidget()
 
 # ----------------------------
     def handle_exit_button(self):

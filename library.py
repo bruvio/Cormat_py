@@ -77,4 +77,5 @@ def check_SF(read_uid,pulse):
                 st_ch = asscalar(st_ch)
                 SF_list.append(st_ch)
         logging.info('%s has the following SF %s', str(pulse), SF_list)
+
         return SF_list
