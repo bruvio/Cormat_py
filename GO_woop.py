@@ -60,14 +60,16 @@ from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as Navigatio
 import subprocess
 import os
 
+#import library containing useful function
+from library import *
+
 
 import matplotlib.pyplot as plt
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 
 logger = logging.getLogger(__name__)
 
-def norm(data):
-    return (data)/(max(data)-min(data))
+
 
 class QPlainTextEditLogger(logging.Handler):
     """
@@ -190,12 +192,12 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         logging.debug('we are in %s', cwd)
         # psrint(homefold + os.sep+ folder)
 
-        logger.info("Reading in constants.")
+        logger.info("\n Reading in constants.")
         try:
             self.constants = Consts("consts.ini", __version__)
             # constants = Kg1Consts("kg1_consts.ini", __version__)
         except KeyError:
-            logger.error("Could not read in configuration file consts.ini")
+            logger.error("\n Could not read in configuration file consts.ini")
             sys.exit(65)
         
         # list of authorized user to write KG1 ppfs
@@ -311,9 +313,15 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # self.pushButton_plot.setEnabled(False)
         # self.pushButton_zoom.setEnabled(False)
 
+        #set status flag radio buttons to false
+        self.groupBox_statusflag.setEnabled(False)
+
+        # self.checkBox.toggled.connect(
+        #     lambda: self.checkstateJSON(self.ui_plotdata.checkBox))
+
     # ------------------------
     def load_pickle(self):
-        logging.info('loading pulse data')
+        logging.info('\n loading pulse data')
         # Python 3: open(..., 'rb')
         with open('./saved/' + str(self.pulse) + '.pkl',
                   'rb') as f:
@@ -326,13 +334,14 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         f.close()
         with open('./saved/' + str(self.pulse) + '_kg1.pkl',
                   'rb') as f:  # Python 3: open(..., 'rb')
-            self.KG1_data = pickle.load(f)
+            [self.KG1_data,self.SF_list] = pickle.load(f)
         f.close()
-        logging.info('data loaded')
+        logging.info('\n data loaded')
+        logging.info('%s has the following SF %s', str(self.pulse), self.SF_list)
 
     # ------------------------
     def save_to_pickle(self):
-        logging.info('saving pulse data')
+        logging.info('\n saving pulse data')
         with open('./saved/' + str(self.pulse) + '.pkl', 'wb') as f:
             pickle.dump(
                 [self.pulse, self.KG1_data,
@@ -341,27 +350,24 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                  self.NBI_data, self.is_dis, self.dis_time,
                  self.LIDAR_data], f)
         f.close()
-        logging.info('data saved')
+        logging.info('\n data saved')
 
     # ------------------------
     def save_kg1(self):
-        logging.info('saving KG1 data')
+        logging.info('\n saving KG1 data')
         with open('./saved/' + str(self.pulse) + '_kg1.pkl', 'wb') as f:
-            pickle.dump(self.KG1_data,f)
+            pickle.dump([self.KG1_data,self.SF_list],f)
         f.close()
-        logging.info('kg1 data saved')
+        logging.info('\n kg1 data saved')
 
 
-
-    def handle_zoombutton(self):
-        pass
-
-# ------------------------
-    def handle_resetbutton(self):
-        pass
 
 # ------------------------
     def handle_readbutton(self):
+
+        #status flag groupbox is disabled
+        self.groupBox_statusflag.setEnabled(False)
+
 
         #disable "normalize" and "restore" buttons
         self.button_normalize.setEnabled(False)
@@ -450,6 +456,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         # read pulse number
         self.pulse = int(self.lineEdit_jpn.text())
+        logging.info('\n')
         logger.info("Reading data for pulse {}".format(str(self.pulse)))
 
 
@@ -462,10 +469,11 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
             if  (self.checkBox_newpulse.isChecked() == False):
                 # if exists and new pulse checkbox is not checked then load data
-
+                logging.info('\n')
                 logging.info('pulse data already downloaded')
                 self.load_pickle()
             else:
+                logging.info('\n')
                 # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
                 logging.info('pulse data already downloaded - you are requesting to download again')
                 self.areyousure_window = QtGui.QMainWindow()
@@ -548,6 +556,13 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.widget_LID_58.draw()
         self.widget_MIR.draw()
 
+
+
+        #now status flag group can be enabled
+        self.groupBox_statusflag.setEnabled(True)
+
+
+
     # ----------------------------
     def handle_no(self):
         """
@@ -556,7 +571,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         to set read data for selected pulse
     """
 
-
+        logging.info('\n')
         logging.debug('pressed %s button', self.ui_areyousure.pushButton_NO.text())
         logging.debug('go back and perform a different action')
 
@@ -572,10 +587,14 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         to set read data for selected pulse
         """
+        logging.info('\n')
         logging.debug('pressed %s button',
                       self.ui_areyousure.pushButton_YES.text())
         logging.debug('continue')
         self.readdata()
+
+        #status flag groupbox is disabled
+        self.groupBox_statusflag.setEnabled(False)
 
         #disable "normalize" and "restore" buttons
         self.button_normalize.setEnabled(False)
@@ -701,6 +720,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         self.areyousure_window.hide()
 
+        #now status flag groupbox can be enabled
+        self.groupBox_statusflag.setEnabled(True)
+
 # -----------------------
     def readdata(self):
         """
@@ -739,9 +761,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         KG1_data = Kg1PPFData(self.constants, self.pulse)
         self.KG1_data = KG1_data
 
-        read_uid = self.comboBox_readuid.currentText()
+        self.read_uid = self.comboBox_readuid.currentText()
 
-        success = KG1_data.read_data(self.pulse, read_uid=read_uid)
+        success = KG1_data.read_data(self.pulse, read_uid=self.read_uid)
 
         # Exit if there were no good signals
         # If success == 1 it means that at least one channel was not available. But this shouldn't stop the rest of the code
@@ -786,8 +808,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         is_dis, dis_time = find_disruption(self.pulse, self.constants,
                                            self.KG1_data)
         self.is_dis = is_dis
-        self.dis_time = dis_time
-        logger.info("Time of disruption {}".format(dis_time))
+        self.dis_time = dis_time[0]
+        logger.info("Time of disruption {}".format(dis_time[0]))
 
         # -------------------------------
         # 8. Read in Be-II signals, and find ELMs
@@ -810,10 +832,17 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         LIDAR_data.read_data(self.pulse)
         self.LIDAR_data = LIDAR_data
 
+        #read status flag
+
+        self.SF_list = check_SF(self.read_uid,self.pulse)
+
         # save data to pickle
         self.save_to_pickle()
         # save KG1 data on different file (needed later when applying corrections)
         self.save_kg1()
+
+
+
 
     # ------------------------
     def plot_2nd_trace(self):
@@ -933,7 +962,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
                     self.secondtrace_original[chan].time = self.HRTS_data.density[chan].time
                     self.secondtrace_original[chan].data = self.HRTS_data.density[chan].data
-                    self.secondtrace_norm[chan].data = norm(self.HRTS_data.density[chan].data)
+                    # self.secondtrace_norm[chan].data = norm(self.HRTS_data.density[chan].data)
+                    self.secondtrace_norm[chan].data = normalise(self.HRTS_data.density[chan],self.HRTS_data.density[chan],self.dis_time)
 
                     vars()[ax_name].plot(self.HRTS_data.density[chan].time,
                                          self.HRTS_data.density[chan].data,
@@ -964,8 +994,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
                     self.secondtrace_original[chan].time = self.LIDAR_data.density[chan].time
                     self.secondtrace_original[chan].data = self.LIDAR_data.density[chan].data
-                    self.secondtrace_norm[chan].data = norm(self.LIDAR_data.density[chan].data)
-
+                    # self.secondtrace_norm[chan].data = norm(self.LIDAR_data.density[chan].data)
+                    self.secondtrace_norm[chan].data = normalise(self.LIDAR_data.density[chan],self.HRTS_data.density[chan],self.dis_time)
 
 
 
@@ -1001,8 +1031,10 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                     chan].time
                 self.secondtrace_original[chan].data = self.KG4_data.faraday[
                     chan].data
-                self.secondtrace_norm[chan].data = norm(
-                    self.KG4_data.faraday[chan].data)
+                # self.secondtrace_norm[chan].data = norm(self.KG4_data.faraday[chan].data)
+                self.secondtrace_norm[chan].data = normalise(
+                    self.KG4_data.faraday[chan], self.HRTS_data.density[chan],
+                    self.dis_time)
 
                 vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
                                      self.KG4_data.faraday[chan].data,
@@ -1036,8 +1068,11 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                     chan].time
                 self.secondtrace_original[chan].data = self.KG4_data.xg_ell_signal[
                     chan].data
-                self.secondtrace_norm[chan].data = norm(
-                    self.KG4_data.xg_ell_signal[chan].data)
+                # self.secondtrace_norm[chan].data = norm(
+                #     self.KG4_data.xg_ell_signal[chan].data)
+                self.secondtrace_norm[chan].data = normalise(
+                    self.KG4_data.xg_ell_signal[chan], self.HRTS_data.density[chan],
+                    self.dis_time)
 
                 vars()[ax_name].plot(self.KG4_data.xg_ell_signal[chan].time,
                                      self.KG4_data.xg_ell_signal[chan].data,
@@ -1070,8 +1105,11 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                     chan].time
                 self.secondtrace_original[chan].data = self.KG1_data.kg1rt[
                     chan].data
-                self.secondtrace_norm[chan].data = norm(
-                    self.KG1_data.kg1rt[chan].data)
+                # self.secondtrace_norm[chan].data = norm(
+                #     self.KG1_data.kg1rt[chan].data)
+                self.secondtrace_norm[chan].data = normalise(
+                    self.KG1_data.kg1rt[chan], self.HRTS_data.density[chan],
+                    self.dis_time)
 
                 vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
                                      self.KG1_data.kg1rt[chan].data,
@@ -1367,11 +1405,15 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 #------------------------
     def handle_savebutton(self):
+
+
         """
         save data
         user can save either Status Flags or ppf (and SF)
         :return:
         """
+
+        self.write_uid = self.comboBox_writeuid.currentText()
 
         # -------------------------------
         # 13. Write data to PPF
@@ -1393,7 +1435,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 logger.info("\n             Finished.")
         if self.radioButton_storeSF.isChecked() == True:
             logger.info("\n             Writing Status Flag ONLY")
-            # write_status = kg1_signals.write_data(self.pulse, write_uid, mag)
+            write_status = kg1_signals.write_data(self.pulse, write_uid, self.MAG_data)
             write_status = 0
             if write_status != 0:
                 logger.error("There was a problem writing the PPF.")
@@ -1489,7 +1531,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 name = 'LID' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
                 vars()[ax_name].plot(self.KG1_data.density[chan].time,
-                                     self.kg1_norm[chan].data,
+                                     self.KG1_data.density[chan].data, # kg1_norm
                                      label=name, marker='x', color='b',
                                      linestyle='None')
                 vars()[ax_name].legend()
@@ -1651,7 +1693,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             # self.widget_MIR.draw()
             logging.info('signals have been restored')
 
-    #------------------------
+#------------------------
     def handle_applybutton(self):
         pass
 
@@ -1663,8 +1705,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
     def handle_undobutton(self):
         pass
 
-
-
+#------------------------
+    def set_status_flag(self):
+        pass
 
 
 # ----------------------------

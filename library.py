@@ -2,45 +2,79 @@
 # ----------------------------
 __author__ = "B. Viola"
 # ----------------------------
+from status_flag import GetSF
+import numpy as np
+from ppf import *
+import logging
+from numpy import arange,asscalar
 
+def norm(data):
+    return (data)/(max(data)-min(data))
 
-def handle_readdata_button(self):
-        """
-        opens a new windows where the user can input a list of pulses he/she wants to plot
+def normalise(signal, kg1_signal, dis_time):
+        # ----------------------
+        # Use ratio of maximum of signal - kg1 as the normalisation factor.
+        # Exclude region around the disruption.
+        # ----------------------
+        if dis_time > 0:
+                ind_dis, = np.where((kg1_signal.time < dis_time - 1))
 
-        than the user can select a standard sets (a list of signal)
-        and then plot them
+                max_kg1 = max(kg1_signal.data[ind_dis])
+        else:
+                max_kg1 = max(kg1_signal.data)
 
+        max_signal = max(signal.data)
 
-        :return:
-        """
+        #    print("max kg1 {} max signal {}".format(max_kg1, max_signal))
 
+        norm_factor = max_kg1 / max_signal
+        signal.data = signal.data * norm_factor
+
+        return signal.data
+
+def get_seq(shot_no, dda, read_uid="JETPPF"):
+    ier = ppfgo(shot_no, seq=0)
+    if ier != 0:
+        return None
+
+    ppfuid(read_uid, rw="R")
+
+    iseq, nseq, ier = ppfdda(shot_no, dda)
+
+    if ier != 0:
+        return None
+
+    return iseq
+
+def get_min_max_seq(shot_no, dda="KG1V", read_uid="JETPPF"):
+    kg1v_seq = get_seq(shot_no, dda,read_uid)
+    unval_seq = -1
+    val_seq = -1
+    if kg1v_seq is not None:
+        unval_seq = min(kg1v_seq)
+        if len(kg1v_seq) > 1:
+            val_seq = max(kg1v_seq)
+
+    return unval_seq, val_seq
+
+def check_SF(read_uid,pulse):
         logging.info('\n')
-        logging.info('plotting tool')
+        logging.info('checking status FLAGS ')
 
-        self.window_plotdata = QtGui.QMainWindow()
-        self.ui_plotdata = Ui_plotdata_window()
-        self.ui_plotdata.setupUi(self.window_plotdata)
-        self.window_plotdata.show()
+        ppfuid(read_uid, "r")
 
-        initpulse = pdmsht()
-        initpulse2 = initpulse -1
+        ppfssr(i=[0, 1, 2, 3, 4])
 
-        self.ui_plotdata.textEdit_pulselist.setText(str(initpulse))
-        # self.ui_plotdata.textEdit_colorlist.setText('black')
+        channels = arange(0, 8) + 1
+        SF_list = []
 
-        self.ui_plotdata.selectfile.clicked.connect(self.selectstandardset)
+        pulse = int(pulse)
 
-        self.ui_plotdata.plotbutton.clicked.connect(self.plotdata)
-        self.ui_plotdata.savefigure_checkBox.setChecked(False)
-        self.ui_plotdata.checkBox.setChecked(False)
-        self.ui_plotdata.checkBox.toggled.connect(
-            lambda: self.checkstateJSON(self.ui_plotdata.checkBox))
+        for channel in channels:
+                ch_text = 'lid' + str(channel)
 
-        self.JSONSS = '/work/bviola/Python/kg1_tools/kg1_tools_gui/standard_set/PLASMA_main_parameters_new.json'
-        self.JSONSSname = os.path.basename(self.JSONSS)
-
-        logging.debug('default set is {}'.format(self.JSONSSname))
-        logging.info('select a standard set')
-        logging.info('\n')
-        logging.info('type in a list of pulses')
+                st_ch = GetSF(pulse, 'kg1v', ch_text)
+                st_ch = asscalar(st_ch)
+                SF_list.append(st_ch)
+        logging.info('%s has the following SF %s', str(pulse), SF_list)
+        return SF_list
