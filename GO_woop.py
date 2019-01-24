@@ -366,6 +366,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         #disable "normalize" and "restore" buttons
         self.button_normalize.setEnabled(False)
         self.button_restore.setEnabled(False)
+        self.comboBox_2ndtrace.setCurrentIndex(0)
+        self.comboBox_markers.setCurrentIndex(0)
 
         self.widget_LID1.figure.clear()
         self.widget_LID1.draw()
@@ -578,6 +580,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         #disable "normalize" and "restore" buttons
         self.button_normalize.setEnabled(False)
         self.button_restore.setEnabled(False)
+        self.comboBox_2ndtrace.setCurrentIndex(0)
+        self.comboBox_markers.setCurrentIndex(0)
 
         # define now two gridspecs
         # gs is the gridspec per channels 1-4
@@ -823,6 +827,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
 
 
+        self.comboBox_markers.setCurrentIndex(0)
         self.secondtrace_original = {}
         self.secondtrace_norm = {}
 
@@ -951,7 +956,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
                 for chan in self.KG1_data.constants.kg1v.keys():
                     ax_name = 'ax' + str(chan)
-                    name = 'HRTS ch.' + str(chan)
+                    name = 'Lidar ch.' + str(chan)
                     widget_name = 'widget_LID' + str(chan)
 
                     self.secondtrace_original[chan] = SignalBase(self.constants)
@@ -1107,6 +1112,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         :return:
         """
         # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
+        self.comboBox_2ndtrace.setCurrentIndex(0)
         self.marker = self.comboBox_markers.currentText()
 
         # self.widget_LID8.draw()

@@ -14,7 +14,7 @@ from signal_base import SignalBase
 logger = logging.getLogger(__name__)
 
 # ----------------------------
-__author__ = "L. Kogan"
+__author__ = "B. Viola"
 # ----------------------------
 
 
