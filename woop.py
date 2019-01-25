@@ -228,6 +228,9 @@ class Ui_MainWindow(object):
         self.comboBox_markers = QtGui.QComboBox(self.groupBox_9)
         self.comboBox_markers.setObjectName(_fromUtf8("comboBox_markers"))
         self.gridLayout_8.addWidget(self.comboBox_markers, 0, 0, 1, 1)
+        self.checkSFbutton = QtGui.QPushButton(self.groupBox_8)
+        self.checkSFbutton.setGeometry(QtCore.QRect(240, 480, 70, 25))
+        self.checkSFbutton.setObjectName(_fromUtf8("checkSFbutton"))
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1472, 20))
@@ -238,7 +241,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(11)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -284,5 +287,6 @@ class Ui_MainWindow(object):
         self.radioButton_statusflag_2.setText(_translate("MainWindow", "2", None))
         self.exit_button.setText(_translate("MainWindow", "exit", None))
         self.groupBox_9.setTitle(_translate("MainWindow", "Markers", None))
+        self.checkSFbutton.setText(_translate("MainWindow", "check SF", None))
 
 from canvas import Canvas

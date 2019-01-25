@@ -244,6 +244,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # self.comboBox_readuid.setRootModelIndex(index)
         self.comboBox_readuid.addItems(read_uis)
         self.comboBox_writeuid.addItems(write_uis)
+
+        #set combobox index to 1 so that the default write_uid is owner
+        self.comboBox_writeuid.setCurrentIndex(1)
         # initpulse = pdmsht()
         initpulse = 92121
         self.lineEdit_jpn.setText(str(initpulse))
@@ -268,6 +271,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # write_allowedusers.append(users)
 
 
+        self.comboBox_markers.setEnabled(False)
+        self.comboBox_2ndtrace.setEnabled(False)
+
 
 
 
@@ -285,6 +291,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.pushButton_makeperm.clicked.connect(self.handle_makepermbutton)
         self.pushButton_undo.clicked.connect(self.handle_undobutton)
 
+        self.checkSFbutton.clicked.connect(self.checkStatuFlags)
+
 
         #setting code folders
 
@@ -299,6 +307,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         #disable many button to avoid conflicts
         self.button_save.setEnabled(False)
+        self.checkSFbutton.setEnabled(False)
         self.button_normalize.setEnabled(False)
         self.pushButton_apply.setEnabled(False)
         self.pushButton_makeperm.setEnabled(False)
@@ -320,6 +329,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         #set
 
 
+
+
         # self.pushButton_reset.setEnabled(False)
         # self.pushButton_plot.setEnabled(False)
         # self.pushButton_zoom.setEnabled(False)
@@ -334,6 +345,28 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         #                        self.tabSelected)
         # self.tabWidget.(
         #     lambda: self.tabWidget.currentIndex())
+
+
+    # ------------------------
+    def checkStatuFlags(self):
+
+        self.SF_list = [int(self.SF_ch1),
+                        int(self.SF_ch2),
+                        int(self.SF_ch3),
+                        int(self.SF_ch4),
+                        int(self.SF_ch5),
+                        int(self.SF_ch6),
+                        int(self.SF_ch7),
+                        int(self.SF_ch8)]
+
+        logging.info('%s has the following SF %s', str(self.pulse), self.SF_list)
+    # ------------------------
+    # ------------------------
+    # def radiobutton_status(self):
+        # self.radioButton_statusflag_0.toggled.connect
+
+    # ------------------------
+
     # ------------------------
     def tabSelected(self, arg=None):
         if arg == 0:
@@ -378,8 +411,57 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
 
+    def checkstate(self, button):
+        snd = self.sender()
+        #old status flag
+        if self.current_tab == 'LID_1':
+            SF_old = self.SF_ch1
+        if self.current_tab == 'LID_2':
+            SF_old = self.SF_ch2
+        if self.current_tab == 'LID_3':
+            SF_old = self.SF_ch3
+        if self.current_tab == 'LID_4':
+            SF_old = self.SF_ch4
+        if self.current_tab == 'LID_5':
+            SF_old = self.SF_ch5
+        if self.current_tab == 'LID_6':
+            SF_old = self.SF_ch6
+        if self.current_tab == 'LID_7':
+            SF_old = self.SF_ch7
+        if self.current_tab == 'LID_8':
+            SF_old = self.SF_ch8
 
+        SF = snd.objectName().split('_')[2]  # statusflag value selected
 
+        # logging.debug('{} has status flag {}'.format(self.current_tab,str(SF_old)))
+
+        if self.current_tab == 'LID_1':
+            self.SF_ch1 = SF
+        if self.current_tab == 'LID_2':
+            self.SF_ch2 = SF
+        if self.current_tab == 'LID_3':
+            self.SF_ch3 = SF
+        if self.current_tab == 'LID_4':
+            self.SF_ch4 = SF
+        if self.current_tab == 'LID_5':
+            self.SF_ch5 = SF
+        if self.current_tab == 'LID_6':
+            self.SF_ch6 = SF
+        if self.current_tab == 'LID_7':
+            self.SF_ch7 = SF
+        if self.current_tab == 'LID_8':
+            self.SF_ch8 = SF
+
+        # logging.debug(
+        #     '{} new status flag is {}'.format(self.current_tab, str(SF)))
+
+        # print(snd.objectName(),SF)
+            # if SF == 0:
+
+            # self.set_status_flag_radio(SF)
+            #
+            # self.current_tab
+            # self.ui_plotdata.checkBox.setChecked(False)
     # ------------------------
     # def whatTab(self):
     #     currentIndex=self.tabWidget.currentIndex()
@@ -484,6 +566,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         #disable "normalize" and "restore" buttons
         self.button_normalize.setEnabled(False)
         self.button_restore.setEnabled(False)
+        self.comboBox_markers.setEnabled(False)
+        self.comboBox_2ndtrace.setEnabled(False)
         self.comboBox_2ndtrace.setCurrentIndex(0)
         self.comboBox_markers.setCurrentIndex(0)
 
@@ -610,12 +694,6 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
 
-        # self.button_plot.setEnabled(True)
-        # self.button_check_pulse.setEnabled(True)
-        self.button_save.setEnabled(True)
-        self.pushButton_apply.setEnabled(True)
-        self.pushButton_makeperm.setEnabled(True)
-        self.pushButton_undo.setEnabled(True)
 
         # -------------------------------
         # 0. PLOT KG1 data.
@@ -679,13 +757,40 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         #now status flag group can be enabled
         self.groupBox_statusflag.setEnabled(True)
+
+        # self.button_plot.setEnabled(True)
+        # self.button_check_pulse.setEnabled(True)
+        self.button_save.setEnabled(True)
+        self.pushButton_apply.setEnabled(True)
+        self.pushButton_makeperm.setEnabled(True)
+        self.pushButton_undo.setEnabled(True)
+        self.checkSFbutton.setEnabled(True)
+        self.comboBox_markers.setEnabled(True)
+        self.comboBox_2ndtrace.setEnabled(True)
+
+
         self.tabWidget.setCurrentIndex(0)
         self.tabSelected(arg=0)
         self.tabWidget.connect(self.tabWidget,
                                QtCore.SIGNAL("currentChanged(int)"),
                                self.tabSelected)
+        #set combobox index to 1 so that the default write_uid is owner
+        self.comboBox_writeuid.setCurrentIndex(1)
 
+        self.radioButton_statusflag_0.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_0))
 
+        self.radioButton_statusflag_1.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_1))
+
+        self.radioButton_statusflag_2.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_2))
+
+        self.radioButton_statusflag_3.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_3))
+
+        self.radioButton_statusflag_4.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_4))
 
     # ----------------------------
     def handle_no(self):
@@ -694,6 +799,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         to set read data for selected pulse
     """
+
+        # button_name = button.objectName()
+        # print(button_name)
 
         logging.info('\n')
         logging.debug('pressed %s button', self.ui_areyousure.pushButton_NO.text())
@@ -711,6 +819,12 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         to set read data for selected pulse
         """
+
+        # button_name = button.text()
+        # print(button_name)
+
+
+
         logging.info('\n')
         logging.debug('pressed %s button',
                       self.ui_areyousure.pushButton_YES.text())
@@ -719,7 +833,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         #status flag groupbox is disabled
         self.groupBox_statusflag.setEnabled(False)
-
+        self.checkSFbutton.setEnabled(False)
+        self.comboBox_markers.setEnabled(False)
         #disable "normalize" and "restore" buttons
         self.button_normalize.setEnabled(False)
         self.button_restore.setEnabled(False)
@@ -766,14 +881,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
 
-        # self.button_plot.setEnabled(True)
-        # self.button_check_pulse.setEnabled(True)
-        self.button_save.setEnabled(True)
-        # self.button_normalize.setEnabled(True)
-        # self.button_restore.setEnabled(True)
-        self.pushButton_apply.setEnabled(True)
-        self.pushButton_makeperm.setEnabled(True)
-        self.pushButton_undo.setEnabled(True)
+
 
         # -------------------------------
         # 0. PLOT KG1 data.
@@ -845,8 +953,20 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.areyousure_window.hide()
 
         #now status flag groupbox can be enabled
+        # self.button_plot.setEnabled(True)
+        # self.button_check_pulse.setEnabled(True)
+        self.button_save.setEnabled(True)
+        self.comboBox_markers.setEnabled(True)
+        self.comboBox_2ndtrace.setEnabled(True)
+        # self.button_normalize.setEnabled(True)
+        # self.button_restore.setEnabled(True)
+        self.pushButton_apply.setEnabled(True)
+        self.pushButton_makeperm.setEnabled(True)
+        self.pushButton_undo.setEnabled(True)
         self.groupBox_statusflag.setEnabled(True)
-
+        self.comboBox_markers.setEnabled(True)
+        self.comboBox_2ndtrace.setEnabled(True)
+        self.checkSFbutton.setEnabled(True)
         self.tabWidget.setCurrentIndex(0)
         # self.tabSelected(arg=0)
 

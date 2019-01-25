@@ -39,7 +39,7 @@
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;LID1&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>11</number>
     </property>
     <widget class="QWidget" name="tab_LID1">
      <attribute name="title">
@@ -514,6 +514,19 @@
        <widget class="QComboBox" name="comboBox_markers"/>
       </item>
      </layout>
+    </widget>
+    <widget class="QPushButton" name="checkSFbutton">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>480</y>
+       <width>70</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>check SF</string>
+     </property>
     </widget>
    </widget>
   </widget>
