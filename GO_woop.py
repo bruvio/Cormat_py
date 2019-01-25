@@ -310,6 +310,15 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         # self.button_read_pulse.click()
 
+        #initialize to zero status flag radio buttons
+        self.radioButton_statusflag_0.setChecked(False)
+        self.radioButton_statusflag_1.setChecked(False)
+        self.radioButton_statusflag_2.setChecked(False)
+        self.radioButton_statusflag_3.setChecked(False)
+        self.radioButton_statusflag_4.setChecked(False)
+
+        #set
+
 
         # self.pushButton_reset.setEnabled(False)
         # self.pushButton_plot.setEnabled(False)
@@ -319,21 +328,94 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.groupBox_statusflag.setEnabled(False)
 
         #check selected tab
-        self.tabWidget.connect(self.tabWidget,
-                               QtCore.SIGNAL("currentChanged(int)"),
-                               self.tabSelected)
+        # self.tabSelected(arg=0)
+        # self.tabWidget.connect(self.tabWidget,
+        #                        QtCore.SIGNAL("currentChanged(int)"),
+        #                        self.tabSelected)
         # self.tabWidget.(
         #     lambda: self.tabWidget.currentIndex())
     # ------------------------
     def tabSelected(self, arg=None):
+        if arg == 0:
+            self.current_tab = 'LID_1'
+            self.set_status_flag_radio(self.SF_ch1)
+        if arg == 1:
+            self.current_tab = 'LID_2'
+            self.set_status_flag_radio(self.SF_ch2)
+        if arg == 2:
+            self.current_tab = 'LID_3'
+            self.set_status_flag_radio(self.SF_ch3)
+        if arg == 3:
+            self.current_tab = 'LID_4'
+            self.set_status_flag_radio(self.SF_ch4)
+        if arg == 4:
+            self.current_tab = 'LID_5'
+            self.set_status_flag_radio(self.SF_ch5)
+        if arg == 5:
+            self.current_tab = 'LID_6'
+            self.set_status_flag_radio(self.SF_ch6)
+        if arg == 6:
+            self.current_tab = 'LID_7'
+            self.set_status_flag_radio(self.SF_ch7)
+        if arg == 7:
+            self.current_tab = 'LID_8'
+            self.set_status_flag_radio(self.SF_ch8)
+        if arg == 8:
+            self.current_tab = 'LID_1-4'
+        if arg == 9:
+            self.current_tab = 'LID_5-8'
+        if arg == 10:
+            self.current_tab = 'LID_ALL'
+        if arg == 11:
+            self.current_tab = 'MIR'
+
+
         # print('\n\t tabSelected() current Tab index =', arg)
-        print('\n\t Query: current Tab index =', arg)
+        # print('\n\t current Tab index =', arg)
+        # logging.debug('tab is ')
+        # logging.debug('\n\t: current Tab is = {}'.format(str(arg)))
+        logging.debug('\n\t: current Tab is {}'.format(self.current_tab))
+
+
+
+
+
     # ------------------------
     # def whatTab(self):
     #     currentIndex=self.tabWidget.currentIndex()
     #     currentWidget=self.tabWidget.currentWidget()
 
-
+    def set_status_flag_radio(self,value):
+        if value == 0:
+            self.radioButton_statusflag_0.setChecked(True)
+            self.radioButton_statusflag_1.setChecked(False)
+            self.radioButton_statusflag_2.setChecked(False)
+            self.radioButton_statusflag_3.setChecked(False)
+            self.radioButton_statusflag_4.setChecked(False)
+        if value == 1:
+            self.radioButton_statusflag_0.setChecked(False)
+            self.radioButton_statusflag_1.setChecked(True)
+            self.radioButton_statusflag_2.setChecked(False)
+            self.radioButton_statusflag_3.setChecked(False)
+            self.radioButton_statusflag_4.setChecked(False)
+        if value == 2:
+            self.radioButton_statusflag_0.setChecked(False)
+            self.radioButton_statusflag_1.setChecked(False)
+            self.radioButton_statusflag_2.setChecked(True)
+            self.radioButton_statusflag_3.setChecked(False)
+            self.radioButton_statusflag_4.setChecked(False)
+        if value == 3:
+            self.radioButton_statusflag_0.setChecked(False)
+            self.radioButton_statusflag_1.setChecked(False)
+            self.radioButton_statusflag_2.setChecked(False)
+            self.radioButton_statusflag_3.setChecked(True)
+            self.radioButton_statusflag_4.setChecked(False)
+        if value == 4:
+            self.radioButton_statusflag_0.setChecked(False)
+            self.radioButton_statusflag_1.setChecked(False)
+            self.radioButton_statusflag_2.setChecked(False)
+            self.radioButton_statusflag_3.setChecked(False)
+            self.radioButton_statusflag_4.setChecked(True)
 
     # ------------------------
     def load_pickle(self):
@@ -350,10 +432,11 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         f.close()
         with open('./saved/' + str(self.pulse) + '_kg1.pkl',
                   'rb') as f:  # Python 3: open(..., 'rb')
-            [self.KG1_data,self.SF_list] = pickle.load(f)
+            [self.KG1_data,self.SF_list,self.unval_seq, self.val_seq] = pickle.load(f)
         f.close()
         logging.info('\n data loaded')
-        logging.info('%s has the following SF %s', str(self.pulse), self.SF_list)
+        logging.info('{} has the following SF {}'.format(str(self.pulse), self.SF_list))
+        logging.info('{} last validated seq is {}'.format(str(self.pulse),str(self.val_seq)))
 
         [self.SF_ch1,
          self.SF_ch2,
@@ -363,6 +446,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
          self.SF_ch6,
          self.SF_ch7,
          self.SF_ch8] = self.SF_list
+
+
 
 
     # ------------------------
@@ -382,7 +467,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
     def save_kg1(self):
         logging.info('\n saving KG1 data')
         with open('./saved/' + str(self.pulse) + '_kg1.pkl', 'wb') as f:
-            pickle.dump([self.KG1_data,self.SF_list],f)
+            pickle.dump([self.KG1_data,self.SF_list,self.unval_seq, self.val_seq],f)
         f.close()
         logging.info('\n kg1 data saved')
 
@@ -499,7 +584,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 logging.info('\n')
                 logging.info('pulse data already downloaded')
                 self.load_pickle()
-                self.tabWidget.setCurrentIndex(0)
+                # self.tabWidget.setCurrentIndex(0)
+                # self.tabSelected(arg=0)
+
             else:
                 logging.info('\n')
                 # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
@@ -514,8 +601,10 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         else:
             #if data not exists read it and overwrite
-            self.tabWidget.setCurrentIndex(0)
+
             self.readdata()
+
+
 
 
 
@@ -590,6 +679,11 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         #now status flag group can be enabled
         self.groupBox_statusflag.setEnabled(True)
+        self.tabWidget.setCurrentIndex(0)
+        self.tabSelected(arg=0)
+        self.tabWidget.connect(self.tabWidget,
+                               QtCore.SIGNAL("currentChanged(int)"),
+                               self.tabSelected)
 
 
 
@@ -754,6 +848,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.groupBox_statusflag.setEnabled(True)
 
         self.tabWidget.setCurrentIndex(0)
+        # self.tabSelected(arg=0)
+
 
 # -----------------------
     def readdata(self):
@@ -877,6 +973,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
          self.SF_ch7,
          self.SF_ch8 ] = self.SF_list
 
+        self.unval_seq, self.val_seq = get_min_max_seq(self.pulse, dda="KG1V", read_uid=self.read_uid)
+        logging.info('{} last validated seq is {}'.format(str(self.pulse),str(self.val_seq)))
+        # logging.info('unval_seq {}, val_seq {}'.format(str(self.unval_seq),str(self.val_seq)))
         # save data to pickle
         self.save_to_pickle()
         # save KG1 data on different file (needed later when applying corrections)
