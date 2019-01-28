@@ -1750,33 +1750,34 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         #     Don't allow for writing of new PPF if write UID is JETPPF and test is true.
         #     This is since with test set we can over-write manually corrected data.
         # -------------------------------
-        if self.radioButton_storeData.isChecked() == True:
-            logger.info("\n             Writing PPF with UID {}".format(write_uid))
-            # write_status = kg1_signals.write_data(self.pulse, write_uid, mag)
+        # if self.radioButton_storeData.isChecked() == True:
+        #     logger.info("\n             Writing PPF with UID {}".format(write_uid))
+        #     # write_status = kg1_signals.write_data(self.pulse, write_uid, mag)
+        #
+        #
+        #     write_status = 0
+        #     if write_status != 0:
+        #         logger.error("There was a problem writing the PPF.")
+        #         return sys.exit(write_status)
+        #     else:
+        #         logger.info("No PPF was written. UID given was {}, stats: {}".format(write_uid, test))
+        #
+        #         logger.info("\n             Finished.")
+        # if self.radioButton_storeSF.isChecked() == True:
+        self.areyousure_window = QtGui.QMainWindow()
+        self.ui_areyousure = Ui_areyousure_window()
+        self.ui_areyousure.setupUi(self.areyousure_window)
+        self.areyousure_window.show()
 
-
-            write_status = 0
-            if write_status != 0:
-                logger.error("There was a problem writing the PPF.")
-                return sys.exit(write_status)
-            else:
-                logger.info("No PPF was written. UID given was {}, stats: {}".format(write_uid, test))
-
-                logger.info("\n             Finished.")
-        if self.radioButton_storeSF.isChecked() == True:
-            self.areyousure_window = QtGui.QMainWindow()
-            self.ui_areyousure = Ui_areyousure_window()
-            self.ui_areyousure.setupUi(self.areyousure_window)
-            self.areyousure_window.show()
-
-            self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save)
-            self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+        self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save)
+        self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
 
 
 
 #------------------------
     def handle_save(self):
-        # logger.info("\n             Writing Status Flag ONLY")
+        logger.info("\n             Saving KG1 workspace to pickle")
+        self.save_kg1()
 
         err = open_ppf(self.pulse, self.write_uid)
 
@@ -1905,7 +1906,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             return 67
         # Write mode DDA
 
-        mode = "Manual Corrections SF"
+        mode = "Correct.done by {}".format(self.owner)
         dtype_mode = "MODE"
         comment = mode
         write_err, itref_written = write_ppf(self.pulse, dda, dtype_mode,
@@ -1980,187 +1981,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # logger.info("\n     Status flags written.")
         return return_code
 
-#------------------------
-        # ------------------------
-    def handle_save_data(self):
-            logger.info("\n             Writing Status Flag ONLY")
 
-            # -------------------------------
-            # 13. Write data to PPF
-            # -------------------------------
-            err = open_ppf(self.pulse, self.write_uid)
-
-            if err != 0:
-                return 67
-
-            itref_kg1v = -1
-            dda = "KG1V"
-            return_code = 0
-
-
-            if (write_uid != "" and not test) or (
-                    test and write_uid.upper() != "JETPPF" and write_uid != ""):
-                logger.info(
-                    "\n             Writing PPF with UID {}".format(write_uid))
-                write_status = self.KG1_data.write_data(shot_no, write_uid, mag,
-                                                      ignore_current_ppf=test,
-                                                      interp_kg1v=interp)
-
-                if write_status != 0:
-                    logger.error("There was a problem writing the PPF.")
-                    return sys.exit(write_status)
-            else:
-                logger.info(
-                    "No PPF was written. UID given was {}, stats: {}".format(
-                        write_uid, test))
-
-            logger.info("\n             Finished.")
-
-
-
-
-            err = open_ppf(self.pulse, self.write_uid)
-
-            if err != 0:
-                return 67
-
-            itref_kg1v = -1
-            dda = "KG1V"
-            return_code = 0
-
-            for chan in self.KG1_data.density.keys():
-                status = np.empty(
-                    len(self.KG1_data.density[chan].time));
-                status.fill(self.SF_list[
-                                chan - 1])
-                dtype_lid = "LID{}".format(chan)
-                comment = "DATA FROM KG1 CHANNEL {}".format(chan)
-                write_err, itref_written = write_ppf(self.pulse, dda, dtype_lid,
-                                                     self.KG1_data.density[
-                                                         chan].data,
-                                                     time=self.KG1_data.density[
-                                                         chan].time,
-                                                     comment=comment,
-                                                     unitd='M-2', unitt='SEC',
-                                                     itref=itref_kg1v,
-                                                     nt=len(
-                                                         self.KG1_data.density[
-                                                             chan].time),
-                                                     status=status,
-                                                     global_status=self.SF_list[
-                                                         chan - 1])
-
-                if write_err != 0:
-                    logger.error(
-                        "Failed to write {}/{}. Errorcode {}".format(dda,
-                                                                     dtype_lid,
-                                                                     write_err))
-                    break
-            if write_err != 0:
-                return 67
-            # Write mode DDA
-
-            mode = "Correct.done by {}".format(self.owner)
-            dtype_mode = "MODE"
-            comment = mode
-            write_err, itref_written = write_ppf(self.pulse, dda, dtype_mode,
-                                                 np.array([1]),
-                                                 time=np.array([0]),
-                                                 comment=comment, unitd=" ",
-                                                 unitt=" ", itref=-1, nt=1,
-                                                 status=None)
-            # Retrieve geometry data & write to PPF
-            temp, r_ref, z_ref, a_ref, r_coord, z_coord, a_coord, coord_err = self.get_coord(
-                self.pulse)
-
-            if coord_err != 0:
-                return coord_err
-
-            dtype_temp = "TEMP"
-            comment = "Vessel temperature(degC)"
-            write_err, itref_written = write_ppf(self.pulse, dda, dtype_temp,
-                                                 np.array([temp]),
-                                                 time=np.array([0]),
-                                                 comment=comment, unitd="deg",
-                                                 unitt="none",
-                                                 itref=-1, nt=1, status=None)
-
-            geom_chan = np.arange(len(a_ref)) + 1
-            dtype_aref = "AREF"
-            comment = "CHORD(20 DEC.C): ANGLE"
-            write_err, itref_written = write_ppf(self.pulse, dda, dtype_aref,
-                                                 a_ref,
-                                                 time=geom_chan,
-                                                 comment=comment,
-                                                 unitd="RADIANS",
-                                                 unitt="CHORD NO",
-                                                 itref=-1, nt=len(geom_chan),
-                                                 status=None)
-
-            dtype_rref = "RREF"
-            comment = "CHORD(20 DEC.C): RADIUS"
-            write_err, itref_written = write_ppf(self.pulse, dda, dtype_rref,
-                                                 r_ref,
-                                                 time=geom_chan,
-                                                 comment=comment, unitd="M",
-                                                 unitt="CHORD NO",
-                                                 itref=itref_written,
-                                                 nt=len(geom_chan), status=None)
-
-            dtype_zref = "ZREF"
-            comment = "CHORD(20 DEC.C): HEIGHT"
-            write_err, itref_written = write_ppf(self.pulse, dda, dtype_zref,
-                                                 z_ref,
-                                                 time=geom_chan,
-                                                 comment=comment, unitd="M",
-                                                 unitt="CHORD NO",
-                                                 itref=itref_written,
-                                                 nt=len(geom_chan), status=None)
-
-            dtype_a = "A   "
-            comment = "CHORD: ANGLE"
-            write_err, itref_written = write_ppf(self.pulse, dda, dtype_a,
-                                                 a_coord,
-                                                 time=geom_chan,
-                                                 comment=comment,
-                                                 unitd="RADIANS",
-                                                 unitt="CHORD NO",
-                                                 itref=itref_written,
-                                                 nt=len(geom_chan), status=None)
-
-            dtype_r = "R   "
-            comment = "CHORD: RADIUS"
-            write_err, itref_written = write_ppf(self.pulse, dda, dtype_r,
-                                                 r_coord,
-                                                 time=geom_chan,
-                                                 comment=comment, unitd="M",
-                                                 unitt="CHORD NO",
-                                                 itref=itref_written,
-                                                 nt=len(geom_chan), status=None)
-
-            dtype_z = "Z   "
-            comment = "CHORD: HEIGHT"
-            write_err, itref_written = write_ppf(self.pulse, dda, dtype_z,
-                                                 z_coord,
-                                                 time=geom_chan,
-                                                 comment=comment, unitd="M",
-                                                 unitt="CHORD NO",
-                                                 itref=itref_written,
-                                                 nt=len(geom_chan), status=None)
-
-            if write_err != 0:
-                return 67
-            logger.log(5, "Close PPF.")
-            err = close_ppf(self.pulse, self.write_uid,
-                            self.constants.code_version)
-
-            if err != 0:
-                return 67
-
-            logger.info("\n     Status flags written.")
-            return return_code
-
-    # ------------------------
+# ------------------------
 
     def handle_normalizebutton(self):
 
