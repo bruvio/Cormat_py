@@ -728,12 +728,17 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
             if chan >4:
                 name1='MIR'+str(chan)
+                name2 = 'JxB' + str(chan)
                 ax_name1 = 'ax' + str(chan)+str(1)
                 widget_name1 = 'widget_LID' + str(chan)+str(1)
                 axx = vars()[ax_name1]
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
                                       self.KG1_data.vibration[chan].data*1e6,marker='x',label=name1, color='b',linestyle= 'None')
+                vars()[ax_name1].plot(self.KG1_data.jxb[chan].time,
+                                      self.KG1_data.jxb[chan].data*1e6,marker='x',label=name2, color='c',linestyle= 'None')
                 vars()[ax_name1].legend()
+
+
                 ax_mir.plot(self.KG1_data.vibration[chan].time,
                                  self.KG1_data.vibration[chan].data*1e6,marker='x',label=name1,linestyle= 'None')
                 ax_mir.legend()
@@ -958,13 +963,16 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
             if chan > 4:
                 name1 = 'MIR' + str(chan)
+                name2 = 'JxB' + str(chan)
+
                 ax_name1 = 'ax' + str(chan) + str(1)
 
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
                                       self.KG1_data.vibration[chan].data*1e6,
                                       marker='x', label=name1, color='b',linestyle= 'None')
-
+                vars()[ax_name1].plot(self.KG1_data.jxb[chan].time,
+                                      self.KG1_data.jxb[chan].data*1e6,marker='x',label=name2, color='c',linestyle= 'None')
                 vars()[ax_name1].legend()
                 ax_mir.plot(self.KG1_data.vibration[chan].time,
                                  self.KG1_data.vibration[chan].data*1e6, marker='x',linestyle= 'None',
