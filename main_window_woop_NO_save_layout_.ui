@@ -232,7 +232,7 @@
      </rect>
     </property>
     <property name="title">
-     <string>KG1 woop</string>
+     <string>KG1 manual validation tool</string>
     </property>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="geometry">

@@ -13,7 +13,7 @@ __status__ = "Testing"
 __credits__ = ["aboboc"]
 
 
-
+from shutil import copyfile
 import sys
 import logging
 import argparse
@@ -162,6 +162,10 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
         # initialising folders
+
+
+        # copyfile(self.chain1 + 'cormat_out.txt',
+        #          self.logbookdir + os.sep + 'cormat_out.txt')
         logging.debug('start')
         cwd = os.getcwd()
         self.workfold = cwd
@@ -186,6 +190,13 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         logging.debug('this is your homefold {}'.format(self.homefold))
 
         home = str(Path.home())
+
+        self.chain1 = '/common/chain1/kg1/'
+        extract_history(
+            self.workfold +'/run_out.txt',
+            self.chain1 + 'cormat_out.txt')
+        logging.info('copying to local user profile')
+
 
         # cwd = os.getcwd()
         # self.home = cwd
@@ -346,6 +357,8 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # self.tabWidget.(
         #     lambda: self.tabWidget.currentIndex())
 
+        #to disable a tab use
+        # self.tabWidget.setTabEnabled(3, False)
 
     # ------------------------
     def checkStatuFlags(self):
@@ -516,9 +529,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                   'rb') as f:  # Python 3: open(..., 'rb')
             [self.KG1_data,self.SF_list,self.unval_seq, self.val_seq] = pickle.load(f)
         f.close()
-        logging.info('\n data loaded')
-        logging.info('{} has the following SF {}'.format(str(self.pulse), self.SF_list))
-        logging.info('{} last validated seq is {}'.format(str(self.pulse),str(self.val_seq)))
+        logging.info('\n workspace loaded')
+        logging.info('\n {} has the following SF {}'.format(str(self.pulse), self.SF_list))
+        # logging.info('{} last validated seq is {}'.format(str(self.pulse),str(self.val_seq)))
 
         [self.SF_ch1,
          self.SF_ch2,
@@ -796,6 +809,10 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         self.radioButton_statusflag_4.toggled.connect(
             lambda: self.checkstate(self.radioButton_statusflag_4))
+
+        # self.tabWidget.removeTab(3)
+
+
 
     # ----------------------------
     def handle_no(self):

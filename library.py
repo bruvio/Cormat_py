@@ -79,3 +79,106 @@ def check_SF(read_uid,pulse):
         logging.info('%s has the following SF %s', str(pulse), SF_list)
 
         return SF_list
+
+def extract_history(filename, outputfile):
+    """
+    running this script will create a csv file containing a list of all the
+    ppf that have been created with Cormat_py code
+
+    the script reads a log file (generally in /u/user/work/Python/Cormat_py)
+
+
+    and writes an output file in the current working directory
+
+    the file is formatted in this way
+    shot: {} user: {} date: {} seq: {} by: {}
+    user is the write user id
+    by is the userid of the user of the code
+    the output is appended and there is a check on duplicates
+
+    if the user have never run KG1_py code the file will be empty
+
+    :param filename: name of KG1L (or KG1H) diary to be read
+    :param outputfile: name of the output file
+    :return:
+
+    """
+    import os
+    if os.path.exists(filename):
+
+        with open(filename, 'r') as f_in:
+           lines = f_in.readlines()
+           for index, line in enumerate(lines):
+            if "shot" in str(line):
+                dummy = lines[index].split()
+                shot = int(dummy[1])
+                user = str(dummy[3])
+                date = str(dummy[5])
+
+                # #             dummy = lines[index + 1].split()
+                sequence = (dummy[7])
+
+                writtenby = (dummy[10])
+                # #
+                #             month =(dummy[6])
+                #             day =(dummy[7])
+                #             year =(dummy[9])
+                #             logging.info(month,day,year)
+                #             date = datetime.date(int(year),strptime(month,'%b').tm_mon , int(day))
+
+                # logging.info(shot, user, date, sequence,writtenby)
+                # return
+                string_to_write = (
+                    "shot: {} user: {} date: {} seq: {} by: {}\n".format(
+                        str(shot).strip(),
+                        user.strip(),
+                        str(date).strip(),
+                        str(sequence).strip(),
+                        writtenby.strip()))
+
+                if os.path.exists(outputfile):
+                    if check_string_in_file(outputfile, string_to_write):
+                        pass
+                    else:
+                        with open(outputfile, 'a+') as f_out:
+                            f_out.write(string_to_write)
+                        f_out.close()
+                else:
+                    with open(outputfile, 'a+') as f_out:
+                        f_out.write(string_to_write)
+                    f_out.close()
+
+        f_in.close()
+    else:
+        f_in = open(filename, "w")
+        f_in.close()
+        string_to_write = (
+            "shot: {} user: {} date: {} seq: {} by: {}\n".format(str(00000),
+                                                                 'unknown',
+                                                                 str('00-00-00'),
+                                                                 str(000),
+                                                                 'unknown'))
+        if os.path.exists(outputfile):
+            if check_string_in_file(outputfile, string_to_write):
+                pass
+            else:
+                with open(outputfile, 'a+') as f_out:
+                    f_out.write(string_to_write)
+                f_out.close()
+        else:
+            with open(outputfile, 'a+') as f_out:
+                f_out.write(string_to_write)
+            f_out.close()
+
+def check_string_in_file(filename, string):
+    """
+
+    :param filename:
+    :param string:
+    :return: checks if the string is in that file
+    """
+    with open(filename) as myfile:
+        if string in myfile.read():
+            return True
+        else:
+            return False
