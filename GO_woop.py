@@ -18,7 +18,7 @@ import sys
 import logging
 import argparse
 import pdb
-
+from ppf_write import *
 #from pickle import dump,load
 import pickle
 from os import listdir
@@ -831,6 +831,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         logging.debug('continue')
         self.readdata()
 
+
+
+
         #status flag groupbox is disabled
         self.groupBox_statusflag.setEnabled(False)
         self.checkSFbutton.setEnabled(False)
@@ -847,6 +850,42 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # when plotting markers they will allocate space to plot markers in a subplot under current plot
 
         # gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])# working: creates canvas with 2 columns in the ratio 1/3
+
+        self.widget_LID1.figure.clear()
+        self.widget_LID1.draw()
+
+        self.widget_LID2.figure.clear()
+        self.widget_LID2.draw()
+
+        self.widget_LID3.figure.clear()
+        self.widget_LID3.draw()
+
+        self.widget_LID4.figure.clear()
+        self.widget_LID4.draw()
+
+        self.widget_LID5.figure.clear()
+        self.widget_LID5.draw()
+
+        self.widget_LID6.figure.clear()
+        self.widget_LID6.draw()
+
+        self.widget_LID7.figure.clear()
+        self.widget_LID7.draw()
+
+        self.widget_LID8.figure.clear()
+        self.widget_LID8.draw()
+
+        self.widget_LID_14.figure.clear()
+        self.widget_LID_14.draw()
+
+        self.widget_LID_58.figure.clear()
+        self.widget_LID_58.draw()
+
+        self.widget_LID_ALL.figure.clear()
+        self.widget_LID_ALL.draw()
+
+        self.widget_MIR.figure.clear()
+        self.widget_MIR.draw()
 
         heights = [4]
         gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
@@ -968,7 +1007,33 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.comboBox_2ndtrace.setEnabled(True)
         self.checkSFbutton.setEnabled(True)
         self.tabWidget.setCurrentIndex(0)
-        # self.tabSelected(arg=0)
+        self.tabSelected(arg=0)
+
+
+
+
+
+
+        self.tabWidget.connect(self.tabWidget,
+                               QtCore.SIGNAL("currentChanged(int)"),
+                               self.tabSelected)
+        #set combobox index to 1 so that the default write_uid is owner
+        self.comboBox_writeuid.setCurrentIndex(1)
+
+        self.radioButton_statusflag_0.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_0))
+
+        self.radioButton_statusflag_1.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_1))
+
+        self.radioButton_statusflag_2.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_2))
+
+        self.radioButton_statusflag_3.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_3))
+
+        self.radioButton_statusflag_4.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_4))
 
 
 # -----------------------
@@ -1673,6 +1738,11 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         :return:
         """
 
+        logging.info('\n')
+        # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
+        logging.info(
+            'Requesting to change ppf data')
+
         self.write_uid = self.comboBox_writeuid.currentText()
 
         # -------------------------------
@@ -1694,19 +1764,404 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
                 logger.info("\n             Finished.")
         if self.radioButton_storeSF.isChecked() == True:
-            logger.info("\n             Writing Status Flag ONLY")
-            write_status = kg1_signals.write_data(self.pulse, write_uid, self.MAG_data)
-            write_status = 0
-            if write_status != 0:
-                logger.error("There was a problem writing the PPF.")
-                return sys.exit(write_status)
-            else:
-                logger.info("No PPF was written. UID given was {}, stats: {}".format(write_uid, test))
+            self.areyousure_window = QtGui.QMainWindow()
+            self.ui_areyousure = Ui_areyousure_window()
+            self.ui_areyousure.setupUi(self.areyousure_window)
+            self.areyousure_window.show()
 
-                logger.info("\n             Finished.")
+            self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save)
+            self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+
 
 
 #------------------------
+    def handle_save(self):
+        # logger.info("\n             Writing Status Flag ONLY")
+
+        err = open_ppf(self.pulse, self.write_uid)
+
+        if err != 0:
+            return 67
+
+        itref_kg1v = -1
+        dda = "KG1V"
+        return_code = 0
+
+        for chan in self.KG1_data.density.keys():
+            status = np.empty(
+                len(self.KG1_data.density[chan].time));
+            status.fill(self.SF_list[
+                            chan - 1])
+            dtype_lid = "LID{}".format(chan)
+            comment = "DATA FROM KG1 CHANNEL {}".format(chan)
+            write_err, itref_written = write_ppf(self.pulse, dda, dtype_lid,
+                                                 self.KG1_data.density[
+                                                     chan].data,
+                                                 time=self.KG1_data.density[
+                                                     chan].time,
+                                                 comment=comment,
+                                                 unitd='M-2', unitt='SEC',
+                                                 itref=itref_kg1v,
+                                                 nt=len(self.KG1_data.density[
+                                                     chan].time),
+                                                 status=self.KG1_data.status[
+                                                     chan],
+                                                 global_status=self.SF_list[
+                                                     chan - 1])
+
+            if write_err != 0:
+                logger.error(
+                    "Failed to write {}/{}. Errorcode {}".format(dda, dtype_lid,
+                                                                 write_err))
+                break
+            # Corrected FJs for vertical channels
+            if chan <= 4 and chan in self.KG1_data.fj_dcn.keys():
+
+            # DCN fringes
+                if self.KG1_data.fj_dcn is not None:
+                    dtype_fc = "FC{}".format(chan)
+                    comment = "DCN FRINGE CORRECTIONS CH.{}".format(chan)
+                    write_err, itref_written = write_ppf(self.pulse, dda,
+                                                         dtype_fc, self.KG1_data.fj_dcn[chan].data,
+                                                         time=self.KG1_data.fj_dcn[chan].time,
+                                                         comment=comment,
+                                                         unitd=" ", unitt="SEC",
+                                                         itref=itref_kg1v,
+                                                         nt=len(self.KG1_data.fj_dcn[chan].time),
+                                                         status=None)
+
+                    if write_err != 0:
+                        logger.error(
+                            "Failed to write {}/{}. Errorcode {}".format(dda,
+                                                                         dtype_fc,
+                                                                         write_err))
+                        break
+                    # if write_err != 0:
+                    #     return write_err, itref
+            # Vibration data and JXB for lateral channels, and corrected FJ
+            elif chan > 4 and chan in self.KG1_data.vibration.keys():
+                if self.KG1_data.vibration is not None:
+                    # Vibration
+                    dtype_vib = "MIR{}".format(chan)
+                    comment = "MOVEMENT OF MIRROR {}".format(chan)
+                    write_err, itref_written = write_ppf(self.pulse, dda,
+                                                         dtype_vib,
+                                                         self.KG1_data.vibration[chan].data,
+                                                         time=self.KG1_data.vibration[chan].time,
+                                                         comment=comment,
+                                                         unitd='M', unitt='SEC',
+                                                         itref=itref_kg1v,
+                                                         nt=len(self.KG1_data.vibration[chan].time),
+                                                         status=self.KG1_data.status[chan])
+                    if write_err != 0:
+                        logger.error(
+                            "Failed to write {}/{}. Errorcode {}".format(dda,
+                                                                         dtype_vib,
+                                                                         write_err))
+                        break
+
+                    # JXB movement
+                    dtype_jxb = "JXB{}".format(chan)
+                    comment = "JxB CALC. MOVEMENT CH.{}".format(chan)
+                    write_err, itref_written = write_ppf(self.pulse, dda,
+                                                         dtype_jxb, self.KG1_data.jxb[chan].data,
+                                                         time=self.KG1_data.jxb[chan].time,
+                                                         comment=comment,
+                                                         unitd='M', unitt='SEC',
+                                                         itref=itref_kg1v,
+                                                         nt=len(self.KG1_data.jxb[chan].time),
+                                                         status=self.KG1_data.status[chan])
+
+                    if write_err != 0:
+                        logger.error(
+                            "Failed to write {}/{}. Errorcode {}".format(dda,
+                                                                         dtype_jxb,
+                                                                         write_err))
+                        break
+            elif chan > 4 and chan in self.KG1_data.fj_met.keys():
+                    # MET fringes
+                    if self.KG1_data.fj_met is not None :
+                        dtype_fc = "MC{} ".format(chan)
+                        comment = "MET FRINGE CORRECTIONS CH.{}".format(chan)
+                        write_err, itref_written = write_ppf(self.pulse, dda,
+                                                             dtype_fc,
+                                                             self.KG1_data.fj_met[chan].data,
+                                                             time=self.fj_met[chan].time,
+                                                             comment=comment,
+                                                             unitd=" ", unitt="SEC",
+                                                             itref=-1,
+                                                             nt=len(self.KG1_data.fj_met[chan].time),
+                                                             status=None)
+
+                        if write_err != 0:
+                            logger.error(
+                                "Failed to write {}/{}. Errorcode {}".format(
+                                    dda,
+                                    dtype_fc,
+                                    write_err))
+                            break
+
+        if write_err != 0:
+            return 67
+        # Write mode DDA
+
+        mode = "Manual Corrections SF"
+        dtype_mode = "MODE"
+        comment = mode
+        write_err, itref_written = write_ppf(self.pulse, dda, dtype_mode,
+                                             np.array([1]),
+                                             time=np.array([0]),
+                                             comment=comment, unitd=" ",
+                                             unitt=" ", itref=-1, nt=1,
+                                             status=None)
+        # Retrieve geometry data & write to PPF
+        temp, r_ref, z_ref, a_ref, r_coord, z_coord, a_coord, coord_err = self.KG1_data.get_coord(
+            self.pulse)
+
+        if coord_err != 0:
+            return coord_err
+
+        dtype_temp = "TEMP"
+        comment = "Vessel temperature(degC)"
+        write_err, itref_written = write_ppf(self.pulse, dda, dtype_temp, np.array([temp]),
+                                             time=np.array([0]), comment=comment, unitd="deg", unitt="none",
+                                             itref=-1, nt=1, status=None)
+
+        geom_chan = np.arange(len(a_ref)) + 1
+        dtype_aref = "AREF"
+        comment = "CHORD(20 DEC.C): ANGLE"
+        write_err, itref_written = write_ppf(self.pulse, dda, dtype_aref, a_ref,
+                                             time=geom_chan, comment=comment, unitd="RADIANS", unitt="CHORD NO",
+                                             itref=-1, nt=len(geom_chan), status=None)
+
+        dtype_rref = "RREF"
+        comment = "CHORD(20 DEC.C): RADIUS"
+        write_err, itref_written = write_ppf(self.pulse, dda, dtype_rref, r_ref,
+                                             time=geom_chan, comment=comment, unitd="M", unitt="CHORD NO",
+                                             itref=itref_written, nt=len(geom_chan), status=None)
+
+        dtype_zref = "ZREF"
+        comment = "CHORD(20 DEC.C): HEIGHT"
+        write_err, itref_written = write_ppf(self.pulse, dda, dtype_zref, z_ref,
+                                             time=geom_chan, comment=comment, unitd="M", unitt="CHORD NO",
+                                             itref=itref_written, nt=len(geom_chan), status=None)
+
+        dtype_a = "A   "
+        comment = "CHORD: ANGLE"
+        write_err, itref_written = write_ppf(self.pulse, dda, dtype_a, a_coord,
+                                             time=geom_chan, comment=comment, unitd="RADIANS", unitt="CHORD NO",
+                                             itref=itref_written, nt=len(geom_chan), status=None)
+
+        dtype_r = "R   "
+        comment = "CHORD: RADIUS"
+        write_err, itref_written = write_ppf(self.pulse, dda, dtype_r, r_coord,
+                                             time=geom_chan, comment=comment, unitd="M", unitt="CHORD NO",
+                                             itref=itref_written, nt=len(geom_chan), status=None)
+
+        dtype_z = "Z   "
+        comment = "CHORD: HEIGHT"
+        write_err, itref_written = write_ppf(self.pulse, dda, dtype_z, z_coord,
+                                             time=geom_chan, comment=comment, unitd="M", unitt="CHORD NO",
+                                             itref=itref_written, nt=len(geom_chan), status=None)
+
+
+        if write_err != 0:
+            return 67
+        logger.log(5, "Close PPF.")
+        err = close_ppf(self.pulse, self.write_uid, self.constants.code_version)
+
+        if err != 0:
+            return 67
+
+
+        self.ui_areyousure.pushButton_YES.setChecked(False)
+
+        self.areyousure_window.hide()
+        # logger.info("\n     Status flags written.")
+        return return_code
+
+#------------------------
+        # ------------------------
+    def handle_save_data(self):
+            logger.info("\n             Writing Status Flag ONLY")
+
+            # -------------------------------
+            # 13. Write data to PPF
+            # -------------------------------
+            err = open_ppf(self.pulse, self.write_uid)
+
+            if err != 0:
+                return 67
+
+            itref_kg1v = -1
+            dda = "KG1V"
+            return_code = 0
+
+
+            if (write_uid != "" and not test) or (
+                    test and write_uid.upper() != "JETPPF" and write_uid != ""):
+                logger.info(
+                    "\n             Writing PPF with UID {}".format(write_uid))
+                write_status = self.KG1_data.write_data(shot_no, write_uid, mag,
+                                                      ignore_current_ppf=test,
+                                                      interp_kg1v=interp)
+
+                if write_status != 0:
+                    logger.error("There was a problem writing the PPF.")
+                    return sys.exit(write_status)
+            else:
+                logger.info(
+                    "No PPF was written. UID given was {}, stats: {}".format(
+                        write_uid, test))
+
+            logger.info("\n             Finished.")
+
+
+
+
+            err = open_ppf(self.pulse, self.write_uid)
+
+            if err != 0:
+                return 67
+
+            itref_kg1v = -1
+            dda = "KG1V"
+            return_code = 0
+
+            for chan in self.KG1_data.density.keys():
+                status = np.empty(
+                    len(self.KG1_data.density[chan].time));
+                status.fill(self.SF_list[
+                                chan - 1])
+                dtype_lid = "LID{}".format(chan)
+                comment = "DATA FROM KG1 CHANNEL {}".format(chan)
+                write_err, itref_written = write_ppf(self.pulse, dda, dtype_lid,
+                                                     self.KG1_data.density[
+                                                         chan].data,
+                                                     time=self.KG1_data.density[
+                                                         chan].time,
+                                                     comment=comment,
+                                                     unitd='M-2', unitt='SEC',
+                                                     itref=itref_kg1v,
+                                                     nt=len(
+                                                         self.KG1_data.density[
+                                                             chan].time),
+                                                     status=status,
+                                                     global_status=self.SF_list[
+                                                         chan - 1])
+
+                if write_err != 0:
+                    logger.error(
+                        "Failed to write {}/{}. Errorcode {}".format(dda,
+                                                                     dtype_lid,
+                                                                     write_err))
+                    break
+            if write_err != 0:
+                return 67
+            # Write mode DDA
+
+            mode = "Correct.done by {}".format(self.owner)
+            dtype_mode = "MODE"
+            comment = mode
+            write_err, itref_written = write_ppf(self.pulse, dda, dtype_mode,
+                                                 np.array([1]),
+                                                 time=np.array([0]),
+                                                 comment=comment, unitd=" ",
+                                                 unitt=" ", itref=-1, nt=1,
+                                                 status=None)
+            # Retrieve geometry data & write to PPF
+            temp, r_ref, z_ref, a_ref, r_coord, z_coord, a_coord, coord_err = self.get_coord(
+                self.pulse)
+
+            if coord_err != 0:
+                return coord_err
+
+            dtype_temp = "TEMP"
+            comment = "Vessel temperature(degC)"
+            write_err, itref_written = write_ppf(self.pulse, dda, dtype_temp,
+                                                 np.array([temp]),
+                                                 time=np.array([0]),
+                                                 comment=comment, unitd="deg",
+                                                 unitt="none",
+                                                 itref=-1, nt=1, status=None)
+
+            geom_chan = np.arange(len(a_ref)) + 1
+            dtype_aref = "AREF"
+            comment = "CHORD(20 DEC.C): ANGLE"
+            write_err, itref_written = write_ppf(self.pulse, dda, dtype_aref,
+                                                 a_ref,
+                                                 time=geom_chan,
+                                                 comment=comment,
+                                                 unitd="RADIANS",
+                                                 unitt="CHORD NO",
+                                                 itref=-1, nt=len(geom_chan),
+                                                 status=None)
+
+            dtype_rref = "RREF"
+            comment = "CHORD(20 DEC.C): RADIUS"
+            write_err, itref_written = write_ppf(self.pulse, dda, dtype_rref,
+                                                 r_ref,
+                                                 time=geom_chan,
+                                                 comment=comment, unitd="M",
+                                                 unitt="CHORD NO",
+                                                 itref=itref_written,
+                                                 nt=len(geom_chan), status=None)
+
+            dtype_zref = "ZREF"
+            comment = "CHORD(20 DEC.C): HEIGHT"
+            write_err, itref_written = write_ppf(self.pulse, dda, dtype_zref,
+                                                 z_ref,
+                                                 time=geom_chan,
+                                                 comment=comment, unitd="M",
+                                                 unitt="CHORD NO",
+                                                 itref=itref_written,
+                                                 nt=len(geom_chan), status=None)
+
+            dtype_a = "A   "
+            comment = "CHORD: ANGLE"
+            write_err, itref_written = write_ppf(self.pulse, dda, dtype_a,
+                                                 a_coord,
+                                                 time=geom_chan,
+                                                 comment=comment,
+                                                 unitd="RADIANS",
+                                                 unitt="CHORD NO",
+                                                 itref=itref_written,
+                                                 nt=len(geom_chan), status=None)
+
+            dtype_r = "R   "
+            comment = "CHORD: RADIUS"
+            write_err, itref_written = write_ppf(self.pulse, dda, dtype_r,
+                                                 r_coord,
+                                                 time=geom_chan,
+                                                 comment=comment, unitd="M",
+                                                 unitt="CHORD NO",
+                                                 itref=itref_written,
+                                                 nt=len(geom_chan), status=None)
+
+            dtype_z = "Z   "
+            comment = "CHORD: HEIGHT"
+            write_err, itref_written = write_ppf(self.pulse, dda, dtype_z,
+                                                 z_coord,
+                                                 time=geom_chan,
+                                                 comment=comment, unitd="M",
+                                                 unitt="CHORD NO",
+                                                 itref=itref_written,
+                                                 nt=len(geom_chan), status=None)
+
+            if write_err != 0:
+                return 67
+            logger.log(5, "Close PPF.")
+            err = close_ppf(self.pulse, self.write_uid,
+                            self.constants.code_version)
+
+            if err != 0:
+                return 67
+
+            logger.info("\n     Status flags written.")
+            return return_code
+
+    # ------------------------
+
     def handle_normalizebutton(self):
 
         if self.s2ndtrace == 'None':

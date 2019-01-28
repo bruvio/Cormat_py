@@ -146,7 +146,7 @@ def write_ppf(shot_no, dda, dtype, data, time=None,
     # Write data
     # irdat[7]=0 #generates ppf identical to KG1V code
     # irdat[8]=-1
-    iwdat, ier = ppfwri(shot_no, dda, dtype, irdat, ihdat, data, [0], time)
+    iwdat, ier = ppfwri(shot_no, dda, dtype, irdat, ihdat, data, global_status, time)
 
     logger.log(5, "iwdat: {}".format(iwdat))
     logger.log(5, "itref for signal that was just written : {}".format(iwdat[8]))
@@ -174,6 +174,6 @@ def close_ppf(shot_no, write_uid,version):
     with open('run_out.txt','a+') as f_out:
         f_out.write("shot: {} user: {} date: {} seq: {} written by: {}\n".format(shot_no,write_uid,str(timestr),seq,owner))
     f_out.close()
-    print("shot: {} user: {} date: {} seq: {} written by: {}\n".format(shot_no,write_uid,timestr,seq,owner))
+    logging.info("\n shot: {} user: {} date: {} seq: {} written by: {}\n".format(shot_no,write_uid,timestr,seq,owner))
 
     return ier
