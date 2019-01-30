@@ -123,6 +123,11 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
     def __init__(self, parent=None):
         """
         Setup the GUI, and connect the buttons to functions.
+
+        Initialise widgets and canvas.
+        Define defaults
+
+
         """
 
 
@@ -164,8 +169,6 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # initialising folders
 
 
-        # copyfile(self.chain1 + 'cormat_out.txt',
-        #          self.logbookdir + os.sep + 'cormat_out.txt')
         logging.debug('start')
         cwd = os.getcwd()
         self.workfold = cwd
@@ -183,8 +186,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             self.owner = getpass.getuser()
 
         logging.debug('this is your username {}'.format(self.owner))
-        # :TODO
-        #     if self.owner not in read_uis list then disable write ppf and hide write_uid combobox
+
 
         self.homefold = os.path.join(os.sep, 'u', self.owner)
         logging.debug('this is your homefold {}'.format(self.homefold))
@@ -198,10 +200,6 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         logging.info('copying to local user profile')
 
 
-        # cwd = os.getcwd()
-        # self.home = cwd
-        # print(self.home)
-        # print(owner)
         logging.debug('we are in %s', cwd)
         # psrint(homefold + os.sep+ folder)
 
@@ -233,31 +231,29 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         write_uis = []
 
-
-        # for user in self.constants.writeusers.keys():
-        #     user_name = self.constants.writeusers[user]
-        #     write_uis.append(user_name)
-
-        # users = [u for u in listdir(self.PathCatalog)]
-        write_uis = []
-        # users=sorted(users)
-        write_uis.insert(0,'JETPPF')
-        # users.append('JETPPF')
-        # users.append('chain1')
-        write_uis.append(self.owner)
+        #check if owner is in list of authorised users
+        if self.owner in read_uis:
+            logging.info('user {} authorised to write public PPF'.format(self.owner))
+            write_uis.insert(0,'JETPPF') # jetppf first in the combobox list
+            write_uis.append(self.owner)
+            # users.append('chain1')
+        else:
+            logging.info('user {} NOT authorised to write public PPF'.format(self.owner))
+            write_uis.append(self.owner)
 
 
-        # fsm = Qt.QFileSystemModel()
-        # index = fsm.setRootPath(self.PathCatalog)
-        # self.comboBox = Qt.QComboBox()
-
-        # self.comboBox_readuid.setModel(fsm)
-        # self.comboBox_readuid.setRootModelIndex(index)
+        #initialise combobox
         self.comboBox_readuid.addItems(read_uis)
         self.comboBox_writeuid.addItems(write_uis)
 
         #set combobox index to 1 so that the default write_uid is owner
-        self.comboBox_writeuid.setCurrentIndex(1)
+        if len(write_uis) ==2:
+            self.comboBox_writeuid.setCurrentIndex(1)
+        else:
+            self.comboBox_writeuid.setCurrentIndex(0)
+
+
+        #set default pulse
         # initpulse = pdmsht()
         initpulse = 92121
         self.lineEdit_jpn.setText(str(initpulse))
@@ -271,16 +267,6 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         markers=['None','ELMs','NBI','PELLETs','MAGNETICs']
         self.comboBox_markers.addItems(markers)
         self.comboBox_markers.activated[str].connect(self.plot_markers)
-
-        # self.ui_edge2d.comboBox_Name.setModel(fsm)
-        # self.ui_edge2d.comboBox_Name.setRootModelIndex(index)
-        # self.comboBox_2ndtrace.currentIndexChanged.connect(self.plot_2nd_trace)
-
-        # write_allowedusers = []
-        # # write_allowedusers.append(self.owner)
-        # # write_allowedusers.append('JETPPF')
-        # write_allowedusers.append(users)
-
 
         self.comboBox_markers.setEnabled(False)
         self.comboBox_2ndtrace.setEnabled(False)
@@ -323,11 +309,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.pushButton_apply.setEnabled(False)
         self.pushButton_makeperm.setEnabled(False)
         self.pushButton_undo.setEnabled(False)
-        # self.button_check_pulse.setEnabled(False)
         self.button_restore.setEnabled(False)
 
         #run code by default
-
         # self.button_read_pulse.click()
 
         #initialize to zero status flag radio buttons
@@ -368,18 +352,29 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
 
-    def check_status(self,button):
-        if button.isChecked() == True:
-            logging.debug('{} is checked'.format(button.objectName()))
+    def check_status(self,button_newpulse):
+        """
+        check if button "newpulse" is clicked
+
+
+        :param button:
+        :return: disable/enable combobox
+        """
+        if button_newpulse.isChecked() == True:
+            logging.debug('{} is checked'.format(button_newpulse.objectName()))
             self.comboBox_readuid.setEnabled(True)
-        elif button.isChecked() == False:
-            logging.debug('{} is NOT checked'.format(button.objectName()))
+        elif button_newpulse.isChecked() == False:
+            logging.debug('{} is NOT checked'.format(button_newpulse.objectName()))
             self.comboBox_readuid.setEnabled(False)
 
 
 
     # ------------------------
     def checkStatuFlags(self):
+        """
+        reads the list containing pulse status flag
+        :return:
+        """
 
         self.SF_list = [int(self.SF_ch1),
                         int(self.SF_ch2),
@@ -400,6 +395,11 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
     # ------------------------
     def tabSelected(self, arg=None):
+        """
+        function that convert arg number into tab name
+        :param arg:
+        :return:
+        """
         if arg == 0:
             self.current_tab = 'LID_1'
             self.set_status_flag_radio(self.SF_ch1)
@@ -433,16 +433,16 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         if arg == 11:
             self.current_tab = 'MIR'
 
-
-        # print('\n\t tabSelected() current Tab index =', arg)
-        # print('\n\t current Tab index =', arg)
-        # logging.debug('tab is ')
-        # logging.debug('\n\t: current Tab is = {}'.format(str(arg)))
         logging.debug('\n\t: current Tab is {}'.format(self.current_tab))
 
 
 
     def checkstate(self, button):
+        """
+        connect tab number to LID channel and sets status flag
+        :param button:
+        :return:
+        """
         snd = self.sender()
         #old status flag
         if self.current_tab == 'LID_1':
@@ -647,8 +647,6 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         # gs1 is the gridspec for channels 5-8
         # when plotting markers they will allocate space to plot markers in a subplot under current plot
 
-        # gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])# working: creates canvas with 2 columns in the ratio 1/3
-
         heights = [4]
         gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
         heights1 = [3, 3]
@@ -697,7 +695,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
             logging.debug('file {} found in local workspace'.format('./saved/'+str(self.pulse)+'.pkl'))
 
             if  (self.checkBox_newpulse.isChecked() == False):
-                # logging.debug('{} is not checked'.format(self.checkBox_newpulse.objectName()))
+                logging.debug('{} is not checked'.format(self.checkBox_newpulse.objectName()))
                 # if exists and new pulse checkbox is not checked then load data
                 logging.info('\n')
                 logging.info('pulse data already downloaded')
@@ -706,7 +704,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 # self.tabSelected(arg=0)
 
             else:
-                # logging.debug('{} is  checked'.format(self.checkBox_newpulse.objectName()))
+                logging.debug('{} is  checked'.format(self.checkBox_newpulse.objectName()))
                 logging.info('\n')
                 # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
                 logging.info('pulse data already downloaded - you are requesting to download again')
