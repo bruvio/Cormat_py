@@ -348,6 +348,9 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         #set status flag radio buttons to false
         self.groupBox_statusflag.setEnabled(False)
+        #set read uid combo box to disabled
+        self.comboBox_readuid.setEnabled(False)
+
 
         #check selected tab
         # self.tabSelected(arg=0)
@@ -359,6 +362,21 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         #to disable a tab use
         # self.tabWidget.setTabEnabled(3, False)
+
+        self.checkBox_newpulse.toggled.connect(
+            lambda: self.check_status(self.checkBox_newpulse))
+
+
+
+    def check_status(self,button):
+        if button.isChecked() == True:
+            logging.debug('{} is checked'.format(button.objectName()))
+            self.comboBox_readuid.setEnabled(True)
+        elif button.isChecked() == False:
+            logging.debug('{} is NOT checked'.format(button.objectName()))
+            self.comboBox_readuid.setEnabled(False)
+
+
 
     # ------------------------
     def checkStatuFlags(self):
@@ -527,11 +545,12 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         f.close()
         with open('./saved/' + str(self.pulse) + '_kg1.pkl',
                   'rb') as f:  # Python 3: open(..., 'rb')
-            [self.KG1_data,self.SF_list,self.unval_seq, self.val_seq] = pickle.load(f)
+            [self.KG1_data,self.SF_list,self.unval_seq, self.val_seq,self.read_uid] = pickle.load(f)
         f.close()
         logging.info('\n workspace loaded')
-        logging.info('\n {} has the following SF {}'.format(str(self.pulse), self.SF_list))
-        # logging.info('{} last validated seq is {}'.format(str(self.pulse),str(self.val_seq)))
+        logging.info('\n workspace data comes from userid {}'.format(self.read_uid))
+        logging.info('{} has the following SF {}'.format(str(self.pulse), self.SF_list))
+        logging.info('{} last validated seq is {}'.format(str(self.pulse),str(self.val_seq)))
 
         [self.SF_ch1,
          self.SF_ch2,
@@ -562,7 +581,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
     def save_kg1(self):
         logging.info('\n saving KG1 data')
         with open('./saved/' + str(self.pulse) + '_kg1.pkl', 'wb') as f:
-            pickle.dump([self.KG1_data,self.SF_list,self.unval_seq, self.val_seq],f)
+            pickle.dump([self.KG1_data,self.SF_list,self.unval_seq, self.val_seq,self.read_uid],f)
         f.close()
         logging.info('\n kg1 data saved')
 
@@ -675,8 +694,10 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
 
         if exists:
+            logging.debug('file {} found in local workspace'.format('./saved/'+str(self.pulse)+'.pkl'))
 
             if  (self.checkBox_newpulse.isChecked() == False):
+                # logging.debug('{} is not checked'.format(self.checkBox_newpulse.objectName()))
                 # if exists and new pulse checkbox is not checked then load data
                 logging.info('\n')
                 logging.info('pulse data already downloaded')
@@ -685,6 +706,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 # self.tabSelected(arg=0)
 
             else:
+                # logging.debug('{} is  checked'.format(self.checkBox_newpulse.objectName()))
                 logging.info('\n')
                 # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
                 logging.info('pulse data already downloaded - you are requesting to download again')
@@ -697,6 +719,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
                 self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
 
         else:
+            logging.debug('no file {} found in local workspace')
             #if data not exists read it and overwrite
 
             self.readdata()
@@ -1184,7 +1207,11 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
          self.SF_ch8 ] = self.SF_list
 
         self.unval_seq, self.val_seq = get_min_max_seq(self.pulse, dda="KG1V", read_uid=self.read_uid)
-        logging.info('{} last validated seq is {}'.format(str(self.pulse),str(self.val_seq)))
+        if self.read_uid.lower() == 'jetppf':
+            logging.info('{} last public validated seq is {}'.format(str(self.pulse),str(self.val_seq)))
+        else:
+            logging.info('{} last private validated seq is {}'.format(str(self.pulse),str(self.val_seq)))
+            logging.info('userid is {}'.format(self.read_uid))
         # logging.info('unval_seq {}, val_seq {}'.format(str(self.unval_seq),str(self.val_seq)))
         # save data to pickle
         self.save_to_pickle()
@@ -1775,32 +1802,29 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         #     Don't allow for writing of new PPF if write UID is JETPPF and test is true.
         #     This is since with test set we can over-write manually corrected data.
         # -------------------------------
-        # if self.radioButton_storeData.isChecked() == True:
-        #     logger.info("\n             Writing PPF with UID {}".format(write_uid))
-        #     # write_status = kg1_signals.write_data(self.pulse, write_uid, mag)
-        #
-        #
-        #     write_status = 0
-        #     if write_status != 0:
-        #         logger.error("There was a problem writing the PPF.")
-        #         return sys.exit(write_status)
-        #     else:
-        #         logger.info("No PPF was written. UID given was {}, stats: {}".format(write_uid, test))
-        #
-        #         logger.info("\n             Finished.")
-        # if self.radioButton_storeSF.isChecked() == True:
-        self.areyousure_window = QtGui.QMainWindow()
-        self.ui_areyousure = Ui_areyousure_window()
-        self.ui_areyousure.setupUi(self.areyousure_window)
-        self.areyousure_window.show()
+        if self.radioButton_storeData.isChecked() == True:
+            self.areyousure_window = QtGui.QMainWindow()
+            self.ui_areyousure = Ui_areyousure_window()
+            self.ui_areyousure.setupUi(self.areyousure_window)
+            self.areyousure_window.show()
 
-        self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save)
-        self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+            self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_data_statusflag)
+            self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+
+
+        if self.radioButton_storeSF.isChecked() == True:
+            self.areyousure_window = QtGui.QMainWindow()
+            self.ui_areyousure = Ui_areyousure_window()
+            self.ui_areyousure.setupUi(self.areyousure_window)
+            self.areyousure_window.show()
+
+            self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_statusflag)
+            self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
 
 
 
 #------------------------
-    def handle_save(self):
+    def handle_save_data_statusflag(self):
         logger.info("\n             Saving KG1 workspace to pickle")
         self.save_kg1()
 
@@ -2003,11 +2027,41 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         self.ui_areyousure.pushButton_YES.setChecked(False)
 
         self.areyousure_window.hide()
-        # logger.info("\n     Status flags written.")
+        #
         return return_code
 
 
 # ------------------------
+    def handle_save_statusflag(self):
+
+        return_code = 0
+
+        # Initialise PPF system
+        ier = ppfgo(pulse=self.pulse)
+
+        if ier != 0:
+            return 68
+
+        # Set UID
+        ppfuid(self.write_uid, 'w')
+
+        for chan in self.KG1_data.density.keys():
+            dtype_lid = "LID{}".format(chan)
+            (write_err,) = ppfssf(self.pulse, self.val_seq, 'KG1V', dtype_lid, self.SF_list[chan - 1])
+            if write_err != 0:
+                logger.error(
+                "Failed to write {}/{} status flag. Errorcode {}".format('KG1V', dtype_lid,
+                                                             write_err))
+            break
+        self.ui_areyousure.pushButton_YES.setChecked(False)
+
+        self.areyousure_window.hide()
+        logger.info("\n     Status flags written to ppf.")
+
+        return return_code
+# ------------------------
+
+
 
     def handle_normalizebutton(self):
 
