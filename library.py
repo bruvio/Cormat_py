@@ -1,42 +1,184 @@
-    
 
-def handle_readdata_button(self):
-        """
-        opens a new windows where the user can input a list of pulses he/she wants to plot
+# ----------------------------
+__author__ = "B. Viola"
+# ----------------------------
+from status_flag import GetSF
+import numpy as np
+from ppf import *
+import logging
+from numpy import arange,asscalar
 
-        than the user can select a standard sets (a list of signal)
-        and then plot them
+def norm(data):
+    return (data)/(max(data)-min(data))
 
+def normalise(signal, kg1_signal, dis_time):
+        # ----------------------
+        # Use ratio of maximum of signal - kg1 as the normalisation factor.
+        # Exclude region around the disruption.
+        # ----------------------
+        if dis_time > 0:
+                ind_dis, = np.where((kg1_signal.time < dis_time - 1))
 
-        :return:
-        """
+                max_kg1 = max(kg1_signal.data[ind_dis])
+        else:
+                max_kg1 = max(kg1_signal.data)
 
+        max_signal = max(signal.data)
+
+        #    print("max kg1 {} max signal {}".format(max_kg1, max_signal))
+
+        norm_factor = max_kg1 / max_signal
+        signal.data = signal.data * norm_factor
+
+        return signal.data
+
+def get_seq(shot_no, dda, read_uid="JETPPF"):
+    ier = ppfgo(shot_no, seq=0)
+    if ier != 0:
+        return None
+
+    ppfuid(read_uid, rw="R")
+
+    iseq, nseq, ier = ppfdda(shot_no, dda)
+
+    if ier != 0:
+        return None
+
+    return iseq
+
+def get_min_max_seq(shot_no, dda="KG1V", read_uid="JETPPF"):
+    kg1v_seq = get_seq(shot_no, dda,read_uid)
+    unval_seq = -1
+    val_seq = -1
+    if kg1v_seq is not None:
+        unval_seq = min(kg1v_seq)
+        if len(kg1v_seq) > 1:
+            val_seq = max(kg1v_seq)
+
+    return unval_seq, val_seq
+
+def check_SF(read_uid,pulse):
         logging.info('\n')
-        logging.info('plotting tool')
+        logging.info('checking status FLAGS ')
 
-        self.window_plotdata = QtGui.QMainWindow()
-        self.ui_plotdata = Ui_plotdata_window()
-        self.ui_plotdata.setupUi(self.window_plotdata)
-        self.window_plotdata.show()
+        ppfuid(read_uid, "r")
 
-        initpulse = pdmsht()
-        initpulse2 = initpulse -1
+        ppfssr(i=[0, 1, 2, 3, 4])
 
-        self.ui_plotdata.textEdit_pulselist.setText(str(initpulse))
-        # self.ui_plotdata.textEdit_colorlist.setText('black')
+        channels = arange(0, 8) + 1
+        SF_list = []
 
-        self.ui_plotdata.selectfile.clicked.connect(self.selectstandardset)
+        pulse = int(pulse)
 
-        self.ui_plotdata.plotbutton.clicked.connect(self.plotdata)
-        self.ui_plotdata.savefigure_checkBox.setChecked(False)
-        self.ui_plotdata.checkBox.setChecked(False)
-        self.ui_plotdata.checkBox.toggled.connect(
-            lambda: self.checkstateJSON(self.ui_plotdata.checkBox))
+        for channel in channels:
+                ch_text = 'lid' + str(channel)
 
-        self.JSONSS = '/work/bviola/Python/kg1_tools/kg1_tools_gui/standard_set/PLASMA_main_parameters_new.json'
-        self.JSONSSname = os.path.basename(self.JSONSS)
+                st_ch = GetSF(pulse, 'kg1v', ch_text)
+                st_ch = asscalar(st_ch)
+                SF_list.append(st_ch)
+        logging.info('%s has the following SF %s', str(pulse), SF_list)
 
-        logging.debug('default set is {}'.format(self.JSONSSname))
-        logging.info('select a standard set')
-        logging.info('\n')
-        logging.info('type in a list of pulses')
+        return SF_list
+
+def extract_history(filename, outputfile):
+    """
+    running this script will create a csv file containing a list of all the
+    ppf that have been created with Cormat_py code
+
+    the script reads a log file (generally in /u/user/work/Python/Cormat_py)
+
+
+    and writes an output file in the current working directory
+
+    the file is formatted in this way
+    shot: {} user: {} date: {} seq: {} by: {}
+    user is the write user id
+    by is the userid of the user of the code
+    the output is appended and there is a check on duplicates
+
+    if the user have never run KG1_py code the file will be empty
+
+    :param filename: name of KG1L (or KG1H) diary to be read
+    :param outputfile: name of the output file
+    :return:
+
+    """
+    import os
+    if os.path.exists(filename):
+
+        with open(filename, 'r') as f_in:
+           lines = f_in.readlines()
+           for index, line in enumerate(lines):
+            if "shot" in str(line):
+                dummy = lines[index].split()
+                shot = int(dummy[1])
+                user = str(dummy[3])
+                date = str(dummy[5])
+
+                # #             dummy = lines[index + 1].split()
+                sequence = (dummy[7])
+
+                writtenby = (dummy[10])
+                # #
+                #             month =(dummy[6])
+                #             day =(dummy[7])
+                #             year =(dummy[9])
+                #             logging.info(month,day,year)
+                #             date = datetime.date(int(year),strptime(month,'%b').tm_mon , int(day))
+
+                # logging.info(shot, user, date, sequence,writtenby)
+                # return
+                string_to_write = (
+                    "shot: {} user: {} date: {} seq: {} by: {}\n".format(
+                        str(shot).strip(),
+                        user.strip(),
+                        str(date).strip(),
+                        str(sequence).strip(),
+                        writtenby.strip()))
+
+                if os.path.exists(outputfile):
+                    if check_string_in_file(outputfile, string_to_write):
+                        pass
+                    else:
+                        with open(outputfile, 'a+') as f_out:
+                            f_out.write(string_to_write)
+                        f_out.close()
+                else:
+                    with open(outputfile, 'a+') as f_out:
+                        f_out.write(string_to_write)
+                    f_out.close()
+
+        f_in.close()
+    else:
+        f_in = open(filename, "w")
+        f_in.close()
+        string_to_write = (
+            "shot: {} user: {} date: {} seq: {} by: {}\n".format(str(00000),
+                                                                 'unknown',
+                                                                 str('00-00-00'),
+                                                                 str(000),
+                                                                 'unknown'))
+        if os.path.exists(outputfile):
+            if check_string_in_file(outputfile, string_to_write):
+                pass
+            else:
+                with open(outputfile, 'a+') as f_out:
+                    f_out.write(string_to_write)
+                f_out.close()
+        else:
+            with open(outputfile, 'a+') as f_out:
+                f_out.write(string_to_write)
+            f_out.close()
+
+def check_string_in_file(filename, string):
+    """
+
+    :param filename:
+    :param string:
+    :return: checks if the string is in that file
+    """
+    with open(filename) as myfile:
+        if string in myfile.read():
+            return True
+        else:
+            return False

@@ -5,7 +5,7 @@ Needs modifying so it would work with old KG1V & new KG1V dtypes
 """
 
 import logging
-
+import getdat
 import numpy as np
 from ppf_write import write_ppf
 
@@ -14,7 +14,7 @@ from signal_base import SignalBase
 logger = logging.getLogger(__name__)
 
 # ----------------------------
-__author__ = "L. Kogan"
+__author__ = "B. Viola"
 # ----------------------------
 
 
@@ -27,6 +27,8 @@ class Kg1PPFData:
         :param constants: instance of Kg1Consts class
         """
         self.constants = constants
+        self.corrections = SignalBase(constants)  # Corrections that have been made
+        self.correction_type = np.arange(0) # For debugging : to keep track of where corrections have been made
         self.pulse = pulse
         self.dda = "KG1V"
         self.density = {}
@@ -51,6 +53,8 @@ class Kg1PPFData:
         # no further corrections are made.
         self.ppf = {}
 
+        self.dfr = self.constants.DFR_DCN
+
     # ------------------------
     def read_data(self, shot_no, read_uid="JETPPF"):
         """
@@ -58,7 +62,6 @@ class Kg1PPFData:
         :param shot_no: shot number
         :param chan: channel
         :param read_uid: read UID
-        :param all_status: if True, then read in even if status flag is 4
         :return: True if data was read in successfully, False otherwise
         """
         for chan in self.constants.kg1v.keys():
@@ -179,111 +182,6 @@ class Kg1PPFData:
 
         return True
 
-    # ------------------------
-    def write_data(self, chan, shot_no, itref):
-        """
-        Write data to PPF system
-        :param chan: channel
-        :param shot_no: shot number
-        :param itref: itref to use for the timebase
-        :return: write error, itref
-        """
-
-        # LID
-        dtype_lid = "LID{}".format(chan)
-        comment = "DATA FROM KG1V CHANNEL {}".format(chan)
-
-        logger.debug("Writing PPF LID {}".format(chan))
-
-        write_err, itref = write_ppf(shot_no, self.dda, dtype_lid, self.density.data,
-                                     time=self.density.time, comment=comment,
-                                     unitd='M-2', unitt='SEC', itref=itref,
-                                     nt=len(self.density.time), status=self.status)
-
-        if write_err != 0:
-            logger.error("Failed to write {}/{}. Errorcode {}".format(self.dda, dtype_lid, write_err))
-            return write_err, itref
-
-        # DCN fringes
-        if self.fj_dcn is not None:
-            dtype_fc = "FCD{}".format(chan)
-            comment = "DCN FRINGE CORRECTIONS CH.{}".format(chan)
-            write_err, itref_written = write_ppf(shot_no, self.dda, dtype_fc, self.fj_dcn.data,
-                                                 time=self.fj_dcn.time, comment=comment,
-                                                 unitd=" ", unitt="SEC", itref=-1,
-                                                 nt=len(self.fj_dcn.time), status=None)
-
-            if write_err != 0:
-                return write_err, itref
-
-        # DCN laser points with bad amplitude
-        if self.bp_dcn is not None:
-            dtype_bp = "BPD{}".format(chan)
-            comment = "DCN LASER BAD POINTS CH.{}".format(chan)
-            write_err, itref_written = write_ppf(shot_no, self.dda, dtype_bp, self.bp_dcn.data,
-                                                 time=self.bp_dcn.time, comment=comment,
-                                                 unitd=" ", unitt="SEC", itref=-1,
-                                                 nt=len(self.bp_dcn.time), status=None)
-
-            if write_err != 0:
-                return write_err, itref
-
-        if self.vibration is not None:
-            # Vibration
-            dtype_vib = "MIR{}".format(chan)
-            comment = "MOVEMENT OF MIRROR {}".format(chan)
-            write_err, itref_written = write_ppf(shot_no, self.dda, dtype_vib, self.vibration.data,
-                                                 time=self.vibration.time, comment=comment,
-                                                 unitd='M', unitt='SEC', itref=itref,
-                                                 nt=len(self.vibration.time), status=self.status)
-            if write_err != 0:
-                logger.error("Failed to write {}/{}. Errorcode {}".format(self.dda, dtype_vib, write_err))
-                return write_err, itref
-
-            # JXB movement
-            dtype_jxb = "JXB{}".format(chan)
-            comment = "JxB CALC. MOVEMENT CH.{}".format(chan)
-            write_err, itref_written = write_ppf(shot_no, self.dda, dtype_jxb, self.jxb.data,
-                                                 time=self.jxb.time, comment=comment,
-                                                 unitd='M', unitt='SEC', itref=itref,
-                                                 nt=len(self.jxb.time), status=self.status)
-
-            if write_err != 0:
-                return write_err, itref
-
-            # MET fringes
-            if self.fj_met is not None:
-                dtype_fc = "FCM{} ".format(chan)
-                comment = "MET FRINGE CORRECTIONS CH.{}".format(chan)
-                write_err, itref_written = write_ppf(shot_no, self.dda, dtype_fc, self.fj_met.data,
-                                                     time=self.fj_met.time, comment=comment,
-                                                     unitd=" ", unitt="SEC", itref=-1,
-                                                     nt=len(self.fj_met.time), status=None)
-
-                if write_err != 0:
-                    return write_err, itref
-
-            # MET laser points with bad amplitude
-            if self.bp_met is not None:
-                dtype_bp = "BPM{}".format(chan)
-                comment = "MET LASER BAD POINTS CH.{}".format(chan)
-                write_err, itref_written = write_ppf(shot_no, self.dda, dtype_bp, self.bp_met.data,
-                                                     time=self.bp_met.time, comment=comment,
-                                                     unitd=" ", unitt="SEC", itref=-1,
-                                                     nt=len(self.bp_met.time), status=None)
-
-                if write_err != 0:
-                    return write_err, itref
-
-        # Write signal type
-        dtype_type = "TYP{}".format(chan)
-        comment = "SIG TYPE: "+self.type+" CH.{}".format(chan)
-        write_err, itref_written = write_ppf(shot_no, self.dda, dtype_type, np.array([1]),
-                                            time=np.array([0]), comment=comment,
-                                            unitd=" ", unitt=" ", itref=-1,
-                                            nt=1, status=None)
-
-        return write_err, itref
 
     # ------------------------
     def set_status(self, lid, new_status, time=None, index=None):
@@ -321,3 +219,177 @@ class Kg1PPFData:
                 self.status[lid].data[index] = new_status
                 logger.debug("Chan {}: Setting status to {} for time point {}".format(lid, new_status,
                                                                                    self.status[lid].time[index]))
+
+
+    # ------------------------
+    def uncorrect_fj(self, corr, index):
+        """
+        Uncorrect a fringe jump by corr, from the time corresponding to index onwards.
+        Not used ATM. Will need more testing if we want to use it... Suspect isclose is wrong.
+
+        :param corr: Correction to add to the data
+        :param index: Index from which to make the correction
+
+        """
+        # Check we made a correction at this time.
+        ind_corr = np.where(np.isclose(self.corrections.time, self.time[index], atol=5e-5, rtol=1e-6) == 1)
+        if np.size(ind_corr) == 0:
+            return
+
+        # Uncorrect correction
+        self.data[index:] = self.data[index:] + corr
+
+        self.corrections.data = np.delete(self.corrections.data, ind_corr)
+        self.corrections.time = np.delete(self.corrections.time, ind_corr)
+
+    # ------------------------
+    def correct_fj(self, corr, time=None, index=None, store=True, correct_type="", corr_dcn=None, corr_met=None):
+        """
+        Shifts all data from time onwards, or index onwards,
+        down by corr. Either time or index must be specified
+
+        :param corr: The correction to be subtracted
+        :param time: The time from which to make the correction (if this is specified index is ignored)
+        :param index: The index from which to make the correction
+        :param store: To record the correction set to True
+        :param correct_type: String describing which part of the code made the correction
+        :param corr_dcn: Only for use with lateral channels. Stores the correction,
+                         in terms of the number of FJ in DCN laser (as opposed to in the combined density)
+        :param corr_met: Only for use with lateral channels. Stores the correction,
+                         in terms of the number of FJ in the MET laser (as opposed to the correction in the vibration)
+
+        """
+
+        if time is None and index is None:
+            logger.warning("No time or index was specified for making the FJ correction.")
+            return
+
+        if time is not None:
+            index = np.where(self.time > time),
+            if np.size(index) == 0:
+                logger.warning("Could not find time near {} for making the FJ correction.".format(time))
+                return
+
+            index = np.min(index)
+
+        logger.log(5, "From index {}, time {}, subtracting {} ({} fringes)".format(index, self.time[index],
+                                                                                       corr, corr/self.dfr))
+        self.data[index:] = self.data[index:] - corr
+
+        # Store correction in terms of number of fringes
+        corr_store = int(corr / self.dfr)
+
+        # If this is a mirror movement signal, store raw correction
+        if "vib" in self.signal_type:
+            corr_store = corr
+
+        if store:
+            # Store in terms of the number of fringes for density, or vibration itself for vibration
+            if self.corrections.data is None:
+                self.corrections.data = np.array([corr_store])
+                self.corrections.time = np.array([self.time[index]])
+            else:
+                self.corrections.data = np.append(self.corrections.data, corr_store)
+                self.corrections.time = np.append(self.corrections.time, self.time[index])
+
+            self.correction_type = np.append(self.correction_type, correct_type)
+
+            # Also store corresponding correction for the DCN & MET lasers (for use with lateral channels only)
+            if corr_dcn is not None:
+                self.correction_dcn = np.append(self.correction_dcn, corr_dcn)
+
+            if corr_met is not None:
+                self.correction_met = np.append(self.correction_met, corr_met)
+
+    # ------------------------
+
+    # ------------------------
+    def get_coord(self, shot_no):
+        """
+        Get vacuum vessel temperature & extract spatial coordinates of KG4 chords from text file.
+        Function copied from A. Boboc's kg4r_py code.
+
+        :param shot_no: shot number
+        """
+
+        nodename_temp = self.constants.temp_node
+
+        vv_temp, err = self.get_jpf_point(shot_no, nodename_temp)
+
+        filename = self.constants.geometry_filename
+
+        try:
+            raw = np.loadtxt(filename, skiprows=3)
+
+            temp = raw[:,0]
+            index = np.where(temp==vv_temp)[0]
+            Coord_Rref = raw[0,1:9]
+            Coord_Zref = raw[0,9:17]
+            Coord_Aref = raw[0,17:25]
+            Coord_R = raw[index,1:9][0]
+            Coord_Z = raw[index,9:17][0]
+            Coord_A = raw[index,17:25][0]
+            Coord_Temperature = vv_temp
+
+            logger.debug('Vaccum Vessel temperature(deg.C) {}'.format(vv_temp))
+            logger.debug('Rref {}'.format(Coord_Rref))
+            logger.debug('Zref {}'.format(Coord_Zref))
+            logger.debug('Aref {}'.format(Coord_Aref))
+            logger.debug('R {}'.format(Coord_R))
+            logger.debug('Z {}'.format(Coord_Z))
+            logger.debug('A {}'.format(Coord_A))
+
+            return (Coord_Temperature,Coord_R,Coord_Z,\
+                    Coord_A,Coord_Rref,Coord_Zref,Coord_Aref,0)
+
+        except IOError:
+            pass
+            ier = 1
+            logger.debug("Reading KG4 R,Z,A coordinates data from {} failed".format(filename))
+            return 1,1,1,1,1,1,1,66
+
+    # ------------------------
+
+    # ------------------------
+    def get_jpf_point(self, shot_no, node):
+        """
+        Get a single value from the JPF
+        ie. Convert Nord data to real number
+        Function copied from A. Boboc's kg4r_py code.
+
+        :param shot_no: shot number
+        :param node: JPF node
+        """
+        (raw,nwords,label,ecode) = getdat.getraw(node,shot_no)
+        t = None
+        if ecode != 0:
+            logger.warning("{} {} BAD".format(shot_no, node))
+        else:
+            if nwords == 3:
+                # Data is 3 16bit words Nord float, 48 bit
+                # word 0, bit 0 is sign
+                # word 0, bit 1..15 is exponent, biased
+                # word 1, bit 0..15 is most significant mantissa
+                # word 2, bit 0..15 is least significant mantissa
+                w0 = raw[0] & 0xffff
+                w1 = raw[1] & 0xffff
+                w2 = raw[2] & 0xffff
+                if w0 & 0x8000 : # sign
+                    s = -1.0
+                else:
+                    s =  1.0
+                e = w0 & 0x7fff # exponent
+                eb = 0x4000 # exponent bias
+                #print jpn, node, w0, w1, w2,
+                msm = w1<<8  # most significant mantissa for IEE754 float, 32 bit
+                lsm = w2>>8  # least significant mantissa
+                mm = 0x1000000 # mantissa max
+                fm = float(msm+lsm)
+                fmm = float(mm)
+                if (e) != 0:
+                    t = s * (2**(e-eb)) * (fm/fmm)
+                else:
+                    t= 0.0
+                #Debug_msg(1,'Pulse' +str(jpn)+node+' '+t)
+        return (t,ecode)
+
