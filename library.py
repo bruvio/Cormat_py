@@ -182,3 +182,33 @@ def check_string_in_file(filename, string):
             return True
         else:
             return False
+
+
+
+def equalsFile(firstFile, secondFile, blocksize=65536):
+    #returns True if files are the same,i.e. secondFile has same checksum as first
+    if os.path.getsize(firstFile) != os.path.getsize(secondFile):
+        return False
+    else:
+        firstFile = open(firstFile , 'rb')
+        secondFile =  open(secondFile  , 'rb')
+        buf1 = firstFile.read(blocksize)
+        buf2 = secondFile.read(blocksize)
+    while len(buf1) > 0:
+        if buf1!=buf2:
+            return False
+        buf1, buf2 = firstFile.read(blocksize), secondFile.read(blocksize)
+    return True
+# =============================================================================
+# 
+# 
+# =============================================================================
+def copy_changed_kg1_to_save(src,dst,filename):
+    """
+    src: is the 
+    """
+    
+    src='./'+src+'/'+filename
+    dst='./'+dst+'/'+filename
+    
+    copyfile(src, dst)
