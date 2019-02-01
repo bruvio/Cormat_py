@@ -567,6 +567,12 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
          self.SF_ch8] = self.SF_list
 
 
+        #set saved status to False
+        self.saved = False
+
+
+
+
 
 
     # ------------------------
@@ -589,11 +595,24 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
             pickle.dump([self.KG1_data,self.SF_list,self.unval_seq, self.val_seq,self.read_uid],f)
         f.close()
         logging.info('\n kg1 data saved')
+        
+        
+    def dump_kg1(self):
+        logging.info('\n saving changes to KG1 data')
+        with open('./scratch/' + str(self.pulse) + '_kg1.pkl', 'wb') as f:
+            pickle.dump([self.KG1_data,self.SF_list,self.unval_seq, self.val_seq,self.read_uid],f)
+        f.close()
+        logging.info('\n kg1 data saved')
+        
 
 
 
 # ------------------------
     def handle_readbutton(self):
+
+        #set saved status to False
+        self.saved = False
+
 
         #status flag groupbox is disabled
         self.groupBox_statusflag.setEnabled(False)
@@ -1220,6 +1239,8 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
         self.save_to_pickle()
         # save KG1 data on different file (needed later when applying corrections)
         self.save_kg1()
+        # dump KG1 data on different file (used to autosave later when applying corrections)
+        self.dump_kg1()
 
 
 
@@ -1830,7 +1851,7 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
     def handle_save_data_statusflag(self):
         logger.info("\n             Saving KG1 workspace to pickle")
         self.save_kg1()
-
+        
         err = open_ppf(self.pulse, self.write_uid)
 
         if err != 0:
@@ -2026,7 +2047,7 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
         if err != 0:
             return 67
 
-
+        self.saved = True
         self.ui_areyousure.pushButton_YES.setChecked(False)
 
         self.areyousure_window.hide()
@@ -2038,6 +2059,7 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
     def handle_save_statusflag(self):
 
         return_code = 0
+        self.save_kg1()
 
         # Initialise PPF system
         ier = ppfgo(pulse=self.pulse)
@@ -2060,7 +2082,7 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
 
         self.areyousure_window.hide()
         logger.info("\n     Status flags written to ppf.")
-
+        self.saved = True
         return return_code
 # ------------------------
 
@@ -2335,14 +2357,32 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
         """
         Exit the application
         """
-        self.areyousure_window = QtGui.QMainWindow()
-        self.ui_areyousure = Ui_areyousure_window()
-        self.ui_areyousure.setupUi(self.areyousure_window)
-        self.areyousure_window.show()
+        
+        #if data have been modified
+        data_changed = equalsFile('./saved/'+ str(self.pulse) + '_kg1.pkl', './scratch/'+ str(self.pulse) + '_kg1.pkl')
+        if data_changed:
+            if self.saved:
+                self.handle_yes_exit
+            else:
+                self.areyousure_window = QtGui.QMainWindow()
+                self.ui_areyousure = Ui_areyousure_window()
+                self.ui_areyousure.setupUi(self.areyousure_window)
+                self.areyousure_window.show()
 
-        self.ui_areyousure.pushButton_YES.clicked.connect(
-            self.handle_yes_exit)
-        self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+                self.ui_areyousure.pushButton_YES.clicked.connect(
+                self.handle_yes_exit)
+                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+        else:
+            self.handle_yes_exit
+
+                
+
+            #if data have been saved to ppf
+                #exit
+        
+        
+        
+        
 
 
 
