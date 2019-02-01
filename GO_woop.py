@@ -293,15 +293,19 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
 
 
         #setting code folders
+        try:
+            #figure folder
+            pathlib.Path(cwd + os.sep + 'figures').mkdir(parents=True,exist_ok=True)
+            # scratch folder - where you keep unsaved unfinished data
+            pathlib.Path(cwd + os.sep + 'scratch').mkdir(parents=True,exist_ok=True)
+            # save foldere - where you keep saved pulse data
+            pathlib.Path(cwd + os.sep + 'saved').mkdir(parents=True,exist_ok=True)
+            # standard set - where you keep signal list to be used in the code
+            pathlib.Path(cwd + os.sep + 'standard_set').mkdir(parents=True,exist_ok=True)
+        except:
+            raise SystemExit('failed to initialise folders')
 
-        #figure folder
-        pathlib.Path(cwd + os.sep + 'figures').mkdir(parents=True,exist_ok=True)
-        # scratch folder - where you keep unsaved unfinished data
-        pathlib.Path(cwd + os.sep + 'scratch').mkdir(parents=True,exist_ok=True)
-        # save foldere - where you keep saved pulse data
-        pathlib.Path(cwd + os.sep + 'saved').mkdir(parents=True,exist_ok=True)
-        # standard set - where you keep signal list to be used in the code
-        pathlib.Path(cwd + os.sep + 'standard_set').mkdir(parents=True,exist_ok=True)
+
 
         #disable many button to avoid conflicts
         self.button_save.setEnabled(False)
