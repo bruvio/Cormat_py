@@ -15,6 +15,7 @@ __credits__ = ["aboboc"]
 
 from shutil import copyfile
 import sys
+import time
 import logging
 import platform
 import argparse
@@ -2452,8 +2453,9 @@ def main():
     screenShape = QtGui.QDesktopWidget().screenGeometry()
     #1366x768 vnc viewer size
     MainWindow.resize(screenShape.width(), screenShape.height())
-    QtCore.QTimer.singleShot(5, MainWindow.show())
-    #MainWindow.show()
+    #QtCore.QTimer.singleShot(10, MainWindow.show)
+    time.sleep(3.0)
+    MainWindow.show()
     #MainWindow.showMaximized()
     app.exec_()
 
