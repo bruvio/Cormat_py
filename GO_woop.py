@@ -2443,26 +2443,17 @@ def main():
 
     by default is set to INFO
     """
-    logger.info("Running WOOP.")
-    import sys
+    logger.info("Running CORMAT_py.")
     app = QtGui.QApplication(sys.argv)
     screen_resolution = app.desktop().screenGeometry()
     width, height = screen_resolution.width(), screen_resolution.height()
     print(width,height)
-
-
-    # frm = QtGui.QFrame()
-    # frm.sizeHint = lambda: QtCore.QSize(width, height)
-
-
-
     MainWindow = woop()
-    # MainWindow.width=200
-    # MainWindow.height = 200
     screenShape = QtGui.QDesktopWidget().screenGeometry()
+    #1366x768 vnc viewer size
     MainWindow.resize(screenShape.width(), screenShape.height())
-    # MainWindow.resize(200,200)
-    MainWindow.show()
+    QtCore.QTimer.singleShot(5, MainWindow.show())
+    #MainWindow.show()
     #MainWindow.showMaximized()
     app.exec_()
 
