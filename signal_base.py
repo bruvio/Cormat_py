@@ -117,7 +117,7 @@ class SignalBase():
         :param read_uid: UID to use to read PPF data
         :param seq: sequence number to read in
         """
-        logger.log(5, "Reading in PPF signal {}/{} with uid {}".format(dda, dtype, read_uid))
+        logger.debug( "Reading in PPF signal {}/{} with uid {}".format(dda, dtype, read_uid))
 
         if dda == "" or dtype == "":
             return 0
@@ -154,7 +154,7 @@ class SignalBase():
         :param use_64bit: If set to true the data is stored as 64 bit float
         """
         self.pulse = shot_no
-        logger.log(5, "Reading in JPF signal {}".format(signal_name))
+        logger.debug( "Reading in JPF signal {}".format(signal_name))
 
         if signal_name == "":
             return
@@ -178,7 +178,7 @@ class SignalBase():
         :param signal_name: signal name
         :param shot_no: shot number
         """
-        logger.log(5, "Reading in JPF 1D signal {}".format(signal_name))
+        logger.debug( "Reading in JPF 1D signal {}".format(signal_name))
         data, nwds, title, units, ier = getsca(signal_name, shot_no, nwds=0)
 
         if ier != 0:

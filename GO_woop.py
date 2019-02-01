@@ -16,6 +16,7 @@ __credits__ = ["aboboc"]
 from shutil import copyfile
 import sys
 import logging
+import platform
 import argparse
 import pdb
 from ppf_write import *
@@ -91,7 +92,7 @@ class QPlainTextEditLogger(logging.Handler):
         self.widget.appendPlainText(msg)
 
 
-class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
+class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
     """
 
     Main control function for Woop GUI.
@@ -2015,7 +2016,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
 
         if write_err != 0:
             return 67
-        logger.log(5, "Close PPF.")
+        logger.info("Close PPF.")
         err = close_ppf(self.pulse, self.write_uid, self.constants.code_version)
 
         if err != 0:
@@ -2320,9 +2321,7 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
     def handle_undobutton(self):
         pass
 
-#------------------------
-    def set_status_flag(self):
-        pass
+
 
     def check_current_tab(self):
         return self.QTabWidget.currentWidget()
@@ -2332,11 +2331,23 @@ class woop(QtGui.QMainWindow, woop.Ui_MainWindow,QPlainTextEditLogger):
         """
         Exit the application
         """
+        self.areyousure_window = QtGui.QMainWindow()
+        self.ui_areyousure = Ui_areyousure_window()
+        self.ui_areyousure.setupUi(self.areyousure_window)
+        self.areyousure_window.show()
+
+        self.ui_areyousure.pushButton_YES.clicked.connect(
+            self.handle_yes_exit)
+        self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+
+
+
+
+    def handle_yes_exit(self):
+
         logging.info('\n')
         logging.info('Exit now')
         sys.exit()
-
-
 
 
 
@@ -2376,8 +2387,9 @@ class MyFormatter(logging.Formatter):
         self._style._fmt = format_orig
 
         return result
-
-
+#
+# def is_python_64bit():
+#     return (struct.calcsize("P") == 8)
 
 def main():
     """
@@ -2390,13 +2402,33 @@ def main():
     logger.info("Running WOOP.")
     import sys
     app = QtGui.QApplication(sys.argv)
+    screen_resolution = app.desktop().screenGeometry()
+    width, height = screen_resolution.width(), screen_resolution.height()
+    print(width,height)
+
+
+    # frm = QtGui.QFrame()
+    # frm.sizeHint = lambda: QtCore.QSize(width, height)
+
+
+
     MainWindow = woop()
-    #MainWindow.show()
-    MainWindow.showMaximized()
+    # MainWindow.width=200
+    # MainWindow.height = 200
+    screenShape = QtGui.QDesktopWidget().screenGeometry()
+    MainWindow.resize(screenShape.width(), screenShape.height())
+    # MainWindow.resize(200,200)
+    MainWindow.show()
+    #MainWindow.showMaximized()
     app.exec_()
 
 
 if __name__ == '__main__':
+    # Ensure we are running on 64bit
+    assert (platform.architecture()[0] == '64bit'), "Please log on Freja"
+
+    # Ensure we are running python 3
+    assert sys.version_info >= (3, 5), "Python version too old. Please use >= 3.5.X."
 
     parser = argparse.ArgumentParser(description='Run GO_woop')
     parser.add_argument("-d", "--debug", type=int,

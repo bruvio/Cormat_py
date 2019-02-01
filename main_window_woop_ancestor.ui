@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>CORMAT_py</class>
+ <widget class="QMainWindow" name="CORMAT_py">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -9,18 +9,6 @@
     <width>1472</width>
     <height>865</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>1472</width>
-    <height>865</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>1472</width>
-    <height>865</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -536,7 +524,7 @@
      <x>0</x>
      <y>0</y>
      <width>1472</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

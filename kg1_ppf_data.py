@@ -73,7 +73,7 @@ class Kg1PPFData:
 
             # We are only interested in keeping the data if it has already been validated
             # if density.data is not None and (0 < status < 4) and not all_status:
-            #     logger.log(5, "PPF data chan {}".format(status))
+            #     logger.debug( "PPF data chan {}".format(status))
             if density.data is not None:
                 self.density[chan] = density
                 # self.status[chan] = status
@@ -272,7 +272,7 @@ class Kg1PPFData:
 
             index = np.min(index)
 
-        logger.log(5, "From index {}, time {}, subtracting {} ({} fringes)".format(index, self.time[index],
+        logger.debug( "From index {}, time {}, subtracting {} ({} fringes)".format(index, self.time[index],
                                                                                        corr, corr/self.dfr))
         self.data[index:] = self.data[index:] - corr
 

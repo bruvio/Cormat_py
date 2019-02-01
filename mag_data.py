@@ -119,7 +119,7 @@ class MagData:
 
         """
 
-        logger.log(5, "Max ip : {}, Min ip allowed: {}".format(max(self.ip.data), self.MIN_IP))
+        logger.debug( "Max ip : {}, Min ip allowed: {}".format(max(self.ip.data), self.MIN_IP))
 
         # First, find if there was an ip above MIN_IP.
         ind_first_ip = np.argmax(self.ip.data > self.MIN_IP)
@@ -169,7 +169,7 @@ class MagData:
                                                                                                     self.end_ip,
                                                                                                     self.start_flattop,
                                                                                                     self.end_flattop,self.start_ip1MA,self.end_ip1MA)
-        logger.log(5, dmsg)
+        logger.debug( dmsg)
 
         # For debugging, plot ip and times of ip
         if self.constants.plot_type == "dpi" and "mag_data" in self.constants.make_plots:
@@ -191,7 +191,7 @@ class MagData:
 
         """
 
-        logger.log(5, "Max Bvac : {}, Min Bvac allowed: {}".format(min(self.bvac.data), self.MIN_BVAC))
+        logger.debug( "Max Bvac : {}, Min Bvac allowed: {}".format(min(self.bvac.data), self.MIN_BVAC))
 
         # First, find if there was an ip above MIN_BVAC.
         ind_first_bvac = np.argmax(self.bvac.data < self.MIN_BVAC)
@@ -208,7 +208,7 @@ class MagData:
         self.end_bvac = self.bvac.time[ind_last_bvac] + 1e-4
 
         dmsg = "Start of Bvac < -1.5T : {}, end of Bvac < -1.5T : {}".format(self.start_bvac,self.end_bvac)
-        logger.log(5, dmsg)
+        logger.debug( dmsg)
 
         # For debugging, plot ip and times of ip
         if self.constants.plot_type == "dpi" and "mag_data" in self.constants.make_plots:

@@ -96,7 +96,7 @@ def write_ppf(shot_no, dda, dtype, data, time=None,
     :return: error code (0 if everything is OK), itref for timebase written
     """
 
-    logger.log(5, "Writing {}/{} : {}".format(dda, dtype, comment))
+    logger.debug( "Writing {}/{} : {}".format(dda, dtype, comment))
 
     # PPF dtype needs to have 4 characters: add extra spaces if this is not the case
     if len(dtype) < 4:
@@ -109,9 +109,9 @@ def write_ppf(shot_no, dda, dtype, data, time=None,
         logger.error("Could not write {}/{}: data and time vectors are different lengths".format(dda, dtype))
         return 1, -1
 
-    logger.log(5, "Length time vector {}".format(nt))
+    logger.debug( "Length time vector {}".format(nt))
 
-    logger.log(5, "Using itref {}".format(itref))
+    logger.debug( "Using itref {}".format(itref))
 
     data_type = 'F'
     if (data.dtype == 'int32' or data.dtype == 'int64'):
@@ -127,11 +127,11 @@ def write_ppf(shot_no, dda, dtype, data, time=None,
     # Create ihdat & irdat
     ihdat = ppfwri_ihdat(unitd, "", unitt, data_type, data_type, time_type, comment)
 
-    logger.log(5, "ihdat {}".format(ihdat))
+    logger.debug( "ihdat {}".format(ihdat))
 
     irdat = ppfwri_irdat(1, nt, refx=-1, reft=itref, user=0, system=global_status)
 
-    logger.log(5, "irdat {}".format(irdat))
+    logger.debug( "irdat {}".format(irdat))
 
     # Set TDSF : THIS ISN'T WORKING PROPERLY YET... I WANT TO NOT SET A STATUS FLAG WHEN status is NONE ...
 #    if status is not None:
@@ -148,9 +148,9 @@ def write_ppf(shot_no, dda, dtype, data, time=None,
     # irdat[8]=-1
     iwdat, ier = ppfwri(shot_no, dda, dtype, irdat, ihdat, data, global_status, time)
 
-    logger.log(5, "iwdat: {}".format(iwdat))
-    logger.log(5, "itref for signal that was just written : {}".format(iwdat[8]))
-    logger.log(5, "ier: {}".format(ier))
+    logger.debug( "iwdat: {}".format(iwdat))
+    logger.debug( "itref for signal that was just written : {}".format(iwdat[8]))
+    logger.debug( "ier: {}".format(ier))
 
     if ier != 0:
         logger.warning("Failed to write PPF {}/{}. Errorcode {}".format(dda, dtype, ier))

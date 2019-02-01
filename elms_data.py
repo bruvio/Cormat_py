@@ -99,7 +99,7 @@ class ElmsData:
             self.elms_signal.read_data_jpf(node_name, shot_no)
 
             if self.elms_signal.data is not None:
-                logger.log(5, "Using {} for finding ELMs.".format(node_name))
+                logger.debug( "Using {} for finding ELMs.".format(node_name))
                 break
 
         if self.elms_signal.data is None:
