@@ -41,16 +41,16 @@ sys.path.insert(0, os.path.abspath('../python'))
 #print(os.path.abspath('../../'))
 
 
-from GO_woop import __version__
-from GO_woop import __release__
-from GO_woop import __author__
-from GO_woop import __Name__
+from Cormat_main import __version__
+from Cormat_main import __release__
+from Cormat_main import __author__
+from Cormat_main import __Name__
 
 
-from GO_woop import __maintainer__
-from GO_woop import __email__
-from GO_woop import __status__
-from GO_woop import __credits__
+from Cormat_main import __maintainer__
+from Cormat_main import __email__
+from Cormat_main import __status__
+from Cormat_main import __credits__
 
 #sys.path.append(os.path.join(os.path.dirname(__name__), '..')) 
 # -- General configuration ------------------------------------------------
@@ -238,7 +238,7 @@ html_show_sphinx = True
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Kg1ToolsGUIdoc'
+htmlhelp_basename = 'CORMATpyGUI'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -260,7 +260,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Kg1ToolsGUI.tex', 'Kg1 Tools GUI Documentation',
+    (master_doc, 'CORMATpyGUI.tex', 'CORMATpy  GUI Documentation',
      __author__, 'manual'),
 ]
 

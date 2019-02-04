@@ -39,7 +39,7 @@ from hrts_data import HRTSData
 from signal_base import SignalBase
 from lidar_data import LIDARData
 from find_disruption import find_disruption
-import woop
+import CORMAT_GUI
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 
@@ -73,10 +73,10 @@ logger = logging.getLogger(__name__)
 
 
 
-class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
+class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger):
     """
 
-    Main control function for Woop GUI.
+    Main control function for CORMATpy GUI.
 
 
 
@@ -114,7 +114,7 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
 
 
         import os
-        super(woop, self).__init__(parent)
+        super(CORMAT_GUI, self).__init__(parent)
         self.setupUi(self)
         ###setting up the logger to write inside a Text box
 
@@ -2383,7 +2383,7 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
     #----------------------------
     def handle_help_menu(self):
         import webbrowser
-        url='file://' + os.path.realpath('./docs/build/html/index.html')
+        url='file://' + os.path.realpath('../docs/_build/html/index.html')
         webbrowser.get(using='google-chrome').open(url,new=2);
 
         # ----------------------------
@@ -2392,7 +2392,7 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
 
             :return: open pdf file of the guide
             """
-            file = os.path.realpath('./docs/kg1_tools_gui_documentation.pdf')
+            file = os.path.realpath('../docs/CORMATpy_GUI_Documentation.pdf')
             import subprocess
 
             subprocess.Popen(['okular', file])
@@ -2496,14 +2496,14 @@ def main():
     screen_resolution = app.desktop().screenGeometry()
     width, height = screen_resolution.width(), screen_resolution.height()
     print(width,height)
-    MainWindow = woop()
+    MainWindow = CORMAT_GUI()
     screenShape = QtGui.QDesktopWidget().screenGeometry()
     #1366x768 vnc viewer size
     
     #QtCore.QTimer.singleShot(10, MainWindow.show)
     time.sleep(3.0)
     MainWindow.show()
-    MainWindow.resize(screenShape.width(), screenShape.height())
+    #MainWindow.resize(screenShape.width(), screenShape.height())
     #MainWindow.showMaximized()
     app.exec_()
 
@@ -2515,7 +2515,7 @@ if __name__ == '__main__':
     # Ensure we are running python 3
     assert sys.version_info >= (3, 5), "Python version too old. Please use >= 3.5.X."
 
-    parser = argparse.ArgumentParser(description='Run GO_woop')
+    parser = argparse.ArgumentParser(description='Run CORMAT_py')
     parser.add_argument("-d", "--debug", type=int,
                         help="Debug level. 0: Info, 1: Warning, 2: Debug,"
                             " 3: Error; \n default level is INFO", default=2)
