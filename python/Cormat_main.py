@@ -73,26 +73,6 @@ logger = logging.getLogger(__name__)
 
 
 
-# class QPlainTextEditLogger(logging.Handler):
-#     """
-#     class that defines a handler to write logging message inside the GUI
-#     the geometry and position of the TextEdit is defined here, not by QT designer
-#     """
-#
-#
-#
-#     def __init__(self, parent):
-#         super().__init__()
-#         self.widget = QtGui.QPlainTextEdit(parent)
-#         self.widget.setGeometry(1070,610,381,191)
-#
-#         self.widget.setReadOnly(True)
-#
-#     def emit(self, record):
-#         msg = self.format(record)
-#         self.widget.appendPlainText(msg)
-
-
 class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
     """
 
@@ -358,6 +338,21 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
 
         self.checkBox_newpulse.toggled.connect(
             lambda: self.check_status(self.checkBox_newpulse))
+
+        #disable tab as there is nothing plotted
+        self.tabWidget.setTabEnabled(0, False)
+        self.tabWidget.setTabEnabled(1, False)
+        self.tabWidget.setTabEnabled(2, False)
+        self.tabWidget.setTabEnabled(3, False)
+        self.tabWidget.setTabEnabled(4, False)
+        self.tabWidget.setTabEnabled(5, False)
+        self.tabWidget.setTabEnabled(6, False)
+        self.tabWidget.setTabEnabled(7, False)
+        self.tabWidget.setTabEnabled(8, False)
+        self.tabWidget.setTabEnabled(9, False)
+        self.tabWidget.setTabEnabled(10, False)
+        self.tabWidget.setTabEnabled(11, False)
+
 
         #making documentation
         if (args.documentation).lower() =='yes' :
@@ -819,6 +814,20 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
                                  self.KG1_data.vibration[chan].data*1e6,marker='x',label=name1,linestyle= 'None')
                 ax_mir.legend()
                 # draw_widget(chan)
+
+        # disable tab as there is nothing plotted
+        self.tabWidget.setTabEnabled(0, True)
+        self.tabWidget.setTabEnabled(1, True)
+        self.tabWidget.setTabEnabled(2, True)
+        self.tabWidget.setTabEnabled(3, True)
+        self.tabWidget.setTabEnabled(4, True)
+        self.tabWidget.setTabEnabled(5, True)
+        self.tabWidget.setTabEnabled(6, True)
+        self.tabWidget.setTabEnabled(7, True)
+        self.tabWidget.setTabEnabled(8, True)
+        self.tabWidget.setTabEnabled(9, True)
+        self.tabWidget.setTabEnabled(10, True)
+        self.tabWidget.setTabEnabled(11, True)
 
         # update canvas
         self.widget_LID1.draw()
@@ -2486,14 +2495,15 @@ def main():
     app = QtGui.QApplication(sys.argv)
     screen_resolution = app.desktop().screenGeometry()
     width, height = screen_resolution.width(), screen_resolution.height()
-    #print(width,height)
+    print(width,height)
     MainWindow = woop()
     screenShape = QtGui.QDesktopWidget().screenGeometry()
     #1366x768 vnc viewer size
-    MainWindow.resize(screenShape.width(), screenShape.height())
+    
     #QtCore.QTimer.singleShot(10, MainWindow.show)
     time.sleep(3.0)
     MainWindow.show()
+    MainWindow.resize(screenShape.width(), screenShape.height())
     #MainWindow.showMaximized()
     app.exec_()
 
