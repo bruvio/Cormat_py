@@ -2358,28 +2358,29 @@ class woop(QtGui.QMainWindow, woop.Ui_CORMAT_py,QPlainTextEditLogger):
         """
         Exit the application
         """
-        
-        #if data have been modified
-        data_changed = equalsFile('./saved/'+ str(self.pulse) + '_kg1.pkl', './scratch/'+ str(self.pulse) + '_kg1.pkl')
-        if data_changed:
-            if self.saved:
-                self.handle_yes_exit
+        try:
+            #if data have been modified
+            data_changed = equalsFile('./saved/'+ str(self.pulse) + '_kg1.pkl', './scratch/'+ str(self.pulse) + '_kg1.pkl')
+            if data_changed:
+                if self.saved:
+                    self.handle_yes_exit
+                else:
+                    self.areyousure_window = QtGui.QMainWindow()
+                    self.ui_areyousure = Ui_areyousure_window()
+                    self.ui_areyousure.setupUi(self.areyousure_window)
+                    self.areyousure_window.show()
+
+                    self.ui_areyousure.pushButton_YES.clicked.connect(
+                    self.handle_yes_exit)
+                    self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
             else:
-                self.areyousure_window = QtGui.QMainWindow()
-                self.ui_areyousure = Ui_areyousure_window()
-                self.ui_areyousure.setupUi(self.areyousure_window)
-                self.areyousure_window.show()
+                self.handle_yes_exit
+        except AttributeError:
+            logging.info('\n')
+            logging.info('Exit now')
+            sys.exit()
 
-                self.ui_areyousure.pushButton_YES.clicked.connect(
-                self.handle_yes_exit)
-                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-        else:
-            self.handle_yes_exit
 
-                
-
-            #if data have been saved to ppf
-                #exit
         
         
         
@@ -2448,7 +2449,7 @@ def main():
     app = QtGui.QApplication(sys.argv)
     screen_resolution = app.desktop().screenGeometry()
     width, height = screen_resolution.width(), screen_resolution.height()
-    print(width,height)
+    #print(width,height)
     MainWindow = woop()
     screenShape = QtGui.QDesktopWidget().screenGeometry()
     #1366x768 vnc viewer size
