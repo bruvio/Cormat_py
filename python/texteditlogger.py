@@ -13,8 +13,11 @@ class QPlainTextEditLogger(logging.Handler):
 
     def __init__(self, parent):
         super().__init__()
+        #first creates a text edit widget (parent is the main gui)
         self.widget = QtGui.QPlainTextEdit(parent)
-        self.widget.setGeometry(1070,610,381,191)
+        #adding this newly created widget to gridLayout_4
+        parent.gridLayout_4.addWidget(self.widget,4, 0, 1, 2)
+        #self.widget.setGeometry(11,583,337,213)
 
         self.widget.setReadOnly(True)
 

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>CORMATpy</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTabWidget" name="tabWidget">
@@ -220,7 +220,7 @@
      </rect>
     </property>
     <property name="title">
-     <string>KG1 woop</string>
+     <string>CORMATpy</string>
     </property>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="geometry">
