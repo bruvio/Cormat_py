@@ -7,6 +7,7 @@ import numpy as np
 from ppf import *
 import logging
 from numpy import arange,asscalar
+import os
 
 def norm(data):
     return (data)/(max(data)-min(data))
