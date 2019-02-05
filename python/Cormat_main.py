@@ -339,19 +339,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         self.checkBox_newpulse.toggled.connect(
             lambda: self.check_status(self.checkBox_newpulse))
 
-        #disable tab as there is nothing plotted
-        self.tabWidget.setTabEnabled(0, False)
-        self.tabWidget.setTabEnabled(1, False)
-        self.tabWidget.setTabEnabled(2, False)
-        self.tabWidget.setTabEnabled(3, False)
-        self.tabWidget.setTabEnabled(4, False)
-        self.tabWidget.setTabEnabled(5, False)
-        self.tabWidget.setTabEnabled(6, False)
-        self.tabWidget.setTabEnabled(7, False)
-        self.tabWidget.setTabEnabled(8, False)
-        self.tabWidget.setTabEnabled(9, False)
-        self.tabWidget.setTabEnabled(10, False)
-        self.tabWidget.setTabEnabled(11, False)
+        # #disable tab as there is nothing plotted
+        # self.tabWidget.setTabEnabled(0, False)
+        # self.tabWidget.setTabEnabled(1, False)
+        # self.tabWidget.setTabEnabled(2, False)
+        # self.tabWidget.setTabEnabled(3, False)
+        # self.tabWidget.setTabEnabled(4, False)
+        # self.tabWidget.setTabEnabled(5, False)
+        # self.tabWidget.setTabEnabled(6, False)
+        # self.tabWidget.setTabEnabled(7, False)
+        # self.tabWidget.setTabEnabled(8, False)
+        # self.tabWidget.setTabEnabled(9, False)
+        # self.tabWidget.setTabEnabled(10, False)
+        # self.tabWidget.setTabEnabled(11, False)
 
 
         #making documentation
@@ -418,37 +418,58 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         :param arg:
         :return:
         """
+        logging.debug('tab number is {}'.format(str(arg+1)))
         if arg == 0:
+            logging.debug('status flag is {}'.format(str(self.SF_ch1)))
+            self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_1'
-            self.set_status_flag_radio(self.SF_ch1)
+            self.set_status_flag_radio(int(self.SF_ch1))
         if arg == 1:
+            logging.debug('status flag is {}'.format(str(self.SF_ch2)))
+            self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_2'
-            self.set_status_flag_radio(self.SF_ch2)
+            self.set_status_flag_radio(int(self.SF_ch2))
         if arg == 2:
+            logging.debug('status flag is {}'.format(str(self.SF_ch3)))
+            self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_3'
-            self.set_status_flag_radio(self.SF_ch3)
+            self.set_status_flag_radio(int(self.SF_ch3))
         if arg == 3:
+            logging.debug('status flag is {}'.format(str(self.SF_ch4)))
+            self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_4'
-            self.set_status_flag_radio(self.SF_ch4)
+            self.set_status_flag_radio(int(self.SF_ch4))
         if arg == 4:
+            logging.debug('status flag is {}'.format(str(self.SF_ch5)))
+            self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_5'
-            self.set_status_flag_radio(self.SF_ch5)
+            self.set_status_flag_radio(int(self.SF_ch5))
         if arg == 5:
+            logging.debug('status flag is {}'.format(str(self.SF_ch6)))
+            self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_6'
-            self.set_status_flag_radio(self.SF_ch6)
+            self.set_status_flag_radio(int(self.SF_ch6))
         if arg == 6:
+            logging.debug('status flag is {}'.format(str(self.SF_ch7)))
+            self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_7'
-            self.set_status_flag_radio(self.SF_ch7)
+            self.set_status_flag_radio(int(self.SF_ch7))
         if arg == 7:
+            logging.debug('status flag is {}'.format(str(self.SF_ch8)))
+            self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_8'
-            self.set_status_flag_radio(self.SF_ch8)
+            self.set_status_flag_radio(int(self.SF_ch8))
         if arg == 8:
+            self.groupBox_statusflag.setEnabled(False)
             self.current_tab = 'LID_1-4'
         if arg == 9:
+            self.groupBox_statusflag.setEnabled(False)
             self.current_tab = 'LID_5-8'
         if arg == 10:
+            self.groupBox_statusflag.setEnabled(False)
             self.current_tab = 'LID_ALL'
         if arg == 11:
+            self.groupBox_statusflag.setEnabled(False)
             self.current_tab = 'MIR'
 
         logging.debug('\n\t: current Tab is {}'.format(self.current_tab))
@@ -501,8 +522,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         if self.current_tab == 'LID_8':
             self.SF_ch8 = SF
 
-        # logging.debug(
-        #     '{} new status flag is {}'.format(self.current_tab, str(SF)))
+        #logging.debug('{} new status flag is {}'.format(self.current_tab, str(SF)))
 
         # print(snd.objectName(),SF)
             # if SF == 0:
@@ -640,6 +660,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         self.comboBox_2ndtrace.setCurrentIndex(0)
         self.comboBox_markers.setCurrentIndex(0)
 
+        #
+        # self.tabWidget.setTabEnabled(0, True)
+        # self.tabWidget.setTabEnabled(1, True)
+        # self.tabWidget.setTabEnabled(2, True)
+        # self.tabWidget.setTabEnabled(3, True)
+        # self.tabWidget.setTabEnabled(4, True)
+        # self.tabWidget.setTabEnabled(5, True)
+        # self.tabWidget.setTabEnabled(6, True)
+        # self.tabWidget.setTabEnabled(7, True)
+        # self.tabWidget.setTabEnabled(8, True)
+        # self.tabWidget.setTabEnabled(9, True)
+        # self.tabWidget.setTabEnabled(10, True)
+        # self.tabWidget.setTabEnabled(11, True)
+
         self.widget_LID1.figure.clear()
         self.widget_LID1.draw()
 
@@ -740,6 +774,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
                 # self.tabWidget.setCurrentIndex(0)
                 # self.tabSelected(arg=0)
 
+                # -------------------------------
+                # PLOT KG1 data.
+                # -------------------------------
+
+                self.plot_data()
+
+                # -------------------------------
+                # update GUI after plot
+                # -------------------------------
+
+                self.update_GUI()
+
             else:
                 logging.debug('{} is  checked'.format(self.checkBox_newpulse.objectName()))
                 logging.info('\n')
@@ -754,135 +800,38 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
                 self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
 
         else:
-            logging.debug('no file {} found in local workspace')
-            #if data not exists read it and overwrite
+            logging.info('PLEASE select new pulse')
+            if  (self.checkBox_newpulse.isChecked() == False):
+                logging.debug('{} is not checked'.format(self.checkBox_newpulse.objectName()))
+                #self.checkBox_newpulse.setChecked(True)
 
-            self.readdata()
-
-
-
-
+                #logging.INFO('NO DATA found in local workspace for pulse {}'.format(str(self.pulse)))
 
 
+                #
+            else:
 
+                # -------------------------------
+                # READ data.
+                # -------------------------------
+                self.read_uid = str(self.comboBox_readuid.currentText())
+                logging.debug(
+                    'reading data with uid -  {}'.format((str(self.read_uid))))
+                success = self.readdata()
+                # self.tabWidget.setCurrentIndex(0)
+                # self.tabSelected(arg=0)
+                # -------------------------------
+                # PLOT KG1 data.
+                # -------------------------------
+                if success:
 
-        # -------------------------------
-        # 0. PLOT KG1 data.
-        # -------------------------------
+                    self.plot_data()
 
-        for chan in self.KG1_data.density.keys():
-            ax_name=  'ax'+str(chan)
-            name='LID'+str(chan)
-            widget_name='widget_LID'+str(chan)
+                # -------------------------------
+                # update GUI after plot
+                # -------------------------------
 
-
-            self.kg1_norm[chan] = SignalBase(self.constants)
-            self.kg1_norm[chan].data = norm(self.KG1_data.density[chan].data)
-
-            vars()[ax_name].plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x', color='b',linestyle= 'None')
-            vars()[ax_name].legend()
-            ax_all.plot(self.KG1_data.density[chan].time, self.KG1_data.density[chan].data,label=name,marker='x',linestyle= 'None')
-            ax_all.legend()
-            if chan < 5:
-                ax_14.plot(self.KG1_data.density[chan].time,
-                                 self.KG1_data.density[chan].data, label=name,
-                                 marker='x',linestyle= 'None')
-                ax_14.legend()
-
-            if chan > 4:
-                ax_58.plot(self.KG1_data.density[chan].time,
-                                 self.KG1_data.density[chan].data, label=name,
-                                 marker='x',linestyle= 'None')
-                ax_58.legend()
-
-            self.widget_LID1.draw()
-
-            if chan >4:
-                name1='MIR'+str(chan)
-                name2 = 'JxB' + str(chan)
-                ax_name1 = 'ax' + str(chan)+str(1)
-                widget_name1 = 'widget_LID' + str(chan)+str(1)
-                axx = vars()[ax_name1]
-                vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data*1e6,marker='x',label=name1, color='b',linestyle= 'None')
-                vars()[ax_name1].plot(self.KG1_data.jxb[chan].time,
-                                      self.KG1_data.jxb[chan].data*1e6,marker='x',label=name2, color='c',linestyle= 'None')
-                vars()[ax_name1].legend()
-
-
-                ax_mir.plot(self.KG1_data.vibration[chan].time,
-                                 self.KG1_data.vibration[chan].data*1e6,marker='x',label=name1,linestyle= 'None')
-                ax_mir.legend()
-                # draw_widget(chan)
-
-        # disable tab as there is nothing plotted
-        self.tabWidget.setTabEnabled(0, True)
-        self.tabWidget.setTabEnabled(1, True)
-        self.tabWidget.setTabEnabled(2, True)
-        self.tabWidget.setTabEnabled(3, True)
-        self.tabWidget.setTabEnabled(4, True)
-        self.tabWidget.setTabEnabled(5, True)
-        self.tabWidget.setTabEnabled(6, True)
-        self.tabWidget.setTabEnabled(7, True)
-        self.tabWidget.setTabEnabled(8, True)
-        self.tabWidget.setTabEnabled(9, True)
-        self.tabWidget.setTabEnabled(10, True)
-        self.tabWidget.setTabEnabled(11, True)
-
-        # update canvas
-        self.widget_LID1.draw()
-        self.widget_LID2.draw()
-        self.widget_LID3.draw()
-        self.widget_LID4.draw()
-        self.widget_LID5.draw()
-        self.widget_LID6.draw()
-        self.widget_LID7.draw()
-        self.widget_LID8.draw()
-        self.widget_LID_14.draw()
-        self.widget_LID_ALL.draw()
-        self.widget_LID_58.draw()
-        self.widget_MIR.draw()
-
-
-
-        #now status flag group can be enabled
-        self.groupBox_statusflag.setEnabled(True)
-
-        # self.button_plot.setEnabled(True)
-        # self.button_check_pulse.setEnabled(True)
-        self.button_save.setEnabled(True)
-        self.pushButton_apply.setEnabled(True)
-        self.pushButton_makeperm.setEnabled(True)
-        self.pushButton_undo.setEnabled(True)
-        self.checkSFbutton.setEnabled(True)
-        self.comboBox_markers.setEnabled(True)
-        self.comboBox_2ndtrace.setEnabled(True)
-
-
-        self.tabWidget.setCurrentIndex(0)
-        self.tabSelected(arg=0)
-        self.tabWidget.connect(self.tabWidget,
-                               QtCore.SIGNAL("currentChanged(int)"),
-                               self.tabSelected)
-        #set combobox index to 1 so that the default write_uid is owner
-        self.comboBox_writeuid.setCurrentIndex(1)
-
-        self.radioButton_statusflag_0.toggled.connect(
-            lambda: self.checkstate(self.radioButton_statusflag_0))
-
-        self.radioButton_statusflag_1.toggled.connect(
-            lambda: self.checkstate(self.radioButton_statusflag_1))
-
-        self.radioButton_statusflag_2.toggled.connect(
-            lambda: self.checkstate(self.radioButton_statusflag_2))
-
-        self.radioButton_statusflag_3.toggled.connect(
-            lambda: self.checkstate(self.radioButton_statusflag_3))
-
-        self.radioButton_statusflag_4.toggled.connect(
-            lambda: self.checkstate(self.radioButton_statusflag_4))
-
-        # self.tabWidget.removeTab(3)
+                    self.update_GUI()
 
 
 
@@ -917,220 +866,44 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         # button_name = button.text()
         # print(button_name)
 
+        self.ui_areyousure.pushButton_YES.setChecked(False)
 
+        self.areyousure_window.hide()
 
         logging.info('\n')
         logging.debug('pressed %s button',
                       self.ui_areyousure.pushButton_YES.text())
         logging.debug('continue')
-        self.readdata()
+        self.read_uid = self.comboBox_readuid.currentText()
+
+        success = self.readdata()
+
+
+        if success:
+
+            #status flag groupbox is disabled
+            self.groupBox_statusflag.setEnabled(False)
+            self.checkSFbutton.setEnabled(False)
+            self.comboBox_markers.setEnabled(False)
+            #disable "normalize" and "restore" buttons
+            self.button_normalize.setEnabled(False)
+            self.button_restore.setEnabled(False)
+            self.comboBox_2ndtrace.setCurrentIndex(0)
+            self.comboBox_markers.setCurrentIndex(0)
+
+            # define now two gridspecs
+            # gs is the gridspec per channels 1-4
+            # gs1 is the gridspec for channels 5-8
+            # when plotting markers they will allocate space to plot markers in a subplot under current plot
+
+            # gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])# working: creates canvas with 2 columns in the ratio 1/3
+
+            self.plot_data()
 
 
 
+            self.update_GUI()
 
-        #status flag groupbox is disabled
-        self.groupBox_statusflag.setEnabled(False)
-        self.checkSFbutton.setEnabled(False)
-        self.comboBox_markers.setEnabled(False)
-        #disable "normalize" and "restore" buttons
-        self.button_normalize.setEnabled(False)
-        self.button_restore.setEnabled(False)
-        self.comboBox_2ndtrace.setCurrentIndex(0)
-        self.comboBox_markers.setCurrentIndex(0)
-
-        # define now two gridspecs
-        # gs is the gridspec per channels 1-4
-        # gs1 is the gridspec for channels 5-8
-        # when plotting markers they will allocate space to plot markers in a subplot under current plot
-
-        # gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])# working: creates canvas with 2 columns in the ratio 1/3
-
-        self.widget_LID1.figure.clear()
-        self.widget_LID1.draw()
-
-        self.widget_LID2.figure.clear()
-        self.widget_LID2.draw()
-
-        self.widget_LID3.figure.clear()
-        self.widget_LID3.draw()
-
-        self.widget_LID4.figure.clear()
-        self.widget_LID4.draw()
-
-        self.widget_LID5.figure.clear()
-        self.widget_LID5.draw()
-
-        self.widget_LID6.figure.clear()
-        self.widget_LID6.draw()
-
-        self.widget_LID7.figure.clear()
-        self.widget_LID7.draw()
-
-        self.widget_LID8.figure.clear()
-        self.widget_LID8.draw()
-
-        self.widget_LID_14.figure.clear()
-        self.widget_LID_14.draw()
-
-        self.widget_LID_58.figure.clear()
-        self.widget_LID_58.draw()
-
-        self.widget_LID_ALL.figure.clear()
-        self.widget_LID_ALL.draw()
-
-        self.widget_MIR.figure.clear()
-        self.widget_MIR.draw()
-
-        heights = [4]
-        gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
-        heights1 = [3, 3]
-        gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
-
-        ax1 = self.widget_LID1.figure.add_subplot(gs[0])
-
-        ax2 = self.widget_LID2.figure.add_subplot(gs[0])
-
-        ax3 = self.widget_LID3.figure.add_subplot(gs[0])
-
-        ax4 = self.widget_LID4.figure.add_subplot(gs[0])
-
-        ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
-        ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
-
-        ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
-        ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
-
-        ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
-        ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
-
-        ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
-        ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
-
-        ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
-        ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
-        ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
-
-        ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
-
-
-
-
-
-        # -------------------------------
-        # 0. PLOT KG1 data.
-        # -------------------------------
-
-        for chan in self.KG1_data.density.keys():
-            ax_name = 'ax' + str(chan)
-            name = 'LID' + str(chan)
-            widget_name = 'widget_LID' + str(chan)
-
-            self.kg1_norm[chan] = SignalBase(self.constants)
-            self.kg1_norm[chan].data = norm(self.KG1_data.density[chan].data)
-
-            vars()[ax_name].plot(self.KG1_data.density[chan].time,
-                                 self.KG1_data.density[chan].data, label=name,
-                                 marker='x', color='b',linestyle= 'None')
-            vars()[ax_name].legend()
-            ax_all.plot(self.KG1_data.density[chan].time,
-                             self.KG1_data.density[chan].data, label=name,
-                             marker='x',linestyle= 'None')
-            ax_all.legend()
-            if chan < 5:
-                ax_14.plot(self.KG1_data.density[chan].time,
-                                self.KG1_data.density[chan].data, label=name,
-                                marker='x',linestyle= 'None')
-                ax_14.legend()
-
-            if chan > 4:
-                ax_58.plot(self.KG1_data.density[chan].time,
-                                self.KG1_data.density[chan].data, label=name,
-                                marker='x',linestyle= 'None')
-                ax_58.legend()
-
-            self.widget_LID1.draw()
-
-            if chan > 4:
-                name1 = 'MIR' + str(chan)
-                name2 = 'JxB' + str(chan)
-
-                ax_name1 = 'ax' + str(chan) + str(1)
-
-                widget_name1 = 'widget_LID' + str(chan) + str(1)
-                vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data*1e6,
-                                      marker='x', label=name1, color='b',linestyle= 'None')
-                vars()[ax_name1].plot(self.KG1_data.jxb[chan].time,
-                                      self.KG1_data.jxb[chan].data*1e6,marker='x',label=name2, color='c',linestyle= 'None')
-                vars()[ax_name1].legend()
-                ax_mir.plot(self.KG1_data.vibration[chan].time,
-                                 self.KG1_data.vibration[chan].data*1e6, marker='x',linestyle= 'None',
-                                 label=name1)
-                ax_mir.legend()
-                # draw_widget(chan)
-
-        # update canvas
-        self.widget_LID1.draw()
-        self.widget_LID2.draw()
-        self.widget_LID3.draw()
-        self.widget_LID4.draw()
-        self.widget_LID5.draw()
-        self.widget_LID6.draw()
-        self.widget_LID7.draw()
-        self.widget_LID8.draw()
-        self.widget_LID_14.draw()
-        self.widget_LID_ALL.draw()
-        self.widget_LID_58.draw()
-        self.widget_MIR.draw()
-
-
-        self.ui_areyousure.pushButton_YES.setChecked(False)
-
-        self.areyousure_window.hide()
-
-        #now status flag groupbox can be enabled
-        # self.button_plot.setEnabled(True)
-        # self.button_check_pulse.setEnabled(True)
-        self.button_save.setEnabled(True)
-        self.comboBox_markers.setEnabled(True)
-        self.comboBox_2ndtrace.setEnabled(True)
-        # self.button_normalize.setEnabled(True)
-        # self.button_restore.setEnabled(True)
-        self.pushButton_apply.setEnabled(True)
-        self.pushButton_makeperm.setEnabled(True)
-        self.pushButton_undo.setEnabled(True)
-        self.groupBox_statusflag.setEnabled(True)
-        self.comboBox_markers.setEnabled(True)
-        self.comboBox_2ndtrace.setEnabled(True)
-        self.checkSFbutton.setEnabled(True)
-        self.tabWidget.setCurrentIndex(0)
-        self.tabSelected(arg=0)
-
-
-
-
-
-
-        self.tabWidget.connect(self.tabWidget,
-                               QtCore.SIGNAL("currentChanged(int)"),
-                               self.tabSelected)
-        #set combobox index to 1 so that the default write_uid is owner
-        self.comboBox_writeuid.setCurrentIndex(1)
-
-        self.radioButton_statusflag_0.toggled.connect(
-            lambda: self.checkstate(self.radioButton_statusflag_0))
-
-        self.radioButton_statusflag_1.toggled.connect(
-            lambda: self.checkstate(self.radioButton_statusflag_1))
-
-        self.radioButton_statusflag_2.toggled.connect(
-            lambda: self.checkstate(self.radioButton_statusflag_2))
-
-        self.radioButton_statusflag_3.toggled.connect(
-            lambda: self.checkstate(self.radioButton_statusflag_3))
-
-        self.radioButton_statusflag_4.toggled.connect(
-            lambda: self.checkstate(self.radioButton_statusflag_4))
 
 
 # -----------------------
@@ -1172,18 +945,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         self.KG1_data = KG1_data
 
         self.read_uid = self.comboBox_readuid.currentText()
-
         success = KG1_data.read_data(self.pulse, read_uid=self.read_uid)
 
         # Exit if there were no good signals
         # If success == 1 it means that at least one channel was not available. But this shouldn't stop the rest of the code
         # from running.
-        if success != 0 and success != 1:
+        if success == False:
             # success = 11: Validated PPF data is already available for all channels
             # success = 8: No good JPF data was found
             # success = 9: JPF data was bad
-            sys.exit(success)
-
+            logging.error('no KG1V data for pulse {} with uid {}'.format(self.pulse,self.read_uid))
+            return False
             # -------------------------------
         # -------------------------------
         # 4. Read in KG4 data
@@ -1269,8 +1041,189 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         # dump KG1 data on different file (used to autosave later when applying corrections)
         self.dump_kg1()
 
+        return True
 
 
+# -----------------------
+    def plot_data(self):
+        # -------------------------------
+        # PLOT KG1 data.
+        # -------------------------------
+
+        self.widget_LID1.figure.clear()
+        self.widget_LID1.draw()
+
+        self.widget_LID2.figure.clear()
+        self.widget_LID2.draw()
+
+        self.widget_LID3.figure.clear()
+        self.widget_LID3.draw()
+
+        self.widget_LID4.figure.clear()
+        self.widget_LID4.draw()
+
+        self.widget_LID5.figure.clear()
+        self.widget_LID5.draw()
+
+        self.widget_LID6.figure.clear()
+        self.widget_LID6.draw()
+
+        self.widget_LID7.figure.clear()
+        self.widget_LID7.draw()
+
+        self.widget_LID8.figure.clear()
+        self.widget_LID8.draw()
+
+        self.widget_LID_14.figure.clear()
+        self.widget_LID_14.draw()
+
+        self.widget_LID_58.figure.clear()
+        self.widget_LID_58.draw()
+
+        self.widget_LID_ALL.figure.clear()
+        self.widget_LID_ALL.draw()
+
+        self.widget_MIR.figure.clear()
+        self.widget_MIR.draw()
+
+
+        heights = [4]
+        gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
+        heights1 = [3, 3]
+        gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
+
+        ax1 = self.widget_LID1.figure.add_subplot(gs[0])
+
+        ax2 = self.widget_LID2.figure.add_subplot(gs[0])
+
+        ax3 = self.widget_LID3.figure.add_subplot(gs[0])
+
+        ax4 = self.widget_LID4.figure.add_subplot(gs[0])
+
+        ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
+        ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
+
+        ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
+        ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
+
+        ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
+        ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
+
+        ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
+        ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
+
+        ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
+        ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
+        ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
+
+        ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
+
+
+        for chan in self.KG1_data.density.keys():
+            ax_name = 'ax' + str(chan)
+            name = 'LID' + str(chan)
+            widget_name = 'widget_LID' + str(chan)
+
+            self.kg1_norm[chan] = SignalBase(self.constants)
+            self.kg1_norm[chan].data = norm(self.KG1_data.density[chan].data)
+
+            vars()[ax_name].plot(self.KG1_data.density[chan].time,
+                                 self.KG1_data.density[chan].data, label=name,
+                                 marker='x', color='b', linestyle='None')
+            vars()[ax_name].legend()
+            ax_all.plot(self.KG1_data.density[chan].time,
+                        self.KG1_data.density[chan].data, label=name,
+                        marker='x', linestyle='None')
+            ax_all.legend()
+            if chan < 5:
+                ax_14.plot(self.KG1_data.density[chan].time,
+                           self.KG1_data.density[chan].data, label=name,
+                           marker='x', linestyle='None')
+                ax_14.legend()
+
+            if chan > 4:
+                ax_58.plot(self.KG1_data.density[chan].time,
+                           self.KG1_data.density[chan].data, label=name,
+                           marker='x', linestyle='None')
+                ax_58.legend()
+
+            self.widget_LID1.draw()
+
+            if chan > 4:
+                name1 = 'MIR' + str(chan)
+                name2 = 'JxB' + str(chan)
+                ax_name1 = 'ax' + str(chan) + str(1)
+                widget_name1 = 'widget_LID' + str(chan) + str(1)
+                axx = vars()[ax_name1]
+                vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
+                                      self.KG1_data.vibration[chan].data * 1e6,
+                                      marker='x', label=name1, color='b',
+                                      linestyle='None')
+                vars()[ax_name1].plot(self.KG1_data.jxb[chan].time,
+                                      self.KG1_data.jxb[chan].data * 1e6,
+                                      marker='x', label=name2, color='c',
+                                      linestyle='None')
+                vars()[ax_name1].legend()
+
+                ax_mir.plot(self.KG1_data.vibration[chan].time,
+                            self.KG1_data.vibration[chan].data * 1e6,
+                            marker='x', label=name1, linestyle='None')
+                ax_mir.legend()
+                # draw_widget(chan)
+
+        # update canvas
+        self.widget_LID1.draw()
+        self.widget_LID2.draw()
+        self.widget_LID3.draw()
+        self.widget_LID4.draw()
+        self.widget_LID5.draw()
+        self.widget_LID6.draw()
+        self.widget_LID7.draw()
+        self.widget_LID8.draw()
+        self.widget_LID_14.draw()
+        self.widget_LID_ALL.draw()
+        self.widget_LID_58.draw()
+        self.widget_MIR.draw()
+
+# -----------------------
+    def update_GUI(self):
+        # now status flag group can be enabled
+        self.groupBox_statusflag.setEnabled(True)
+
+        # self.button_plot.setEnabled(True)
+        # self.button_check_pulse.setEnabled(True)
+        self.button_save.setEnabled(True)
+        self.pushButton_apply.setEnabled(True)
+        self.pushButton_makeperm.setEnabled(True)
+        self.pushButton_undo.setEnabled(True)
+        self.checkSFbutton.setEnabled(True)
+        self.comboBox_markers.setEnabled(True)
+        self.comboBox_2ndtrace.setEnabled(True)
+
+        self.tabWidget.setCurrentIndex(0)
+        self.tabSelected(arg=0)
+        self.tabWidget.connect(self.tabWidget,
+                               QtCore.SIGNAL("currentChanged(int)"),
+                               self.tabSelected)
+        # set combobox index to 1 so that the default write_uid is owner
+        self.comboBox_writeuid.setCurrentIndex(1)
+
+        self.radioButton_statusflag_0.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_0))
+
+        self.radioButton_statusflag_1.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_1))
+
+        self.radioButton_statusflag_2.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_2))
+
+        self.radioButton_statusflag_3.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_3))
+
+        self.radioButton_statusflag_4.toggled.connect(
+            lambda: self.checkstate(self.radioButton_statusflag_4))
+
+        # self.tabWidget.removeTab(3)
 
     # ------------------------
     def plot_2nd_trace(self):
@@ -1317,6 +1270,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         self.widget_LID8.figure.clear()
         self.widget_LID8.draw()
 
+        # self.widget_LID_14.figure.clear()
+        # self.widget_LID_14.draw()
+        #
+        # self.widget_LID_58.figure.clear()
+        # self.widget_LID_58.draw()
+        #
+        # self.widget_LID_ALL.figure.clear()
+        # self.widget_LID_ALL.draw()
+
+        # self.widget_MIR.figure.clear()
+        # self.widget_MIR.draw()
+
         heights = [4]
         gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
         heights1 = [3, 3]
@@ -1345,8 +1310,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         # ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
         # ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
         # ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
-        #
-        # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
+
+        #ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
+
+
 
         # for every channel in KG1 (8 channels)
         for chan in self.KG1_data.density.keys():
@@ -1360,16 +1327,36 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
             vars()[ax_name].legend()
             # self.widget_LID1.draw()
 
+            # if chan > 4:
+            #     # channels 5-8 have mirror movement
+            #     name1 = 'MIR' + str(chan)
+            #     ax_name1 = 'ax' + str(chan) + str(1)
+            #     widget_name1 = 'widget_LID' + str(chan) + str(1)
+            #     vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
+            #                           self.KG1_data.vibration[chan].data*1e6,
+            #                           marker='x', label=name1, color='b',linestyle= 'None')
+            #     vars()[ax_name1].legend()
             if chan > 4:
-                # channels 5-8 have mirror movement
                 name1 = 'MIR' + str(chan)
+                name2 = 'JxB' + str(chan)
                 ax_name1 = 'ax' + str(chan) + str(1)
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
+                axx = vars()[ax_name1]
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data*1e6,
-                                      marker='x', label=name1, color='b',linestyle= 'None')
+                                      self.KG1_data.vibration[chan].data * 1e6,
+                                      marker='x', label=name1, color='b',
+                                      linestyle='None')
+                vars()[ax_name1].plot(self.KG1_data.jxb[chan].time,
+                                      self.KG1_data.jxb[chan].data * 1e6,
+                                      marker='x', label=name2, color='c',
+                                      linestyle='None')
                 vars()[ax_name1].legend()
 
+                # ax_mir.plot(self.KG1_data.vibration[chan].time,
+                #             self.KG1_data.vibration[chan].data * 1e6,
+                #             marker='x', label=name1, linestyle='None')
+                # ax_mir.legend()
+                # draw_widget(chan)
 
         logging.info('plotting second trace {}'.format(self.s2ndtrace))
         if self.s2ndtrace == 'None':
@@ -1607,6 +1594,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         self.widget_LID8.figure.clear()
         self.widget_LID8.draw()
 
+        # self.widget_LID_14.figure.clear()
+        # self.widget_LID_14.draw()
+        #
+        # self.widget_LID_58.figure.clear()
+        # self.widget_LID_58.draw()
+        #
+        # self.widget_LID_ALL.figure.clear()
+        # self.widget_LID_ALL.draw()
+
+        self.widget_MIR.figure.clear()
+        self.widget_MIR.draw()
+
 
 
         # ax_all = self.widget_LID_ALL.figure.add_subplot(111)
@@ -1655,6 +1654,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
         ax8_marker = self.widget_LID8.figure.add_subplot(gs1[2], sharex=ax8)
 
+        #
+        # ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
+        # ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
+        # ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
+
+        #ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
+
+
         # define now other gridspecs
         # gs2 is the gridspec per channels 1-4
         # gs21 is the gridspec for channels 5-8
@@ -1679,12 +1686,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
 
             if chan > 4:
                 name1 = 'MIR' + str(chan)
+                name2 = 'JxB' + str(chan)
                 ax_name1 = 'ax' + str(chan) + str(1)
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
+                axx = vars()[ax_name1]
                 vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data*1e6,
-                                      marker='x', label=name1, color='b',linestyle= 'None')
+                                      self.KG1_data.vibration[chan].data * 1e6,
+                                      marker='x', label=name1, color='b',
+                                      linestyle='None')
+                vars()[ax_name1].plot(self.KG1_data.jxb[chan].time,
+                                      self.KG1_data.jxb[chan].data * 1e6,
+                                      marker='x', label=name2, color='c',
+                                      linestyle='None')
                 vars()[ax_name1].legend()
+
+                # ax_mir.plot(self.KG1_data.vibration[chan].time,
+                #             self.KG1_data.vibration[chan].data * 1e6,
+                #             marker='x', label=name1, linestyle='None')
+                # ax_mir.legend()
+                # draw_widget(chan)
 
 
         if self.marker is not None:

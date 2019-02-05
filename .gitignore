@@ -16,6 +16,8 @@ eggs/
 .eggs/
 lib/
 lib64/
+python/saved/
+python/scratch/
 parts/
 sdist/
 var/
@@ -98,7 +100,7 @@ venv.bak/
 .ropeproject
 
 # mkdocs documentation
-/site
+/docs/_build
 
 # mypy
 .mypy_cache/
