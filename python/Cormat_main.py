@@ -90,16 +90,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
         :param widget:
         :return:
         """
-        widget.figure.clear()
-        widget.draw()
+#        widget.figure.clear()
+#        widget.draw()
 
         widget.setLayout(QtGui.QVBoxLayout())
-        widget.layout().setContentsMargins(0, 710, 50, -0)#(left, top, right, bottom)
+        widget.layout().setContentsMargins(0, 740, 50, -0)#(left, top, right, bottom)
         widget.layout().setSpacing(0)
         toolbar = NavigationToolbar(widget, self)
         widget.layout().addWidget(toolbar)
-        widget.figure.clear()
-        widget.draw()
+#        widget.figure.clear()
+#        widget.draw()
 
     # ----------------------------
     def __init__(self, parent=None):
@@ -645,6 +645,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,QPlainTextEditLogger
 
         #set saved status to False
         self.saved = False
+        
 
 
         #status flag groupbox is disabled
