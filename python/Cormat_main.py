@@ -75,6 +75,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :param widget:
         :return:
         """
+
         # widget.figure.clear()
         # widget.draw()
 
@@ -603,6 +604,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         # set saved status to False
         self.saved = False
+        
 
         # status flag groupbox is disabled
         self.groupBox_statusflag.setEnabled(False)
