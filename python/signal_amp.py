@@ -143,14 +143,14 @@ class SignalAmp(SignalBase):
 
         :return: good_amp : True if the amplitude is good, false otherwise
         """
-        logger.debug( "Checking average amplitude exceeds threshold.")
+        logger.log(5, ( "Checking average amplitude exceeds threshold.")
 
         ind_start = np.where(self.time < time)
 
         good_amp = (np.absolute(np.mean(self.data[ind_start])) > threshold)
 
         if not good_amp:
-            logger.debug("Average amplitude is bad at the start: {}".format(np.mean(self.data[ind_start])))
+            logger.debug ("Average amplitude is bad at the start: {}".format(np.mean(self.data[ind_start])))
 
         return good_amp
 
@@ -165,7 +165,7 @@ class SignalAmp(SignalBase):
 
         :return: good_amp : True if the amplitude is good, false otherwise
         """
-        logger.debug( "Checking KG1C CPRB signal is in expected range.")
+        logger.log(5, ( "Checking KG1C CPRB signal is in expected range.")
 
         cprb_mid = self.constants.cprb_mid_dcn
         cprb_range = self.constants.cprb_range_dcn

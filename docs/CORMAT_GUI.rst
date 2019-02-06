@@ -1,7 +1,7 @@
-woop
+CORMAT_GUI
 ================
 
-.. automodule:: woop
+.. automodule:: CORMAT_GUI
     :members:
     :undoc-members:
     :private-members:

@@ -1,7 +1,0 @@
-shot: 92121 user: bviola date: 2019-01-25 seq: 398 written by: bviola
-shot: 92121 user: bviola date: 2019-01-28 seq: 399 written by: bviola
-shot: 92121 user: bviola date: 2019-01-28 seq: 400 written by: bviola
-shot: 92121 user: bviola date: 2019-01-28 seq: 401 written by: bviola
-shot: 92121 user: bviola date: 2019-01-28 seq: 402 written by: bviola
-shot: 92121 user: bviola date: 2019-01-28 seq: 403 written by: bviola
-shot: 92121 user: bviola date: 2019-01-28 seq: 404 written by: bviola

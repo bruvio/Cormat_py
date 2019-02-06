@@ -9,6 +9,9 @@ import logging
 from numpy import arange,asscalar
 import os
 
+import shutil
+
+
 def norm(data):
     return (data)/(max(data)-min(data))
 
@@ -249,3 +252,20 @@ def copy_changed_kg1_to_save(src,dst,filename):
     dst='./'+dst+'/'+filename
     
     copyfile(src, dst)
+    
+    
+    
+#-----------------------
+
+def delete_files_in_folder(folder):
+    try:
+        for root, dirs, files in os.walk(folder):
+            for f in files:
+                os.unlink(os.path.join(root, f))
+                for d in dirs:
+                    shutil.rmtree(os.path.join(root, d))
+        return True
+    except:
+        return False
+    
+                
