@@ -97,6 +97,8 @@ class Consts:
 
         self.temp_node = "VC/E-AVV-TMP"
         self.geometry_filename = "kg1_chord_geom.txt"
+        
+        self.mode = "Automatic Corrections"
 
         # Read in constants from file
         logger.info("Parsing config file {}".format(config_name))
@@ -156,7 +158,11 @@ class Consts:
         geometry = config["geometry"]
         self.temp_node = geometry.get("temp_jpf", self.temp_node)
         self.geometry_filename = geometry.get("geom_filename", self.geometry_filename)
-
+        
+        
+        correction = config["mode"]
+        self.mode = correction.get("mode", self.mode)
+        #self.kg1v_mode = self._get_node_channumber_dict(config, "mode")
     # ------------------------
     def _get_node_channumber_dict(self, config, section):
         """

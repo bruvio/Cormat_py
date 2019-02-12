@@ -33,6 +33,23 @@
           <string>Input</string>
          </property>
          <layout class="QGridLayout" name="gridLayout">
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboBox_readuid">
+            <property name="editable">
+             <bool>true</bool>
+            </property>
+            <property name="insertPolicy">
+             <enum>QComboBox::InsertAtTop</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="button_read_pulse">
+            <property name="text">
+             <string>Load</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="0" colspan="2">
            <widget class="QLineEdit" name="lineEdit_jpn">
             <property name="text">
@@ -54,20 +71,10 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="comboBox_readuid">
-            <property name="editable">
-             <bool>true</bool>
-            </property>
-            <property name="insertPolicy">
-             <enum>QComboBox::InsertAtTop</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QPushButton" name="button_read_pulse">
+          <item row="4" column="0" colspan="2">
+           <widget class="QPushButton" name="button_save">
             <property name="text">
-             <string>Load</string>
+             <string>SAVE WORKSPACE</string>
             </property>
            </widget>
           </item>
@@ -118,9 +125,9 @@
            </widget>
           </item>
           <item row="3" column="0">
-           <widget class="QPushButton" name="button_save">
+           <widget class="QPushButton" name="button_saveppf">
             <property name="text">
-             <string>Save</string>
+             <string>WRITE PPF</string>
             </property>
            </widget>
           </item>
@@ -198,17 +205,17 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
-           <widget class="QPushButton" name="pushButton_undo">
-            <property name="text">
-             <string>Undo</string>
-            </property>
-           </widget>
-          </item>
           <item row="6" column="0">
            <widget class="QPushButton" name="pushButton_makeperm">
             <property name="text">
              <string>Make Permanent</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QPushButton" name="pushButton_undo">
+            <property name="text">
+             <string>Undo</string>
             </property>
            </widget>
           </item>
@@ -279,7 +286,7 @@
        <item row="3" column="1">
         <widget class="QPushButton" name="exit_button">
          <property name="text">
-          <string>exit</string>
+          <string>EXIT</string>
          </property>
         </widget>
        </item>

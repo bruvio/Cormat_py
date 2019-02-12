@@ -8,7 +8,9 @@ class QPlainTextEditLogger(logging.Handler):
     class that defines a handler to write logging message inside the GUI
     the geometry and position of the TextEdit is defined here, not by QT designer
     """
-
+    err_fmt = "%(levelname)-8s %(message)s"
+    dbg_fmt = "%(levelname)-8s [%(filename)s:%(lineno)d] %(message)s"
+    info_fmt = "%(levelname)-8s %(message)s"
 
 
     def __init__(self, parent):
@@ -21,6 +23,8 @@ class QPlainTextEditLogger(logging.Handler):
 
         self.widget.setReadOnly(True)
 
+
     def emit(self, record):
+
         msg = self.format(record)
         self.widget.appendPlainText(msg)

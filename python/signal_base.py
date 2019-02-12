@@ -127,7 +127,7 @@ class SignalBase():
         ppfuid(read_uid, rw="R")
 
         if read_bad:
-            ppfssr(i=[0,1,2,3,4])
+            ppfssr([0,1,2,3,4])
 
         if ier != 0:
             return 0

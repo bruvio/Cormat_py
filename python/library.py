@@ -9,14 +9,20 @@ import logging
 from numpy import arange,asscalar
 import os
 
+import shutil
+
+
 def norm(data):
     return (data)/(max(data)-min(data))
 
 def normalise(signal, kg1_signal, dis_time):
-        # ----------------------
-        # Use ratio of maximum of signal - kg1 as the normalisation factor.
-        # Exclude region around the disruption.
-        # ----------------------
+        """
+
+        :param signal:  second trace
+        :param kg1_signal: KG1 signal
+        :param dis_time: disruption time
+        :return: Use ratio of maximum of signal - kg1 as the normalisation factor. Exclude region around the disruption.
+        """
         if dis_time > 0:
                 ind_dis, = np.where((kg1_signal.time < dis_time - 1))
 
@@ -34,6 +40,13 @@ def normalise(signal, kg1_signal, dis_time):
         return signal.data
 
 def get_seq(shot_no, dda, read_uid="JETPPF"):
+    """
+
+    :param shot_no: pulse number
+    :param dda:
+    :param read_uid:
+    :return: get sequence of a ppf
+    """
     ier = ppfgo(shot_no, seq=0)
     if ier != 0:
         return None
@@ -48,6 +61,15 @@ def get_seq(shot_no, dda, read_uid="JETPPF"):
     return iseq
 
 def get_min_max_seq(shot_no, dda="KG1V", read_uid="JETPPF"):
+    """
+
+    :param shot_no:
+    :param dda:
+    :param read_uid:
+    :return: return min and max sequence for given pulse, dda and readuid
+    min is the unvalidated sequence
+    max is the last validated sequence
+    """
     kg1v_seq = get_seq(shot_no, dda,read_uid)
     unval_seq = -1
     val_seq = -1
@@ -59,27 +81,33 @@ def get_min_max_seq(shot_no, dda="KG1V", read_uid="JETPPF"):
     return unval_seq, val_seq
 
 def check_SF(read_uid,pulse):
-        logging.info('\n')
-        logging.info('checking status FLAGS ')
+    """
 
-        ppfuid(read_uid, "r")
+    :param read_uid:
+    :param pulse:
+    :return: list of Status Flags
+    """
+    logging.info('\n')
+    logging.info('checking status FLAGS ')
 
-        ppfssr(i=[0, 1, 2, 3, 4])
+    ppfuid(read_uid, "r")
 
-        channels = arange(0, 8) + 1
-        SF_list = []
+    ppfssr([0, 1, 2, 3, 4])
 
-        pulse = int(pulse)
+    channels = arange(0, 8) + 1
+    SF_list = []
 
-        for channel in channels:
-                ch_text = 'lid' + str(channel)
+    pulse = int(pulse)
 
-                st_ch = GetSF(pulse, 'kg1v', ch_text)
-                st_ch = asscalar(st_ch)
-                SF_list.append(st_ch)
-        logging.info('%s has the following SF %s', str(pulse), SF_list)
+    for channel in channels:
+            ch_text = 'lid' + str(channel)
 
-        return SF_list
+            st_ch = GetSF(pulse, 'kg1v', ch_text)
+            st_ch = asscalar(st_ch)
+            SF_list.append(st_ch)
+    logging.info('%s has the following SF %s', str(pulse), SF_list)
+
+    return SF_list
 
 def extract_history(filename, outputfile):
     """
@@ -187,7 +215,14 @@ def check_string_in_file(filename, string):
 
 
 def equalsFile(firstFile, secondFile, blocksize=65536):
-    #returns True if files are the same,i.e. secondFile has same checksum as first
+    """
+
+    :param firstFile:
+    :param secondFile:
+    :param blocksize:
+    :return: returns True if files are the same,i.e. secondFile has same checksum as first
+    """
+
     if os.path.getsize(firstFile) != os.path.getsize(secondFile):
         return False
     else:
@@ -206,10 +241,31 @@ def equalsFile(firstFile, secondFile, blocksize=65536):
 # =============================================================================
 def copy_changed_kg1_to_save(src,dst,filename):
     """
-    src: is the 
+
+    :param src:
+    :param dst:
+    :param filename:
+    :return: copies file from src folder to dst
     """
-    
+
     src='./'+src+'/'+filename
     dst='./'+dst+'/'+filename
     
     copyfile(src, dst)
+    
+    
+    
+#-----------------------
+
+def delete_files_in_folder(folder):
+    try:
+        for root, dirs, files in os.walk(folder):
+            for f in files:
+                os.unlink(os.path.join(root, f))
+                for d in dirs:
+                    shutil.rmtree(os.path.join(root, d))
+        return True
+    except:
+        return False
+    
+                

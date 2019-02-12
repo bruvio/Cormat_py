@@ -17,4 +17,4 @@ Classes
    pellet_data
    canvas
    texteditlogger
-   woop
+   CORMAT_GUI

@@ -10,6 +10,7 @@ import numpy as np
 from ppf_write import write_ppf
 
 from signal_base import SignalBase
+from pdb import set_trace as bp
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +180,18 @@ class Kg1PPFData:
                 ind_type = sig_type.ihdata.find("SIG TYPE:")+len("SIG TYPE:")+1
                 ind_chan = sig_type.ihdata.find("CH.")-1
                 self.type[chan] = sig_type.ihdata[ind_type:ind_chan]
+        
 
+        nodename_mode = self.constants.mode
+
+        signal_mode = SignalBase(self.constants)
+        
+        signal_mode.read_data_ppf('KG1V', 'MODE', shot_no, read_bad=False, read_uid=read_uid)
+        self.mode = signal_mode.ihdata[36:]
+        
+
+
+        
         return True
 
 
