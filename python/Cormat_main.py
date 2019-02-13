@@ -117,7 +117,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         logTextBox = QPlainTextEditLogger(self)
         # You can format what is printed to text box
         #logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-        logTextBox.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
+
+        #logTextBox.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
+        logTextBox.setFormatter(MyFormatter())
         logging.getLogger().addHandler(logTextBox)
         # You can control the logging level
         logging.getLogger().setLevel(logging.INFO)
@@ -2965,7 +2967,6 @@ if __name__ == '__main__':
 
 
     main()
-
 
 
     
