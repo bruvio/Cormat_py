@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+Class that runs CORMAT_py GUI
+"""
 
 
 # ----------------------------
@@ -173,18 +176,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         
         if "USR" in os.environ:
-            logger.log(5, '\nUSR in env')
+            logger.log(5, 'USR in env')
             # self.owner = os.getenv('USR')
             self.owner = os.getlogin()
         else:
-            logger.log(5, '\nusing getuser to authenticate')
+            logger.log(5, 'using getuser to authenticate')
             import getpass
             self.owner = getpass.getuser()
 
-        logger.log(5, '\nthis is your username {}'.format(self.owner))
+        logger.log(5, 'this is your username {}'.format(self.owner))
 
         self.homefold = os.path.join(os.sep, 'u', self.owner)
-        logger.log(5, '\nthis is your homefold {}'.format(self.homefold))
+        logger.log(5, 'this is your homefold {}'.format(self.homefold))
 
         home = str(Path.home())
 
@@ -194,17 +197,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.chain1 + 'cormat_out.txt')
         logging.info('copying to local user profile')
 
-        logger.log(5, '\nwe are in %s', cwd)
+        logger.log(5, 'we are in %s', cwd)
 
         # -------------------------------
         # Read  config data.
         # -------------------------------
-        logger.info("\n Reading in constants.")
+        logger.info(" Reading in constants.")
         try:
             self.data.constants = Consts("consts.ini", __version__)
             # constants = Kg1Consts("kg1_consts.ini", __version__)
         except KeyError:
-            logger.error("\n Could not read in configuration file consts.ini")
+            logger.error(" Could not read in configuration file consts.ini")
             sys.exit(65)
         # -------------------------------
         # list of authorized user to write KG1 ppfs
@@ -532,7 +535,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             if self.data.saved:  # data saved to ppf
                 logger.log(5, "\n  data or status flag have been saved to PPF")
                 if (self.checkBox_newpulse.isChecked()):
-                    logger.log(5, '\n{} is  checked'.format(self.checkBox_newpulse.objectName()))
+                    logger.log(5, '{} is  checked'.format(self.checkBox_newpulse.objectName()))
 
                     # -------------------------------
                     # READ data.
@@ -573,7 +576,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         not self.data.saved) & (
                                 self.checkBox_newpulse.isChecked()))
 
-                    logger.log(5, '\n{} is  checked'.format(self.checkBox_newpulse.objectName()))
+                    logger.log(5, '{} is  checked'.format(self.checkBox_newpulse.objectName()))
 
                     # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
                     #logging.info('\n pulse data already downloaded - you are requesting to download again')
@@ -587,7 +590,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.ui_areyousure.pushButton_NO.clicked.connect(
                         self.handle_no)
                 else:
-                    logger.log(5, '\n{} is NOT  checked'.format(self.checkBox_newpulse.objectName()))
+                    logger.log(5, '{} is NOT  checked'.format(self.checkBox_newpulse.objectName()))
                     # pyqt_set_trace()
                     # logging.disable(logging.info)
                     logging.getLogger().disabled = True
@@ -643,7 +646,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         pass
         else:
             if (self.checkBox_newpulse.isChecked()):
-                logger.log(5, '\n {} is  checked'.format(self.checkBox_newpulse.objectName()))
+                logger.log(5, ' {} is  checked'.format(self.checkBox_newpulse.objectName()))
                 # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
                 #logging.info('\n pulse data already downloaded - you are requesting to download again')
                 self.areyousure_window = QtGui.QMainWindow()
@@ -655,7 +658,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.handle_yes)
                 self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
             else:
-                logger.log(5, '\n{} is NOT checked'.format(self.checkBox_newpulse.objectName()))
+                logger.log(5, '{} is NOT checked'.format(self.checkBox_newpulse.objectName()))
                 logging.error('\n no action performed')
 
 
@@ -699,44 +702,44 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :param arg:
         :return:
         """
-        logger.log(5, '\ntab number is {}'.format(str(arg + 1)))
+        logger.log(5, 'tab number is {}'.format(str(arg + 1)))
         if arg == 0:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch1)))
+            logger.log(5, 'status flag is {}'.format(str(self.data.SF_ch1)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_1'
             self.set_status_flag_radio(int(self.data.SF_ch1))
         if arg == 1:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch2)))
+            logger.log(5, 'status flag is {}'.format(str(self.data.SF_ch2)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_2'
             self.set_status_flag_radio(int(self.data.SF_ch2))
         if arg == 2:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch3)))
+            logger.log(5, 'status flag is {}'.format(str(self.data.SF_ch3)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_3'
             self.set_status_flag_radio(int(self.data.SF_ch3))
         if arg == 3:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch4)))
+            logger.log(5, 'status flag is {}'.format(str(self.data.SF_ch4)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_4'
             self.set_status_flag_radio(int(self.data.SF_ch4))
         if arg == 4:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch5)))
+            logger.log(5, 'status flag is {}'.format(str(self.data.SF_ch5)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_5'
             self.set_status_flag_radio(int(self.data.SF_ch5))
         if arg == 5:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch6)))
+            logger.log(5, 'status flag is {}'.format(str(self.data.SF_ch6)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_6'
             self.set_status_flag_radio(int(self.data.SF_ch6))
         if arg == 6:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch7)))
+            logger.log(5, 'status flag is {}'.format(str(self.data.SF_ch7)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_7'
             self.set_status_flag_radio(int(self.data.SF_ch7))
         if arg == 7:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch8)))
+            logger.log(5, 'status flag is {}'.format(str(self.data.SF_ch8)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_8'
             self.set_status_flag_radio(int(self.data.SF_ch8))
@@ -753,7 +756,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.groupBox_statusflag.setEnabled(False)
             self.current_tab = 'MIR'
 
-        logger.log(5, '\n\n\t: current Tab is {}'.format(self.current_tab))
+        logger.log(5, '\n\t: current Tab is {}'.format(self.current_tab))
 
 # -------------------------
     def checkstate(self, button):
@@ -769,7 +772,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         SF = snd.objectName().split('_')[2]  # statusflag value selected
 
-        # logger.log(5, '\n{} has status flag {}'.format(self.current_tab,str(SF_old)))
+        # logger.log(5, '{} has status flag {}'.format(self.current_tab,str(SF_old)))
 
         if self.current_tab == 'LID_1':
             self.data.SF_ch1 = SF
@@ -834,7 +837,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             
             
 
-        # logger.log(5, '\n{} new status flag is {}'.format(self.current_tab, str(SF)))
+        # logger.log(5, '{} new status flag is {}'.format(self.current_tab, str(SF)))
 
         # print(snd.objectName(),SF)
         # if SF == 0:
@@ -888,7 +891,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # do not change this flag after reading data_changed
         
         
-        logger.log(5, '\ndata saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
+        logger.log(5, 'data saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
         
 
     # ------------------------
@@ -1000,7 +1003,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # print(button_name)
 
         
-        logger.log(5, '\npressed %s button',
+        logger.log(5, 'pressed %s button',
                       self.ui_areyousure.pushButton_NO.text())
         logging.info('go back and perform a different action')
 
@@ -1024,7 +1027,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.areyousure_window.hide()
 
         
-        logger.log(5, '\npressed %s button',
+        logger.log(5, 'pressed %s button',
                       self.ui_areyousure.pushButton_YES.text())
 
         self.read_uid = self.comboBox_readuid.currentText()
@@ -1081,12 +1084,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         #
 
         self.data.old_pulse = self.data.pulse
-        logger.log(5, '\nold pulse is {}, new pulse is {}'.format(self.data.old_pulse, self.data.pulse))
+        logger.log(5, 'old pulse is {}, new pulse is {}'.format(self.data.old_pulse, self.data.pulse))
         # now set
         self.data.saved = False
         self.data.statusflag_changed = False
         self.data.data_changed = False
-        logger.log(5, '\ndata saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
+        logger.log(5, 'data saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
 #-------------------------
 
 # -------------------------------
@@ -1102,7 +1105,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # -------------------------------
         # 1. Read in Magnetics data
         # -------------------------------
-        logger.info("\n             Reading in magnetics data.")
+        logger.info("             Reading in magnetics data.")
         MAG_data = MagData(self.data.constants)
         success = MAG_data.read_data(self.data.pulse)
         if not success:
@@ -1114,7 +1117,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # -------------------------------
         # 2. Read in KG1 data
         # -------------------------------
-        logger.info("\n             Reading in KG1 data.")
+        logger.info("             Reading in KG1 data.")
         KG1_data = Kg1PPFData(self.data.constants,self.data.pulse)
         self.data.KG1_data = KG1_data
 
@@ -1136,7 +1139,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # -------------------------------
         # 4. Read in KG4 data
         # -------------------------------
-        logger.info("\n             Reading in KG4 data.")
+        logger.info("             Reading in KG4 data.")
         KG4_data = Kg4Data(self.data.constants)
         KG4_data.read_data(self.data.MAG_data, self.data.pulse)
         self.data.KG4_data = KG4_data
@@ -1145,14 +1148,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # -------------------------------
         # 5. Read in pellet signals
         # -------------------------------
-        logger.info("\n             Reading in pellet data.")
+        logger.info("             Reading in pellet data.")
         PELLETS_data = PelletData(self.data.constants)
         PELLETS_data.read_data(self.data.pulse)
         self.data.PELLETS_data = PELLETS_data
         # -------------------------------
         # 6. Read in NBI data.
         # -------------------------------
-        logger.info("\n             Reading in NBI data.")
+        logger.info("             Reading in NBI data.")
         NBI_data = NBIData(self.data.constants)
         NBI_data.read_data(self.data.pulse)
         self.data.NBI_data = NBI_data
@@ -1162,7 +1165,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         #    dis_time is a 2 element list, being the window around the disruption.
         #    Within this time window the code will not make corrections.
         # -------------------------------
-        logger.info("\n             Find disruption.")
+        logger.info("             Find disruption.")
         is_dis, dis_time = find_disruption(self.data.pulse, self.data.constants,
                                            self.data.KG1_data)
         self.data.is_dis = is_dis
@@ -1172,20 +1175,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # -------------------------------
         # 8. Read in Be-II signals, and find ELMs
         # -------------------------------
-        logger.info("\n             Reading in ELMs data.")
+        logger.info("             Reading in ELMs data.")
         ELM_data = ElmsData(self.data.constants, self.data.pulse, dis_time=dis_time[0])
         self.data.ELM_data = ELM_data
         # -------------------------------
         # 9. Read HRTS data
         # # -------------------------------
-        logger.info("\n             Reading in HRTS data.")
+        logger.info("             Reading in HRTS data.")
         HRTS_data = HRTSData(self.data.constants)
         HRTS_data.read_data(self.data.pulse)
         self.data.HRTS_data = HRTS_data
         # # # # -------------------------------
         # # # 10. Read LIDAR data
         # # # -------------------------------
-        logger.info("\n             Reading in LIDAR data.")
+        logger.info("             Reading in LIDAR data.")
         LIDAR_data = LIDARData(self.data.constants)
         LIDAR_data.read_data(self.data.pulse)
         self.data.LIDAR_data = LIDAR_data
@@ -2064,7 +2067,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         """
         
         if button_newpulse.isChecked():
-            logger.log(5, '\n{} is checked'.format(button_newpulse.objectName()))
+            logger.log(5, '{} is checked'.format(button_newpulse.objectName()))
             self.comboBox_readuid.setEnabled(True)
         else:
                 logger.log(5,'{} is NOT checked'.format(button_newpulse.objectName()))
@@ -2128,7 +2131,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 0 otherwise (success)
         """
 
-        logger.info("\n\n\n             Saving KG1 workspace to pickle")
+        logger.info("\n\n             Saving KG1 workspace to pickle")
         
         
 
@@ -2370,7 +2373,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.data.statusflag_changed = True
         
         self.save_kg1('saved')
-        logger.log(5, '\n deleting scratch folder')
+        logger.log(5, ' deleting scratch folder')
         delete_files_in_folder('./scratch')
         delete_files_in_folder('./saved')
         logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
@@ -2413,14 +2416,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.ui_areyousure.pushButton_YES.setChecked(False)
 
         self.areyousure_window.hide()
-        logger.info("\n\n\n     Status flags written to ppf.")
+        logger.info("\n\n     Status flags written to ppf.")
         self.data.saved = True
         self.data_change = True
         self.data.statusflag_changed = True
         
         
         self.save_kg1('saved')
-        logger.log(5, '\n deleting scratch folder')
+        logger.log(5, ' deleting scratch folder')
         delete_files_in_folder('./scratch')
         
         logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
@@ -2827,58 +2830,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         sys.exit()
 
 
-# ----------------------------
-BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
-
-#The background is set with 40 plus the number of the color, and the foreground with 30
-
-#These are the sequences need to get colored ouput
-RESET_SEQ = "\033[0m"
-COLOR_SEQ = "\033[1;%dm"
-BOLD_SEQ = "\033[1m"
-
-def formatter_message(message, use_color = True):
-    if use_color:
-        message = message.replace("$RESET", RESET_SEQ).replace("$BOLD", BOLD_SEQ)
-    else:
-        message = message.replace("$RESET", "").replace("$BOLD", "")
-    return message
-
-COLORS = {
-    'WARNING': YELLOW,
-    'INFO': WHITE,
-    'DEBUG': BLUE,
-    'CRITICAL': YELLOW,
-    'ERROR': RED
-}
-
-class ColoredFormatter(logging.Formatter):
-    def __init__(self, msg, use_color = True):
-        logging.Formatter.__init__(self, msg)
-        self.use_color = use_color
-
-    def format(self, record):
-        levelname = record.levelname
-        if self.use_color and levelname in COLORS:
-            levelname_color = COLOR_SEQ % (30 + COLORS[levelname]) + levelname + RESET_SEQ
-            record.levelname = levelname_color
-        return logging.Formatter.format(self, record)
-
-
-# Custom logger class with multiple destinations
-class ColoredLogger(logging.Logger):
-    FORMAT = "[$BOLD%(name)-20s$RESET][%(levelname)-18s]  %(message)s ($BOLD%(filename)s$RESET:%(lineno)d)"
-    COLOR_FORMAT = formatter_message(FORMAT, True)
-    def __init__(self, name):
-        logging.Logger.__init__(self, name, logging.DEBUG)
-
-        color_formatter = ColoredFormatter(self.COLOR_FORMAT)
-
-        console = logging.StreamHandler()
-        console.setFormatter(color_formatter)
-
-        self.addHandler(console)
-        return
 
 # Custom formatter
 class MyFormatter(logging.Formatter):
@@ -2886,22 +2837,28 @@ class MyFormatter(logging.Formatter):
     class to handle the logging formatting
     """
     # ----------------------------
-    BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
-
-    # The background is set with 40 plus the number of the color, and the foreground with 30
-
-    # These are the sequences need to get colored ouput
-    RESET_SEQ = "\033[0m"
-    COLOR_SEQ = "\033[1;%dm"
-    BOLD_SEQ = "\033[1m"
 
 
-    err_fmt = "%(levelname)-8s %(message)s"
-    dbg_fmt = "%(levelname)-8s [%(filename)s:%(lineno)d] %(message)s"
-    dbgplus_fmt = "%(levelname)-8s [%(filename)s:%(lineno)d] %(message)s"
-    info_fmt = "%(levelname)-8s %(message)s"
 
-    #format = "[$BOLD%(name)-20s$RESET][%(levelname)-18s]  %(message)s ($BOLD%(filename)s$RESET:%(lineno)d)"
+
+
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
+
+
+    err_fmt = "[\033[1m%(levelname)-8s\033[0m] %(message)s"
+    dbg_fmt = "[\033[94m%(levelname)-8s] [%(filename)s:%(lineno)d] %(message)s"
+    dbgplus_fmt = "[\033[92m%(levelname)-8s\033[0m] (%(filename)s:%(lineno)d) %(message)s"
+    info_fmt = "[\033[95m%(levelname)-8s\033[0m] %(message)s"
+    warn_fmt = "[\033[93m%(levelname)-8s\033[0m] %(message)s"
 
 
 
@@ -2916,24 +2873,20 @@ class MyFormatter(logging.Formatter):
 
         # Replace the original format with one customized by logging level
         if record.levelno == logging.DEBUG:
+            
             self._style._fmt = MyFormatter.dbg_fmt
-
-
-      #      color = '\x1b[35;1m'
 
         elif record.levelno == logging.INFO:
             self._style._fmt = MyFormatter.info_fmt
-       #     color = '\x1b[32;1m'
 
         elif record.levelno == logging.ERROR:
             self._style._fmt = MyFormatter.err_fmt
-        #    color = '\x1b[31;1m'
+
+        elif record.levelno == logging.WARNING:
+            self._style._fmt = MyFormatter.warn_fmt
+
         elif record.levelno == 5:
             self._style._fmt = MyFormatter.dbgplus_fmt
-         #   color = '\x1b[33;1m'
-
-
-
 
         # Call the original formatter class to do the grunt work
         result = logging.Formatter.format(self, record)
@@ -2944,9 +2897,6 @@ class MyFormatter(logging.Formatter):
         return result
 
 
-#
-# def is_python_64bit():
-#     return (struct.calcsize("P") == 8)
 
 def main():
     """
@@ -2963,13 +2913,13 @@ def main():
     width, height = [800,600]
     MainWindow = CORMAT_GUI()
     screenShape = QtGui.QDesktopWidget().screenGeometry()
-    logger.log(5, '\nscreen resolution is {} x {}'.format(width, height))
+    logger.log(5, 'screen resolution is {} x {}'.format(width, height))
     # 1366x768 vnc viewer size
 
-    # QtCore.QTimer.singleShot(10, MainWindow.show)
+    
     time.sleep(3.0)
     MainWindow.show()
-    #   MainWindow.resize(screenShape.width(), screenShape.height())
+    # MainWindow.resize(screenShape.width(), screenShape.height())
     # MainWindow.showMaximized()
     app.exec_()
     return
@@ -2996,9 +2946,7 @@ if __name__ == '__main__':
                  2: logging.DEBUG,
                  3: logging.ERROR,
                  4: 5}
-#    logging.basicConfig(level=debug_map[args.debug])
 
-    #logging.basicConfig(level=debug_map[args.debug])
     logging.addLevelName(5, "DEBUG_PLUS")
 
     logger.setLevel(level=debug_map[args.debug])
@@ -3014,8 +2962,7 @@ if __name__ == '__main__':
     fh = handlers.RotatingFileHandler('./LOGFILE.DAT', mode = 'w',maxBytes=(1048576*5), backupCount=7)
     fh.setFormatter(fmt)
     logging.root.addHandler(fh)
-    logging.setLoggerClass(ColoredLogger)
-    #print(logger.getEffectiveLevel())
+
 
     main()
 
