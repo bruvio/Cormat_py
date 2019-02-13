@@ -55,24 +55,6 @@ from pdb import set_trace as bp
 
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 from texteditlogger import QPlainTextEditLogger
-
-def pyqt_set_trace():
-    '''Set a tracepoint in the Python debugger that works with Qt'''
-    from PyQt4.QtCore import pyqtRemoveInputHook
-    import pdb
-    import sys
-    pyqtRemoveInputHook()
-    # set up the debugger
-    debugger = pdb.Pdb()
-    debugger.reset()
-    # custom next to get outside of function scope
-    debugger.do_next(None) # run the next command
-    users_frame = sys._getframe().f_back # frame where the user invoked `pyqt_set_trace()`
-    debugger.interaction(users_frame, None)
-
-
-
-
 logger = logging.getLogger(__name__)
 
 import inspect
@@ -124,8 +106,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         import os
         super(CORMAT_GUI, self).__init__(parent)
         self.setupUi(self)
+        self.data = lambda: None
+        
+        # -------------------------------
         ###setting up the logger to write inside a Text box
-
+        # -------------------------------
         logTextBox = QPlainTextEditLogger(self)
         # You can format what is printed to text box
         #logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
@@ -134,21 +119,30 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # You can control the logging level
         logging.getLogger().setLevel(logging.INFO)
 
+        # -------------------------------
         # initialising new pulse checkbox to false
+        # -------------------------------
         self.checkBox_newpulse.setChecked(False)
-        
-        self.old_pulse = None
-        self.pulse = None
-        
+
+        # -------------------------------
+        #old pulse contains information on the last pulse analysed
+        self.data.old_pulse = None
+        #pulse is the current pulse
+        self.data.pulse = None
+
+        # -------------------------------
+        #initialisation of control variables
+        # -------------------------------
         # set saved status to False
         
-        self.saved = False
-        self.data_changed = False
-        self.statusflag_changed = False
-        logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.saved,self.data_changed, self.statusflag_changed))
+        self.data.saved = False
+        self.data.data_changed = False
+        self.data.statusflag_changed = False
+        logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
 
-
+        # -------------------------------
         # initialising tabs
+        # -------------------------------
         self._initialize_widget(self.widget_LID1)
         self._initialize_widget(self.widget_LID2)
         self._initialize_widget(self.widget_LID3)
@@ -165,9 +159,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # set tabwidget index to 0 - lid1 is the tab shown at startup
         # self.tabWidget.setCurrentWidget(self.tabWidget.findChild(tabWidget, 'tab_LID1'))
         self.tabWidget.setCurrentIndex(0)
-
+        # -------------------------------
         # initialising folders
-        
+        # -------------------------------
         logger.info('\n\n\nStart CORMATpy')
         logger.info('\n\t {}'.format(datetime.datetime.today().strftime('%Y-%m-%d')))
 
@@ -177,7 +171,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.home = cwd
         parent = Path(self.home)
 
-        self.edge2dfold = str(parent.parent) + '/EDGE2D'
+        
         if "USR" in os.environ:
             logger.log(5, '\nUSR in env')
             # self.owner = os.getenv('USR')
@@ -201,30 +195,37 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         logging.info('copying to local user profile')
 
         logger.log(5, '\nwe are in %s', cwd)
-        # psrint(homefold + os.sep+ folder)
 
+        # -------------------------------
+        # Read  config data.
+        # -------------------------------
         logger.info("\n Reading in constants.")
         try:
-            self.constants = Consts("consts.ini", __version__)
+            self.data.constants = Consts("consts.ini", __version__)
             # constants = Kg1Consts("kg1_consts.ini", __version__)
         except KeyError:
             logger.error("\n Could not read in configuration file consts.ini")
             sys.exit(65)
-
+        # -------------------------------
         # list of authorized user to write KG1 ppfs
+        # -------------------------------
         read_uis = []
-        for user in self.constants.readusers.keys():
-            user_name = self.constants.readusers[user]
+        for user in self.data.constants.readusers.keys():
+            user_name = self.data.constants.readusers[user]
             read_uis.append(user_name)
 
         self.exit_button.clicked.connect(self.handle_exit_button)
         self.PathTranfile = None
-
+        
         self.PathCatalog = '/home'
-
+        # -------------------------------
+        # list of option to write ppf for current user
+        # -------------------------------
         write_uis = []
 
+        # -------------------------------
         # check if owner is in list of authorised users
+        # -------------------------------
         if self.owner in read_uis:
             logging.info(
                 'user {} authorised to write public PPF'.format(self.owner))
@@ -235,39 +236,48 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logging.info(
                 'user {} NOT authorised to write public PPF'.format(self.owner))
             write_uis.append(self.owner)
-
+        # -------------------------------
         # initialise combobox
         self.comboBox_readuid.addItems(read_uis)
         self.comboBox_writeuid.addItems(write_uis)
-
+        # -------------------------------
         # set combobox index to 1 so that the default write_uid is owner
         if len(write_uis) == 2:
             self.comboBox_writeuid.setCurrentIndex(1)
         else:
             self.comboBox_writeuid.setCurrentIndex(0)
 
+        # -------------------------------
         # set default pulse
         # initpulse = pdmsht()
         #initpulse = 92121
         #self.lineEdit_jpn.setText(str(initpulse))
+        # -------------------------------
 
+        # -------------------------------
+        # list of the second trace signal use to be compared with KG1
+        # -------------------------------
         othersignallist = ['None', 'HRTS', 'Lidar', 'BremS', 'Far', 'CM',
                            'KG1_RT']
         self.comboBox_2ndtrace.addItems(othersignallist)
         self.comboBox_2ndtrace.activated[str].connect(self.plot_2nd_trace)
-
+        # -------------------------------
+        # list of markers
+        # -------------------------------
         markers = ['None', 'ELMs', 'NBI', 'PELLETs', 'MAGNETICs']
         self.comboBox_markers.addItems(markers)
         self.comboBox_markers.activated[str].connect(self.plot_markers)
 
+        # -------------------------------
+        # disabling marker and second trace combo boxes
+        # -------------------------------
         self.comboBox_markers.setEnabled(False)
         self.comboBox_2ndtrace.setEnabled(False)
 
-        # self.pushButton_plot.clicked.connect(self.handle_plotbutton)
-        # self.pushButton_zoom.clicked.connect(self.handle_zoombutton)
-        # self.pushButton_reset.clicked.connect(self.handle_resetbutton)
+        # -------------------------------
+        # connecting functions to buttons
+        # -------------------------------
         self.button_read_pulse.clicked.connect(self.handle_readbutton)
-        # self.button_check_pulse.clicked.connect(self.handle_checkbutton)
         self.button_saveppf.clicked.connect(self.handle_saveppfbutton)
         self.button_save.clicked.connect(self.dump_kg1)
         
@@ -283,7 +293,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.actionHelp.triggered.connect(self.handle_help_menu)
         self.actionOpen_PDF_guide.triggered.connect(self.handle_pdf_open)
 
-        # setting code folders
+        # -------------------------------
+        # initialising code folders
+        # -------------------------------
         try:
             # figure folder
             pathlib.Path(cwd + os.sep + 'figures').mkdir(parents=True,
@@ -294,13 +306,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # save foldere - where you keep saved pulse data
             pathlib.Path(cwd + os.sep + 'saved').mkdir(parents=True,
                                                        exist_ok=True)
-            # standard set - where you keep signal list to be used in the code
-            pathlib.Path(cwd + os.sep + 'standard_set').mkdir(parents=True,
-                                                              exist_ok=True)
+
         except SystemExit:
             raise SystemExit('failed to initialise folders')
 
-        # disable many button to avoid conflicts
+        # -------------------------------
+        # disable many button to avoid conflicts at startup
+        # -------------------------------
         self.button_saveppf.setEnabled(False)
         self.button_save.setEnabled(False)
         
@@ -311,41 +323,41 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.pushButton_undo.setEnabled(False)
         self.button_restore.setEnabled(False)
 
+        # -------------------------------
         # run code by default
         # self.button_read_pulse.click()
+        # -------------------------------
 
+        # -------------------------------
         # initialize to zero status flag radio buttons
+        # -------------------------------
         self.radioButton_statusflag_0.setChecked(False)
         self.radioButton_statusflag_1.setChecked(False)
         self.radioButton_statusflag_2.setChecked(False)
         self.radioButton_statusflag_3.setChecked(False)
         self.radioButton_statusflag_4.setChecked(False)
 
-        # set
 
-        # self.pushButton_reset.setEnabled(False)
-        # self.pushButton_plot.setEnabled(False)
-        # self.pushButton_zoom.setEnabled(False)
-
+        # -------------------------------
         # set status flag radio buttons to false
         self.groupBox_statusflag.setEnabled(False)
+        # -------------------------------
+
+        # -------------------------------
         # set read uid combo box to disabled
         self.comboBox_readuid.setEnabled(False)
+        # -------------------------------
 
-        # check selected tab
-        # self.tabSelected(arg=0)
-        # self.tabWidget.connect(self.tabWidget,
-        #                        QtCore.SIGNAL("currentChanged(int)"),
-        #                        self.tabSelected)
-        # self.tabWidget.(
-        #     lambda: self.tabWidget.currentIndex())
 
         # to disable a tab use
         # self.tabWidget.setTabEnabled(3, False)
 
+        # -------------------------------
+        # setup automatic check on status flag
+        # -------------------------------
         self.checkBox_newpulse.toggled.connect(
             lambda: self.handle_check_status(self.checkBox_newpulse))
-
+        # -------------------------------
         # #disable tab as there is nothing plotted
         # self.tabWidget.setTabEnabled(0, False)
         # self.tabWidget.setTabEnabled(1, False)
@@ -362,8 +374,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-
+        # -------------------------------
         # making documentation
+        # -------------------------------
         if (args.documentation).lower() == 'yes':
             logging.info('\n creating documentation')
 
@@ -373,7 +386,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             subprocess.check_output('make latex', shell=True)
 
             os.chdir(self.home)
-        
+
+
+        # -------------------------------
         logging.info('\nINIT DONE')
 
 
@@ -382,262 +397,183 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 #-------------------------------
 
     def handle_readbutton(self):
+        """
+        implemets what happen when clicking the load button on the GUI
+        the logic is explained in the FLowDiagram ../FlowDiagram/load_button_new.dia
+        """
 
-        self.pulse = self.lineEdit_jpn.text()
+        # -------------------------------
+        # reading pulse from GUI
+        # -------------------------------
+        self.data.pulse = self.lineEdit_jpn.text()
 
-        if self.pulse is '':
+
+        if self.data.pulse is '': #user has not entered a pulse number
             logging.error('PLEASE USE JPN < {}'.format(int(pdmsht())))
-            assert self.pulse is not '', "ERROR no pulse selected"
+            assert self.data.pulse is not '', "ERROR no pulse selected"
 
             pass
         else:
-            #self.pulse = int(self.lineEdit_jpn.text())
+            #self.data.pulse = int(self.lineEdit_jpn.text())
             try:
-                int(self.pulse)
+                int(self.data.pulse)
 
             except ValueError:
                 #logging.error('PLEASE USE JPN < {}'.format(int(pdmsht())))
                 raise SystemExit('ERROR - PLEASE USE JPN < {}'.format(int(pdmsht())))
 
-            if int(self.pulse) < pdmsht():
-                   pass
+            if int(self.data.pulse) < pdmsht():
+                   pass # user has entered a valid pulse number
             else:
                 logging.error('PLEASE USE JPN < {}'.format(int(pdmsht())))
                 return
-            self.pulse = int(self.lineEdit_jpn.text())
-            logger.log(5, "resetting Canvas before reading data")
-            # status flag groupbox is disabled
-            self.groupBox_statusflag.setEnabled(False)
-            self.tabWidget.setCurrentIndex(0)
-
-            # disable "normalize" and "restore" buttons
-            self.button_normalize.setEnabled(False)
-            self.button_restore.setEnabled(False)
-            self.comboBox_markers.setEnabled(False)
-            self.comboBox_2ndtrace.setEnabled(False)
-            self.comboBox_2ndtrace.setCurrentIndex(0)
-            self.comboBox_markers.setCurrentIndex(0)
-
-            #
-            # self.tabWidget.setTabEnabled(0, True)
-            # self.tabWidget.setTabEnabled(1, True)
-            # self.tabWidget.setTabEnabled(2, True)
-            # self.tabWidget.setTabEnabled(3, True)
-            # self.tabWidget.setTabEnabled(4, True)
-            # self.tabWidget.setTabEnabled(5, True)
-            # self.tabWidget.setTabEnabled(6, True)
-            # self.tabWidget.setTabEnabled(7, True)
-            # self.tabWidget.setTabEnabled(8, True)
-            # self.tabWidget.setTabEnabled(9, True)
-            # self.tabWidget.setTabEnabled(10, True)
-            # self.tabWidget.setTabEnabled(11, True)
-
-            self.widget_LID1.figure.clear()
-            self.widget_LID1.draw()
-
-            self.widget_LID2.figure.clear()
-            self.widget_LID2.draw()
-
-            self.widget_LID3.figure.clear()
-            self.widget_LID3.draw()
-
-            self.widget_LID4.figure.clear()
-            self.widget_LID4.draw()
-
-            self.widget_LID5.figure.clear()
-            self.widget_LID5.draw()
-
-            self.widget_LID6.figure.clear()
-            self.widget_LID6.draw()
-
-            self.widget_LID7.figure.clear()
-            self.widget_LID7.draw()
-
-            self.widget_LID8.figure.clear()
-            self.widget_LID8.draw()
-
-            self.widget_LID_14.figure.clear()
-            self.widget_LID_14.draw()
-
-            self.widget_LID_58.figure.clear()
-            self.widget_LID_58.draw()
-
-            self.widget_LID_ALL.figure.clear()
-            self.widget_LID_ALL.draw()
-
-            self.widget_MIR.figure.clear()
-            self.widget_MIR.draw()
-
-            self.kg1_original = {}
-            self.kg1_norm = {}
 
 
+        self.data.pulse = int(self.lineEdit_jpn.text())
+        logger.log(5, "resetting Canvas before reading data")
+        # status flag groupbox is disabled
+        self.groupBox_statusflag.setEnabled(False)
+        self.tabWidget.setCurrentIndex(0)
 
+        # disable "normalize" and "restore" buttons
+        self.button_normalize.setEnabled(False)
+        self.button_restore.setEnabled(False)
+        self.comboBox_markers.setEnabled(False)
+        self.comboBox_2ndtrace.setEnabled(False)
+        self.comboBox_2ndtrace.setCurrentIndex(0)
+        self.comboBox_markers.setCurrentIndex(0)
 
+        #
+        # self.tabWidget.setTabEnabled(0, True)
+        # self.tabWidget.setTabEnabled(1, True)
+        # self.tabWidget.setTabEnabled(2, True)
+        # self.tabWidget.setTabEnabled(3, True)
+        # self.tabWidget.setTabEnabled(4, True)
+        # self.tabWidget.setTabEnabled(5, True)
+        # self.tabWidget.setTabEnabled(6, True)
+        # self.tabWidget.setTabEnabled(7, True)
+        # self.tabWidget.setTabEnabled(8, True)
+        # self.tabWidget.setTabEnabled(9, True)
+        # self.tabWidget.setTabEnabled(10, True)
+        # self.tabWidget.setTabEnabled(11, True)
 
-            logger.log(1,'\n')
+        self.widget_LID1.figure.clear()
+        self.widget_LID1.draw()
 
-            exists = os.path.isfile('./scratch/kg1_data.pkl')
+        self.widget_LID2.figure.clear()
+        self.widget_LID2.draw()
 
-            if exists :
-                assert(exists)
-                logger.info( "\n The workspace contains data not saved")
-                self.data_changed = True
-                self.statusflag_changed = True
-                self.saved = False
-                #logger.info("\n do you want to load them?")
-                #self.areyousure_window = QtGui.QMainWindow()
-                #self.ui_areyousure = Ui_areyousure_window()
-                #self.ui_areyousure.setupUi(self.areyousure_window)
-                #self.areyousure_window.show()
+        self.widget_LID3.figure.clear()
+        self.widget_LID3.draw()
 
-                #self.ui_areyousure.pushButton_YES.clicked.connect(
-                    #self.handle_yes_reload)
-                #self.ui_areyousure.pushButton_NO.clicked.connect(
-                    #self.handle_no)
-            else:
-                pass
+        self.widget_LID4.figure.clear()
+        self.widget_LID4.draw()
+
+        self.widget_LID5.figure.clear()
+        self.widget_LID5.draw()
+
+        self.widget_LID6.figure.clear()
+        self.widget_LID6.draw()
+
+        self.widget_LID7.figure.clear()
+        self.widget_LID7.draw()
+
+        self.widget_LID8.figure.clear()
+        self.widget_LID8.draw()
+
+        self.widget_LID_14.figure.clear()
+        self.widget_LID_14.draw()
+
+        self.widget_LID_58.figure.clear()
+        self.widget_LID_58.draw()
+
+        self.widget_LID_ALL.figure.clear()
+        self.widget_LID_ALL.draw()
+
+        self.widget_MIR.figure.clear()
+        self.widget_MIR.draw()
+        
+        
+        # -------------------------------
+        # backup for kg1 data
+        self.kg1_original = {}
+        # -------------------------------
+        # store normalised kg1?
+        self.data.kg1_norm = {}
 
 
 
-            # data_changed = equalsFile('./saved/' + str(self.pulse) + '_kg1.pkl',
-            #                           './scratch/' + str(self.pulse) + '_kg1.pkl')
 
-            if self.data_changed | self.statusflag_changed == True: # data has changed
-                logger.log(5,"\n data or status flags have changed")
+        
+        logger.log(1,'\n')
+        # -------------------------------
+        # check if kg1 is stored in workspace
+        # -------------------------------
+        exists = os.path.isfile('./scratch/kg1_data.pkl')
 
-                if self.saved:  # data saved to ppf
-                    logger.log(5, "\n  data or status flag have been saved to PPF")
-                    if (self.checkBox_newpulse.isChecked()):
-                        logger.log(5, '\n{} is  checked'.format(self.checkBox_newpulse.objectName()))
+        if exists :
+            assert(exists)
+            logger.info( "\n The workspace contains data not saved")
+            self.data.data_changed = True
+            self.data.statusflag_changed = True
+            self.data.saved = False
+
+        else:
+            pass
+
+
+
+        # data_changed = equalsFile('./saved/' + str(self.data.pulse) + '_kg1.pkl',
+        #                           './scratch/' + str(self.data.pulse) + '_kg1.pkl')
+
+        if self.data.data_changed | self.data.statusflag_changed == True: # data has changed
+            logger.log(5,"\n data or status flags have changed")
+
+            if self.data.saved:  # data saved to ppf
+                logger.log(5, "\n  data or status flag have been saved to PPF")
+                if (self.checkBox_newpulse.isChecked()):
+                    logger.log(5, '\n{} is  checked'.format(self.checkBox_newpulse.objectName()))
+
+                    # -------------------------------
+                    # READ data.
+                    # -------------------------------
+                    self.read_uid = str(self.comboBox_readuid.currentText())
+                    logger.info("Reading data for pulse {}".format(str(self.data.pulse)))
+                    logger.info('reading data with uid -  {}'.format((str(self.read_uid))))
+                    success = self.readdata()
+                    # self.tabWidget.setCurrentIndex(0)
+                    # self.tabSelected(arg=0)
+                    # -------------------------------
+                    # PLOT KG1 data.
+                    # -------------------------------
+                    if success:
+                        self.plot_data()
 
                         # -------------------------------
-                        # READ data.
+                        # update GUI after plot
                         # -------------------------------
-                        self.read_uid = str(self.comboBox_readuid.currentText())
-                        logger.info(
-                            "Reading data for pulse {}".format(str(self.pulse)))
-                        logger.info('reading data with uid -  {}'.format((str(self.read_uid))))
-                        success = self.readdata()
-                        # self.tabWidget.setCurrentIndex(0)
-                        # self.tabSelected(arg=0)
-                        # -------------------------------
-                        # PLOT KG1 data.
-                        # -------------------------------
-                        if success:
-                            self.plot_data()
 
-                            # -------------------------------
-                            # update GUI after plot
-                            # -------------------------------
+                        self.update_GUI()
 
-                            self.update_GUI()
-
-                            self.old_pulse = self.pulse
-                        else:
-                            logger.error("ERROR reading data")
-
-
+                        self.data.old_pulse = self.data.pulse
                     else:
-                        logging.warning('\n NO action performed \t')
-                        logging.warning('\t please click new pulse!')# new pulse not checked
-                        pass
-
-                else:  # pulse not saved to ppf
-                    logger.log(5, "data or status flag have NOT been saved to PPF")
-
-                    if (self.checkBox_newpulse.isChecked()):
-                        assert ((self.data_changed | self.statusflag_changed) & (
-                            not self.saved) & (
-                                    self.checkBox_newpulse.isChecked()))
-
-                        logger.log(5, '\n{} is  checked'.format(self.checkBox_newpulse.objectName()))
-
-                        # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
-                        #logging.info('\n pulse data already downloaded - you are requesting to download again')
-                        self.areyousure_window = QtGui.QMainWindow()
-                        self.ui_areyousure = Ui_areyousure_window()
-                        self.ui_areyousure.setupUi(self.areyousure_window)
-                        self.areyousure_window.show()
-
-                        self.ui_areyousure.pushButton_YES.clicked.connect(
-                            self.handle_yes)
-                        self.ui_areyousure.pushButton_NO.clicked.connect(
-                            self.handle_no)
-                    else:
-                        logger.log(5, '\n{} is NOT  checked'.format(self.checkBox_newpulse.objectName()))
-                        # pyqt_set_trace()
-                        # logging.disable(logging.info)
-                        logging.getLogger().disabled = True
-
-                        self.load_pickle()
-                        # logging.disable(logging.NOTSET)
-                        logging.getLogger().disabled = False
-                        logger.log(5,'checking pulse data in workspace')
-                        # pyqt_set_trace()
-
-                        self.old_pulse = self.pulse
-
-                        self.pulse = int(self.lineEdit_jpn.text())
-                        # pyqt_set_trace()
-                        list_attr=['KG1_data','KG4_data', 'MAG_data', 'PELLETS_data','ELM_data', 'HRTS_data','NBI_data', 'is_dis', 'dis_time','LIDAR_data']
-                        for attr in list_attr:
-                            # pyqt_set_trace()
-                            if hasattr(self, attr):
-                                delattr(self,attr)
-                        # pyqt_set_trace()
-
-                        # if (self.old_pulse is None) | (self.old_pulse == self.pulse):
-                        if  (self.old_pulse == self.pulse):
-                            # -------------------------------
-                            # READ data.
-                            # -------------------------------
-                            self.read_uid = str(self.comboBox_readuid.currentText())
-                            logging.info('reading data with uid -  {}'.format(
-                                    (str(self.read_uid))))
-                            self.load_pickle()
-                            # self.tabWidget.setCurrentIndex(0)
-                            # self.tabSelected(arg=0)
-                            # -------------------------------
-                            # PLOT KG1 data.
-                            # -------------------------------
-
-                            self.plot_data()
-
-                                # -------------------------------
-                                # update GUI after plot
-                                # -------------------------------
-
-                            self.update_GUI()
-
-                            self.old_pulse = self.pulse
+                        logger.error("ERROR reading data")
 
 
+                else:
+                    logging.warning('\n NO action performed \t')
+                    logging.warning('\t please click new pulse!')# new pulse not checked
+                    pass
 
-                        elif self.old_pulse != self.pulse:
-                            logging.error('no action performed, check input data')
-                            logging.error('old pulse is {} - selected pulse is {}'.format(str(self.old_pulse),str(self.pulse)))
-                            logging.error('you have unsaved data in your workspace!')
-                            pass
-                        # else:
-                        #     logging.info('reaload workspace for pulse {}'.format(self.pulse))
-                        #     self.areyousure_window = QtGui.QMainWindow()
-                        #     self.ui_areyousure = Ui_areyousure_window()
-                        #     self.ui_areyousure.setupUi(self.areyousure_window)
-                        #     self.areyousure_window.show()
-                        #
-                        #     self.ui_areyousure.pushButton_YES.clicked.connect(
-                        #         self.handle_yes_reload)
-                        #     self.ui_areyousure.pushButton_NO.clicked.connect(
-                        #         self.handle_no)
-
-
-
-            else:
-
+            else:  # pulse not saved to ppf
+                logger.log(5, "data or status flag have NOT been saved to PPF")
 
                 if (self.checkBox_newpulse.isChecked()):
-                    logger.log(5, '\n {} is  checked'.format(self.checkBox_newpulse.objectName()))
+                    assert ((self.data.data_changed | self.data.statusflag_changed) & (
+                        not self.data.saved) & (
+                                self.checkBox_newpulse.isChecked()))
+
+                    logger.log(5, '\n{} is  checked'.format(self.checkBox_newpulse.objectName()))
 
                     # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
                     #logging.info('\n pulse data already downloaded - you are requesting to download again')
@@ -648,93 +584,162 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     self.ui_areyousure.pushButton_YES.clicked.connect(
                         self.handle_yes)
-                    self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+                    self.ui_areyousure.pushButton_NO.clicked.connect(
+                        self.handle_no)
                 else:
-                    logger.log(5, '\n{} is NOT checked'.format(self.checkBox_newpulse.objectName()))
-                    logging.error('\n no action performed')
+                    logger.log(5, '\n{} is NOT  checked'.format(self.checkBox_newpulse.objectName()))
+                    # pyqt_set_trace()
+                    # logging.disable(logging.info)
+                    logging.getLogger().disabled = True
+
+                    self.load_pickle()
+                    # logging.disable(logging.NOTSET)
+                    logging.getLogger().disabled = False
+                    logger.log(5,'checking pulse data in workspace')
+                    # pyqt_set_trace()
+
+                    self.data.old_pulse = self.data.pulse
+
+                    self.data.pulse = int(self.lineEdit_jpn.text())
+                    # pyqt_set_trace()
+                    list_attr=['KG1_data','KG4_data', 'MAG_data', 'PELLETS_data','ELM_data', 'HRTS_data','NBI_data', 'is_dis', 'dis_time','LIDAR_data']
+                    for attr in list_attr:
+                        # pyqt_set_trace()
+                        if hasattr(self, attr):
+                            delattr(self,attr)
+                    # pyqt_set_trace()
+
+                    # if (self.data.old_pulse is None) | (self.data.old_pulse == self.data.pulse):
+                    if  (self.data.old_pulse == self.data.pulse):
+                        # -------------------------------
+                        # READ data.
+                        # -------------------------------
+                        self.read_uid = str(self.comboBox_readuid.currentText())
+                        logging.info('reading data with uid -  {}'.format(
+                                (str(self.read_uid))))
+                        self.load_pickle()
+                        # self.tabWidget.setCurrentIndex(0)
+                        # self.tabSelected(arg=0)
+                        # -------------------------------
+                        # PLOT KG1 data.
+                        # -------------------------------
+
+                        self.plot_data()
+
+                            # -------------------------------
+                            # update GUI after plot
+                            # -------------------------------
+
+                        self.update_GUI()
+
+                        self.data.old_pulse = self.data.pulse
 
 
 
-            #now set
-            self.saved = False
-            self.statusflag_changed = False
-            self.data_changed = False
-            logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.saved,self.data_changed, self.statusflag_changed))
-    # ----------------------------
+                    elif self.data.old_pulse != self.data.pulse:
+                        logging.error('no action performed, check input data')
+                        logging.error('old pulse is {} - selected pulse is {}'.format(str(self.data.old_pulse),str(self.data.pulse)))
+                        logging.error('you have unsaved data in your workspace!')
+                        pass
+        else:
+            if (self.checkBox_newpulse.isChecked()):
+                logger.log(5, '\n {} is  checked'.format(self.checkBox_newpulse.objectName()))
+                # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
+                #logging.info('\n pulse data already downloaded - you are requesting to download again')
+                self.areyousure_window = QtGui.QMainWindow()
+                self.ui_areyousure = Ui_areyousure_window()
+                self.ui_areyousure.setupUi(self.areyousure_window)
+                self.areyousure_window.show()
+
+                self.ui_areyousure.pushButton_YES.clicked.connect(
+                    self.handle_yes)
+                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+            else:
+                logger.log(5, '\n{} is NOT checked'.format(self.checkBox_newpulse.objectName()))
+                logging.error('\n no action performed')
 
 
 
+        #now set
+        self.data.saved = False
+        self.data.statusflag_changed = False
+        self.data.data_changed = False
+        logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
+# ----------------------------
+
+
+# -------------------------
     def checkStatuFlags(self):
         """
         reads the list containing pulse status flag
         :return:
         """
 
-        self.SF_list = [int(self.SF_ch1),
-                        int(self.SF_ch2),
-                        int(self.SF_ch3),
-                        int(self.SF_ch4),
-                        int(self.SF_ch5),
-                        int(self.SF_ch6),
-                        int(self.SF_ch7),
-                        int(self.SF_ch8)]
+        self.data.SF_list = [int(self.data.SF_ch1),
+                        int(self.data.SF_ch2),
+                        int(self.data.SF_ch3),
+                        int(self.data.SF_ch4),
+                        int(self.data.SF_ch5),
+                        int(self.data.SF_ch6),
+                        int(self.data.SF_ch7),
+                        int(self.data.SF_ch8)]
 
-        logging.info('%s has the following SF %s', str(self.pulse),
-                     self.SF_list)
+        logging.info('%s has the following SF %s', str(self.data.pulse),
+                     self.data.SF_list)
 
-    # ------------------------
+# ------------------------
 
 
-    # ------------------------
 
-    # ------------------------
+# ------------------------
     def tabSelected(self, arg=None):
         """
         function that convert arg number into tab name
+        it also sets the SF value when changing tabs
         :param arg:
         :return:
         """
         logger.log(5, '\ntab number is {}'.format(str(arg + 1)))
         if arg == 0:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.SF_ch1)))
+            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch1)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_1'
-            self.set_status_flag_radio(int(self.SF_ch1))
+            self.set_status_flag_radio(int(self.data.SF_ch1))
         if arg == 1:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.SF_ch2)))
+            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch2)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_2'
-            self.set_status_flag_radio(int(self.SF_ch2))
+            self.set_status_flag_radio(int(self.data.SF_ch2))
         if arg == 2:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.SF_ch3)))
+            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch3)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_3'
-            self.set_status_flag_radio(int(self.SF_ch3))
+            self.set_status_flag_radio(int(self.data.SF_ch3))
         if arg == 3:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.SF_ch4)))
+            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch4)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_4'
-            self.set_status_flag_radio(int(self.SF_ch4))
+            self.set_status_flag_radio(int(self.data.SF_ch4))
         if arg == 4:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.SF_ch5)))
+            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch5)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_5'
-            self.set_status_flag_radio(int(self.SF_ch5))
+            self.set_status_flag_radio(int(self.data.SF_ch5))
         if arg == 5:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.SF_ch6)))
+            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch6)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_6'
-            self.set_status_flag_radio(int(self.SF_ch6))
+            self.set_status_flag_radio(int(self.data.SF_ch6))
         if arg == 6:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.SF_ch7)))
+            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch7)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_7'
-            self.set_status_flag_radio(int(self.SF_ch7))
+            self.set_status_flag_radio(int(self.data.SF_ch7))
         if arg == 7:
-            logger.log(5, '\nstatus flag is {}'.format(str(self.SF_ch8)))
+            logger.log(5, '\nstatus flag is {}'.format(str(self.data.SF_ch8)))
             self.groupBox_statusflag.setEnabled(True)
             self.current_tab = 'LID_8'
-            self.set_status_flag_radio(int(self.SF_ch8))
+            self.set_status_flag_radio(int(self.data.SF_ch8))
         if arg == 8:
             self.groupBox_statusflag.setEnabled(False)
             self.current_tab = 'LID_1-4'
@@ -750,91 +755,78 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         logger.log(5, '\n\n\t: current Tab is {}'.format(self.current_tab))
 
+# -------------------------
     def checkstate(self, button):
+        
         """
         connect tab number to LID channel and sets status flag
+        it also performs a check if the user clicked a radio button to change status flag for current tab/channel
         :param button:
         :return:
         """
-        snd = self.sender()
-        # old status flag
-        #if self.current_tab == 'LID_1':
-            #SF_old1 = self.SF_ch1
-        #if self.current_tab == 'LID_2':
-            #SF_old2 = self.SF_ch2
-        #if self.current_tab == 'LID_3':
-            #SF_old3 = self.SF_ch3
-        #if self.current_tab == 'LID_4':
-            #SF_old4 = self.SF_ch4
-        #if self.current_tab == 'LID_5':
-            #SF_old5 = self.SF_ch5
-        #if self.current_tab == 'LID_6':
-            #SF_old6 = self.SF_ch6
-        #if self.current_tab == 'LID_7':
-            #SF_old7 = self.SF_ch7
-        #if self.current_tab == 'LID_8':
-            #SF_old8 = self.SF_ch8
+        snd = self.sender() # gets object that called 
+
 
         SF = snd.objectName().split('_')[2]  # statusflag value selected
 
         # logger.log(5, '\n{} has status flag {}'.format(self.current_tab,str(SF_old)))
 
         if self.current_tab == 'LID_1':
-            self.SF_ch1 = SF
+            self.data.SF_ch1 = SF
         if self.current_tab == 'LID_2':
-            self.SF_ch2 = SF
+            self.data.SF_ch2 = SF
         if self.current_tab == 'LID_3':
-            self.SF_ch3 = SF
+            self.data.SF_ch3 = SF
         if self.current_tab == 'LID_4':
-            self.SF_ch4 = SF
+            self.data.SF_ch4 = SF
         if self.current_tab == 'LID_5':
-            self.SF_ch5 = SF
+            self.data.SF_ch5 = SF
         if self.current_tab == 'LID_6':
-            self.SF_ch6 = SF
+            self.data.SF_ch6 = SF
         if self.current_tab == 'LID_7':
-            self.SF_ch7 = SF
+            self.data.SF_ch7 = SF
         if self.current_tab == 'LID_8':
-            self.SF_ch8 = SF
+            self.data.SF_ch8 = SF
             
         
-        if (int(self.SF_old1) != int(self.SF_ch1)):
+        if (int(self.data.SF_old1) != int(self.data.SF_ch1)):
             
-            self.statusflag_changed = True
+            self.data.statusflag_changed = True
             logger.log(5, "status flag LID1 changed by user")
 
-        elif (int(self.SF_old2) != int(self.SF_ch2)):
+        elif (int(self.data.SF_old2) != int(self.data.SF_ch2)):
             
-            self.statusflag_changed = True
+            self.data.statusflag_changed = True
             logger.log(5, "status flag LID2 changed by user")
 
-        elif (int(self.SF_old3) != int(self.SF_ch3)):
+        elif (int(self.data.SF_old3) != int(self.data.SF_ch3)):
             
-            self.statusflag_changed = True
+            self.data.statusflag_changed = True
             logger.log(5, "status flag LID3 changed by user")
 
-        elif (int(self.SF_old4) != int(self.SF_ch4)):
+        elif (int(self.data.SF_old4) != int(self.data.SF_ch4)):
                 
-            self.statusflag_changed = True
+            self.data.statusflag_changed = True
             logger.log(5, "status flag LID4 changed by user")
 
-        elif (int(self.SF_old5) != int(self.SF_ch5)):
+        elif (int(self.data.SF_old5) != int(self.data.SF_ch5)):
             
-            self.statusflag_changed = True
+            self.data.statusflag_changed = True
             logger.log(5, "status flag LID5 changed by user")
 
-        elif (int(self.SF_old6) != int(self.SF_ch6)):
+        elif (int(self.data.SF_old6) != int(self.data.SF_ch6)):
                 
-            self.statusflag_changed = True
+            self.data.statusflag_changed = True
             logger.log(5, "status flag LID6 changed by user")
 
-        elif (int(self.SF_old7) != int(self.SF_ch7)):
+        elif (int(self.data.SF_old7) != int(self.data.SF_ch7)):
                             
-            self.statusflag_changed = True
+            self.data.statusflag_changed = True
             logger.log(5, "status flag LID7 changed by user")
 
-        elif (int(self.SF_old8) != int(self.SF_ch8)):
+        elif (int(self.data.SF_old8) != int(self.data.SF_ch8)):
                                 
-            self.statusflag_changed = True
+            self.data.statusflag_changed = True
             logger.log(5, "status flag LID8 changed by user")
         
 
@@ -853,8 +845,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # self.ui_plotdata.checkBox.setChecked(False)
 
 
+# -------------------------
 
     def set_status_flag_radio(self, value):
+        """
+        converts status flag integer value into boolean to check SF radio buttons in GUI
+        """
         if value == 0:
             self.radioButton_statusflag_0.setChecked(True)
             self.radioButton_statusflag_1.setChecked(False)
@@ -892,70 +888,76 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # do not change this flag after reading data_changed
         
         
-        logger.log(5, '\ndata saved is {} - status flag saved is - data changed is {}'.format(self.saved,self.statusflag_changed, self.data_changed))
+        logger.log(5, '\ndata saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
         
 
     # ------------------------
     def load_pickle(self):
+        """
+        loads last saved data from non saved operations
+        data are saved in pickle format (binary)
+        
+        also to be used when reloading a pulse
+        """
         logging.info('\n loading pulse data from workspace')
         # Python 3: open(..., 'rb')
         with open('./saved/data.pkl',
                   'rb') as f:
-            [self.pulse, self.KG1_data,
-             self.KG4_data, self.MAG_data, self.PELLETS_data,
-             self.ELM_data, self.HRTS_data,
-             self.NBI_data, self.is_dis, self.dis_time,
-             self.LIDAR_data] = pickle.load(f)
+            [self.data.pulse, self.data.KG1_data,
+             self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
+             self.data.ELM_data, self.data.HRTS_data,
+             self.data.NBI_data, self.data.is_dis, self.data.dis_time,
+             self.data.LIDAR_data] = pickle.load(f)
         f.close()
         with open('./saved/kg1_data.pkl',
                   'rb') as f:  # Python 3: open(..., 'rb')
-            [self.KG1_data, self.SF_list, self.unval_seq, self.val_seq,
+            [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
              self.read_uid] = pickle.load(f)
         f.close()
         logging.info('\n workspace loaded')
         logging.info(
             '\n workspace data comes from userid {}'.format(self.read_uid))
         logging.info(
-            '{} has the following SF {}'.format(str(self.pulse), self.SF_list))
-        if self.KG1_data.mode != "Automatic Corrections":
-            self.KG1_data.correctedby = self.KG1_data.mode.split(" ")[2]
-            logging.info('{} last validated seq is {} by {}'.format(str(self.pulse),
-                                                                    str(self.val_seq),self.KG1_data.correctedby))
+            '{} has the following SF {}'.format(str(self.data.pulse), self.data.SF_list))
+        if self.data.KG1_data.mode != "Automatic Corrections":
+            self.data.KG1_data.correctedby = self.data.KG1_data.mode.split(" ")[2]
+            logging.info('{} last validated seq is {} by {}'.format(str(self.data.pulse),
+                                                                    str(self.data.val_seq),self.data.KG1_data.correctedby))
         
-        [self.SF_ch1,
-         self.SF_ch2,
-         self.SF_ch3,
-         self.SF_ch4,
-         self.SF_ch5,
-         self.SF_ch6,
-         self.SF_ch7,
-         self.SF_ch8] = self.SF_list
+        [self.data.SF_ch1,
+         self.data.SF_ch2,
+         self.data.SF_ch3,
+         self.data.SF_ch4,
+         self.data.SF_ch5,
+         self.data.SF_ch6,
+         self.data.SF_ch7,
+         self.data.SF_ch8] = self.data.SF_list
         
-        self.SF_old1 = self.SF_ch1
-        self.SF_old2 = self.SF_ch2
-        self.SF_old3 = self.SF_ch3
-        self.SF_old4 = self.SF_ch4
-        self.SF_old5 = self.SF_ch5
-        self.SF_old6 = self.SF_ch6
-        self.SF_old7 = self.SF_ch7
-        self.SF_old8 = self.SF_ch8
+        self.data.SF_old1 = self.data.SF_ch1
+        self.data.SF_old2 = self.data.SF_ch2
+        self.data.SF_old3 = self.data.SF_ch3
+        self.data.SF_old4 = self.data.SF_ch4
+        self.data.SF_old5 = self.data.SF_ch5
+        self.data.SF_old6 = self.data.SF_ch6
+        self.data.SF_old7 = self.data.SF_ch7
+        self.data.SF_old8 = self.data.SF_ch8
 
         # set saved status to False
-        self.saved = False
-        self.data_changed = False
-        self.statusflag_changed = False
-        logger.log(5, "load_pickle - saved is {} - data changed is {} - status flags changed is {}".format(self.saved,self.data_changed, self.statusflag_changed))
+        self.data.saved = False
+        self.data.data_changed = False
+        self.data.statusflag_changed = False
+        logger.log(5, "load_pickle - saved is {} - data changed is {} - status flags changed is {}".format(self.data.saved,self.data.data_changed, self.data.statusflag_changed))
         
     # ------------------------
     def save_to_pickle(self,folder):
         logging.info('\n saving pulse data')
         with open('./' + folder + 'data.pkl', 'wb') as f:
             pickle.dump(
-                [self.pulse, self.KG1_data,
-                 self.KG4_data, self.MAG_data, self.PELLETS_data,
-                 self.ELM_data, self.HRTS_data,
-                 self.NBI_data, self.is_dis, self.dis_time,
-                 self.LIDAR_data], f)
+                [self.data.pulse, self.data.KG1_data,
+                 self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
+                 self.data.ELM_data, self.data.HRTS_data,
+                 self.data.NBI_data, self.data.is_dis, self.data.dis_time,
+                 self.data.LIDAR_data], f)
         f.close()
         logging.info('\n data saved')
 
@@ -964,7 +966,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         logging.info('\n saving KG1 data')
         with open('./' + folder + '/kg1_data.pkl', 'wb') as f:
             pickle.dump(
-                [self.KG1_data, self.SF_list, self.unval_seq, self.val_seq,
+                [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
                  self.read_uid], f)
         f.close()
         logging.info('\n KG1 data saved')
@@ -978,209 +980,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         #logging.info('\n saving changes to KG1 data')
         #with open('./scratch/kg1_data.pkl', 'wb') as f:
             #pickle.dump(
-                #[self.KG1_data, self.SF_list, self.unval_seq, self.val_seq,
-                 #self.read_uid,self.data_changed,self.statusflag_changed,self.saved], f)
+                #[self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
+                 #self.read_uid,self.data.data_changed,self.data.statusflag_changed,self.data.saved], f)
         #f.close()
         #logging.info('\n scratch KG1 data saved')
 
 #----------------------------
 
-    # ------------------------
-    # def handle_readbutton_old(self):
-    #
-    #     # set saved status to False
-    #     self.saved = False
-    #     logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.saved,self.data_changed, self.statusflag_changed))
-    #
-    #     # status flag groupbox is disabled
-    #     self.groupBox_statusflag.setEnabled(False)
-    #     self.tabWidget.setCurrentIndex(0)
-    #
-    #     # disable "normalize" and "restore" buttons
-    #     self.button_normalize.setEnabled(False)
-    #     self.button_restore.setEnabled(False)
-    #     self.comboBox_markers.setEnabled(False)
-    #     self.comboBox_2ndtrace.setEnabled(False)
-    #     self.comboBox_2ndtrace.setCurrentIndex(0)
-    #     self.comboBox_markers.setCurrentIndex(0)
-    #
-    #     #
-    #     # self.tabWidget.setTabEnabled(0, True)
-    #     # self.tabWidget.setTabEnabled(1, True)
-    #     # self.tabWidget.setTabEnabled(2, True)
-    #     # self.tabWidget.setTabEnabled(3, True)
-    #     # self.tabWidget.setTabEnabled(4, True)
-    #     # self.tabWidget.setTabEnabled(5, True)
-    #     # self.tabWidget.setTabEnabled(6, True)
-    #     # self.tabWidget.setTabEnabled(7, True)
-    #     # self.tabWidget.setTabEnabled(8, True)
-    #     # self.tabWidget.setTabEnabled(9, True)
-    #     # self.tabWidget.setTabEnabled(10, True)
-    #     # self.tabWidget.setTabEnabled(11, True)
-    #
-    #     self.widget_LID1.figure.clear()
-    #     self.widget_LID1.draw()
-    #
-    #     self.widget_LID2.figure.clear()
-    #     self.widget_LID2.draw()
-    #
-    #     self.widget_LID3.figure.clear()
-    #     self.widget_LID3.draw()
-    #
-    #     self.widget_LID4.figure.clear()
-    #     self.widget_LID4.draw()
-    #
-    #     self.widget_LID5.figure.clear()
-    #     self.widget_LID5.draw()
-    #
-    #     self.widget_LID6.figure.clear()
-    #     self.widget_LID6.draw()
-    #
-    #     self.widget_LID7.figure.clear()
-    #     self.widget_LID7.draw()
-    #
-    #     self.widget_LID8.figure.clear()
-    #     self.widget_LID8.draw()
-    #
-    #     self.widget_LID_14.figure.clear()
-    #     self.widget_LID_14.draw()
-    #
-    #     self.widget_LID_58.figure.clear()
-    #     self.widget_LID_58.draw()
-    #
-    #     self.widget_LID_ALL.figure.clear()
-    #     self.widget_LID_ALL.draw()
-    #
-    #     self.widget_MIR.figure.clear()
-    #     self.widget_MIR.draw()
-    #
-    #     self.kg1_original = {}
-    #     self.kg1_norm = {}
-    #
-    #     # define now two gridspecs
-    #     # gs is the gridspec per channels 1-4
-    #     # gs1 is the gridspec for channels 5-8
-    #     # when plotting markers they will allocate space to plot markers in a subplot under current plot
-    #
-    #     # heights = [4]
-    #     # gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
-    #     # heights1 = [3, 3]
-    #     # gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
-    #     #
-    #     # ax1 = self.widget_LID1.figure.add_subplot(gs[0])
-    #     #
-    #     # ax2 = self.widget_LID2.figure.add_subplot(gs[0])
-    #     #
-    #     # ax3 = self.widget_LID3.figure.add_subplot(gs[0])
-    #     #
-    #     # ax4 = self.widget_LID4.figure.add_subplot(gs[0])
-    #     #
-    #     # ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
-    #     # ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
-    #     #
-    #     # ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
-    #     # ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
-    #     #
-    #     # ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
-    #     # ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
-    #     #
-    #     # ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
-    #     # ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
-    #     #
-    #     # ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
-    #     # ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
-    #     # ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
-    #     #
-    #     # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
-    #
-    #     # read pulse number
-    #     self.pulse = int(self.lineEdit_jpn.text())
-    #
-    #
-    #
-    #
-    #     # check if KG1 data for selected pulse already exists in 'saved' folder
-    #     exists = os.path.isfile('./saved/' + str(self.pulse) + '.pkl')
-    #
-    #     if exists:
-    #         logging.info('\n file {} found in local workspace'.format(
-    #             './saved/' + str(self.pulse) + '.pkl'))
-    #
-    #         if not (self.checkBox_newpulse.isChecked()):
-    #             logger.log(5, '\n{} is not checked'.format(
-    #                 self.checkBox_newpulse.objectName()))
-    #             # if exists and new pulse checkbox is not checked then load data
-    #
-    #             logging.info('\n \n pulse data already downloaded')
-    #             self.load_pickle()
-    #             # self.tabWidget.setCurrentIndex(0)
-    #             # self.tabSelected(arg=0)
-    #
-    #             # -------------------------------
-    #             # PLOT KG1 data.
-    #             # -------------------------------
-    #
-    #             self.plot_data()
-    #
-    #             # -------------------------------
-    #             # update GUI after plot
-    #             # -------------------------------
-    #
-    #             self.update_GUI()
-    #             self.old_pulse = self.pulse
-    #
-    #         else:
-    #             logger.log(5, '\n{} is  checked'.format(
-    #                 self.checkBox_newpulse.objectName()))
-    #
-    #             # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
-    #             logging.info(
-    #                 '\n pulse data already downloaded - you are requesting to download again')
-    #             self.areyousure_window = QtGui.QMainWindow()
-    #             self.ui_areyousure = Ui_areyousure_window()
-    #             self.ui_areyousure.setupUi(self.areyousure_window)
-    #             self.areyousure_window.show()
-    #
-    #             self.ui_areyousure.pushButton_YES.clicked.connect(
-    #                 self.handle_yes)
-    #             self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-    #
-    #     else:
-    #         logging.info('PLEASE select new pulse')
-    #         if (self.checkBox_newpulse.isChecked() == False):
-    #             logger.log(5, '\n{} is not checked'.format(
-    #                 self.checkBox_newpulse.objectName()))
-    #             # self.checkBox_newpulse.setChecked(True)
-    #
-    #             # logging.INFO('NO DATA found in local workspace for pulse {}'.format(str(self.pulse)))
-    #
-    #             #
-    #         else:
-    #
-    #             # -------------------------------
-    #             # READ data.
-    #             # -------------------------------
-    #             self.read_uid = str(self.comboBox_readuid.currentText())
-    #             logging.info(
-    #                 'reading data with uid -  {}'.format((str(self.read_uid))))
-    #             success = self.readdata()
-    #             # self.tabWidget.setCurrentIndex(0)
-    #             # self.tabSelected(arg=0)
-    #             # -------------------------------
-    #             # PLOT KG1 data.
-    #             # -------------------------------
-    #             if success:
-    #                 self.plot_data()
-    #
-    #                 # -------------------------------
-    #                 # update GUI after plot
-    #                 # -------------------------------
-    #
-    #                 self.update_GUI()
-    #
-    #                 self.old_pulse = self.pulse
-    #             else:
-    #                 logger.error("ERROR reading data")
+ 
 
     def handle_no(self):
         """
@@ -1221,7 +1028,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                       self.ui_areyousure.pushButton_YES.text())
 
         self.read_uid = self.comboBox_readuid.currentText()
-        logger.info("Reading data for pulse {}".format(str(self.pulse)))
+        logger.info("Reading data for pulse {}".format(str(self.data.pulse)))
         success = self.readdata()
 
         if success:
@@ -1246,10 +1053,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             self.update_GUI()
             
-            self.old_pulse = self.pulse
+            self.data.old_pulse = self.data.pulse
 
             # now set
-            logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.saved,self.data_changed, self.statusflag_changed))
+            logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
         else:
             logger.error("ERROR reading data")
     # -----------------------
@@ -1273,56 +1080,46 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.update_GUI()
         #
 
-        self.old_pulse = self.pulse
-        logger.log(5, '\nold pulse is {}, new pulse is {}'.format(self.old_pulse, self.pulse))
+        self.data.old_pulse = self.data.pulse
+        logger.log(5, '\nold pulse is {}, new pulse is {}'.format(self.data.old_pulse, self.data.pulse))
         # now set
-        self.saved = False
-        self.statusflag_changed = False
-        self.data_changed = False
-        logger.log(5, '\ndata saved is {} - status flag saved is - data changed is {}'.format(self.saved,self.statusflag_changed, self.data_changed))
+        self.data.saved = False
+        self.data.statusflag_changed = False
+        self.data.data_changed = False
+        logger.log(5, '\ndata saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
 #-------------------------
 
 # -------------------------------
     def readdata(self):
         """
         function that reads data as described in const.ini
-
-        reads:
-        - mag data
-        - pellet data
-        - elm data
-        - KG1 data
-        - kg4 data
-        - nbi data
-        - hrts data
-        - lidar data
-
-
-
-        :return: save data to pickle files: one just for KG1 (pulsename_kg1) and one for everything else (pulsename.pkl)
+        :return: True if success
+                False if error
+                saves data to pickle files: one just for KG1 (kg1_data) and one for everything else (data.pkl)
         """
+
 
         # -------------------------------
         # 1. Read in Magnetics data
         # -------------------------------
         logger.info("\n             Reading in magnetics data.")
-        MAG_data = MagData(self.constants)
-        success = MAG_data.read_data(self.pulse)
+        MAG_data = MagData(self.data.constants)
+        success = MAG_data.read_data(self.data.pulse)
         if not success:
             logging.error(
-                'no MAG data for pulse {} with uid {}'.format(self.pulse,
+                'no MAG data for pulse {} with uid {}'.format(self.data.pulse,
                                                                self.read_uid))
-        self.MAG_data = MAG_data
+        self.data.MAG_data = MAG_data
 
         # -------------------------------
         # 2. Read in KG1 data
         # -------------------------------
         logger.info("\n             Reading in KG1 data.")
-        KG1_data = Kg1PPFData(self.constants,self.pulse)
-        self.KG1_data = KG1_data
+        KG1_data = Kg1PPFData(self.data.constants,self.data.pulse)
+        self.data.KG1_data = KG1_data
 
         self.read_uid = self.comboBox_readuid.currentText()
-        success = KG1_data.read_data(self.pulse, read_uid=self.read_uid)
+        success = KG1_data.read_data(self.data.pulse, read_uid=self.read_uid)
 
         # Exit if there were no good signals
         # If success == 1 it means that at least one channel was not available. But this shouldn't stop the rest of the code
@@ -1332,7 +1129,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # success = 8: No good JPF data was found
             # success = 9: JPF data was bad
             logging.error(
-                'no KG1V data for pulse {} with uid {}'.format(self.pulse,
+                'no KG1V data for pulse {} with uid {}'.format(self.data.pulse,
                                                                self.read_uid))
             return False
             # -------------------------------
@@ -1340,25 +1137,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # 4. Read in KG4 data
         # -------------------------------
         logger.info("\n             Reading in KG4 data.")
-        KG4_data = Kg4Data(self.constants)
-        KG4_data.read_data(self.MAG_data, self.pulse)
-        self.KG4_data = KG4_data
+        KG4_data = Kg4Data(self.data.constants)
+        KG4_data.read_data(self.data.MAG_data, self.data.pulse)
+        self.data.KG4_data = KG4_data
         # pdb.set_trace()
 
         # -------------------------------
         # 5. Read in pellet signals
         # -------------------------------
         logger.info("\n             Reading in pellet data.")
-        PELLETS_data = PelletData(self.constants)
-        PELLETS_data.read_data(self.pulse)
-        self.PELLETS_data = PELLETS_data
+        PELLETS_data = PelletData(self.data.constants)
+        PELLETS_data.read_data(self.data.pulse)
+        self.data.PELLETS_data = PELLETS_data
         # -------------------------------
         # 6. Read in NBI data.
         # -------------------------------
         logger.info("\n             Reading in NBI data.")
-        NBI_data = NBIData(self.constants)
-        NBI_data.read_data(self.pulse)
-        self.NBI_data = NBI_data
+        NBI_data = NBIData(self.data.constants)
+        NBI_data.read_data(self.data.pulse)
+        self.data.NBI_data = NBI_data
         # -------------------------------
         # 7. Check for a disruption, and set status flag near the disruption to 4
         #    If there was no disruption then dis_time elements are set to -1.
@@ -1366,87 +1163,87 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         #    Within this time window the code will not make corrections.
         # -------------------------------
         logger.info("\n             Find disruption.")
-        is_dis, dis_time = find_disruption(self.pulse, self.constants,
-                                           self.KG1_data)
-        self.is_dis = is_dis
-        self.dis_time = dis_time[0]
+        is_dis, dis_time = find_disruption(self.data.pulse, self.data.constants,
+                                           self.data.KG1_data)
+        self.data.is_dis = is_dis
+        self.data.dis_time = dis_time[0]
         logger.info("Time of disruption {}".format(dis_time[0]))
 
         # -------------------------------
         # 8. Read in Be-II signals, and find ELMs
         # -------------------------------
         logger.info("\n             Reading in ELMs data.")
-        ELM_data = ElmsData(self.constants, self.pulse, dis_time=dis_time[0])
-        self.ELM_data = ELM_data
+        ELM_data = ElmsData(self.data.constants, self.data.pulse, dis_time=dis_time[0])
+        self.data.ELM_data = ELM_data
         # -------------------------------
         # 9. Read HRTS data
         # # -------------------------------
         logger.info("\n             Reading in HRTS data.")
-        HRTS_data = HRTSData(self.constants)
-        HRTS_data.read_data(self.pulse)
-        self.HRTS_data = HRTS_data
+        HRTS_data = HRTSData(self.data.constants)
+        HRTS_data.read_data(self.data.pulse)
+        self.data.HRTS_data = HRTS_data
         # # # # -------------------------------
         # # # 10. Read LIDAR data
         # # # -------------------------------
         logger.info("\n             Reading in LIDAR data.")
-        LIDAR_data = LIDARData(self.constants)
-        LIDAR_data.read_data(self.pulse)
-        self.LIDAR_data = LIDAR_data
+        LIDAR_data = LIDARData(self.data.constants)
+        LIDAR_data.read_data(self.data.pulse)
+        self.data.LIDAR_data = LIDAR_data
 
         # read status flag
 
-        self.SF_list = check_SF(self.read_uid, self.pulse)
+        self.data.SF_list = check_SF(self.read_uid, self.data.pulse)
 
-        [self.SF_ch1,
-         self.SF_ch2,
-         self.SF_ch3,
-         self.SF_ch4,
-         self.SF_ch5,
-         self.SF_ch6,
-         self.SF_ch7,
-         self.SF_ch8] = self.SF_list
+        [self.data.SF_ch1,
+         self.data.SF_ch2,
+         self.data.SF_ch3,
+         self.data.SF_ch4,
+         self.data.SF_ch5,
+         self.data.SF_ch6,
+         self.data.SF_ch7,
+         self.data.SF_ch8] = self.data.SF_list
         
-        self.SF_old1 = self.SF_ch1
-        self.SF_old2 = self.SF_ch2
-        self.SF_old3 = self.SF_ch3
-        self.SF_old4 = self.SF_ch4
-        self.SF_old5 = self.SF_ch5
-        self.SF_old6 = self.SF_ch6
-        self.SF_old7 = self.SF_ch7
-        self.SF_old8 = self.SF_ch8
+        self.data.SF_old1 = self.data.SF_ch1
+        self.data.SF_old2 = self.data.SF_ch2
+        self.data.SF_old3 = self.data.SF_ch3
+        self.data.SF_old4 = self.data.SF_ch4
+        self.data.SF_old5 = self.data.SF_ch5
+        self.data.SF_old6 = self.data.SF_ch6
+        self.data.SF_old7 = self.data.SF_ch7
+        self.data.SF_old8 = self.data.SF_ch8
         
         
-        self.unval_seq, self.val_seq = get_min_max_seq(self.pulse, dda="KG1V",
+        self.data.unval_seq, self.data.val_seq = get_min_max_seq(self.data.pulse, dda="KG1V",
                                                        read_uid=self.read_uid)
         if self.read_uid.lower() == 'jetppf':
             logging.info(
-                '{} last public validated seq is {}'.format(str(self.pulse),
-                                                            str(self.val_seq)))
+                '{} last public validated seq is {}'.format(str(self.data.pulse),
+                                                            str(self.data.val_seq)))
         else:
             logging.info(
-                '{} last private validated seq is {}'.format(str(self.pulse),
-                                                             str(self.val_seq)))
+                '{} last private validated seq is {}'.format(str(self.data.pulse),
+                                                             str(self.data.val_seq)))
             logging.info('userid is {}'.format(self.read_uid))
             
                                                                         
-        # logging.info('unval_seq {}, val_seq {}'.format(str(self.unval_seq),str(self.val_seq)))
+        # logging.info('unval_seq {}, val_seq {}'.format(str(self.data.unval_seq),str(self.data.val_seq)))
         # save data to pickle into saved folder
         self.save_to_pickle('saved')
         # save data to pickle into scratch folder
         self.save_to_pickle('scratch')
         # save KG1 data on different file (needed later when applying corrections)
         self.save_kg1('saved')
-        self.saved = False
-        self.data_changed = False
-        self.statusflag_changed = False
+        self.data.saved = False
+        self.data.data_changed = False
+        self.data.statusflag_changed = False
         # dump KG1 data on different file (used to autosave later when applying corrections)
         self.dump_kg1
 
 
-        if self.KG1_data.mode != "Automatic Corrections":
-            self.KG1_data.correctedby = self.KG1_data.mode.split(" ")[2]
-            logging.info('{} last validated seq is {} by {}'.format(str(self.pulse),
-                                                                    str(self.val_seq),self.KG1_data.correctedby))
+        if self.data.KG1_data.mode != "Automatic Corrections":
+            self.data.KG1_data.correctedby = self.data.KG1_data.mode.split(" ")[2]
+            logging.info('{} last validated seq is {} by {}'.format(str(self.data.pulse),
+                                                                    str(self.data.val_seq),self.data.KG1_data.correctedby))
                 
         
         return True
@@ -1455,6 +1252,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 # -------------------------------
     def plot_data(self):
+        """
+        handles widgets
+        initialises canvas to blank
+        sets grid and axes
+        plots KG1 data
+
+        :return:
+        """
+
         # -------------------------------
         # PLOT KG1 data.
         # -------------------------------
@@ -1526,31 +1332,31 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
 
-        for chan in self.KG1_data.density.keys():
+        for chan in self.data.KG1_data.density.keys():
             ax_name = 'ax' + str(chan)
             name = 'LID' + str(chan)
             widget_name = 'widget_LID' + str(chan)
 
-            self.kg1_norm[chan] = SignalBase(self.constants)
-            self.kg1_norm[chan].data = norm(self.KG1_data.density[chan].data)
+            self.data.kg1_norm[chan] = SignalBase(self.data.constants)
+            self.data.kg1_norm[chan].data = norm(self.data.KG1_data.density[chan].data)
 
-            vars()[ax_name].plot(self.KG1_data.density[chan].time,
-                                 self.KG1_data.density[chan].data, label=name,
+            vars()[ax_name].plot(self.data.KG1_data.density[chan].time,
+                                 self.data.KG1_data.density[chan].data, label=name,
                                  marker='x', color='b', linestyle='None')
             vars()[ax_name].legend()
-            ax_all.plot(self.KG1_data.density[chan].time,
-                        self.KG1_data.density[chan].data, label=name,
+            ax_all.plot(self.data.KG1_data.density[chan].time,
+                        self.data.KG1_data.density[chan].data, label=name,
                         marker='x', linestyle='None')
             ax_all.legend()
             if chan < 5:
-                ax_14.plot(self.KG1_data.density[chan].time,
-                           self.KG1_data.density[chan].data, label=name,
+                ax_14.plot(self.data.KG1_data.density[chan].time,
+                           self.data.KG1_data.density[chan].data, label=name,
                            marker='x', linestyle='None')
                 ax_14.legend()
 
             if chan > 4:
-                ax_58.plot(self.KG1_data.density[chan].time,
-                           self.KG1_data.density[chan].data, label=name,
+                ax_58.plot(self.data.KG1_data.density[chan].time,
+                           self.data.KG1_data.density[chan].data, label=name,
                            marker='x', linestyle='None')
                 ax_58.legend()
 
@@ -1562,18 +1368,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 ax_name1 = 'ax' + str(chan) + str(1)
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
                 axx = vars()[ax_name1]
-                vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data * 1e6,
+                vars()[ax_name1].plot(self.data.KG1_data.vibration[chan].time,
+                                      self.data.KG1_data.vibration[chan].data * 1e6,
                                       marker='x', label=name1, color='b',
                                       linestyle='None')
-                vars()[ax_name1].plot(self.KG1_data.jxb[chan].time,
-                                      self.KG1_data.jxb[chan].data * 1e6,
+                vars()[ax_name1].plot(self.data.KG1_data.jxb[chan].time,
+                                      self.data.KG1_data.jxb[chan].data * 1e6,
                                       marker='x', label=name2, color='c',
                                       linestyle='None')
                 vars()[ax_name1].legend()
 
-                ax_mir.plot(self.KG1_data.vibration[chan].time,
-                            self.KG1_data.vibration[chan].data * 1e6,
+                ax_mir.plot(self.data.KG1_data.vibration[chan].time,
+                            self.data.KG1_data.vibration[chan].data * 1e6,
                             marker='x', label=name1, linestyle='None')
                 ax_mir.legend()
                 # draw_widget(chan)
@@ -1594,6 +1400,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
     # -----------------------
     def update_GUI(self):
+        """
+        updates GUI after reading data
+        :return:
+        """
         # now status flag group can be enabled
         self.groupBox_statusflag.setEnabled(True)
 
@@ -1642,13 +1452,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         :return:
         """
-        # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
+        # self.data.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
 
         self.comboBox_markers.setCurrentIndex(0)
-        self.secondtrace_original = {}
-        self.secondtrace_norm = {}
+        self.data.secondtrace_original = {}
+        self.data.secondtrace_norm = {}
 
-        self.s2ndtrace = self.comboBox_2ndtrace.currentText()
+        self.data.s2ndtrace = self.comboBox_2ndtrace.currentText()
 
         # initialize and clean canvas
         self.widget_LID1.figure.clear()
@@ -1719,12 +1529,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
 
         # for every channel in KG1 (8 channels)
-        for chan in self.KG1_data.density.keys():
+        for chan in self.data.KG1_data.density.keys():
             ax_name = 'ax' + str(chan)
             name = 'LID' + str(chan)
 
-            vars()[ax_name].plot(self.KG1_data.density[chan].time,
-                                 self.KG1_data.density[chan].data,
+            vars()[ax_name].plot(self.data.KG1_data.density[chan].time,
+                                 self.data.KG1_data.density[chan].data,
                                  label=name, marker='x', color='b',
                                  linestyle='None')
             vars()[ax_name].legend()
@@ -1735,59 +1545,59 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             #     name1 = 'MIR' + str(chan)
             #     ax_name1 = 'ax' + str(chan) + str(1)
             #     widget_name1 = 'widget_LID' + str(chan) + str(1)
-            #     vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-            #                           self.KG1_data.vibration[chan].data*1e6,
+            #     vars()[ax_name1].plot(self.data.KG1_data.vibration[chan].time,
+            #                           self.data.KG1_data.vibration[chan].data*1e6,
             #                           marker='x', label=name1, color='b',linestyle= 'None')
             #     vars()[ax_name1].legend()
             if chan > 4:
                 name1 = 'MIR' + str(chan)
                 name2 = 'JxB' + str(chan)
                 ax_name1 = 'ax' + str(chan) + str(1)
-                vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data * 1e6,
+                vars()[ax_name1].plot(self.data.KG1_data.vibration[chan].time,
+                                      self.data.KG1_data.vibration[chan].data * 1e6,
                                       marker='x', label=name1, color='b',
                                       linestyle='None')
-                vars()[ax_name1].plot(self.KG1_data.jxb[chan].time,
-                                      self.KG1_data.jxb[chan].data * 1e6,
+                vars()[ax_name1].plot(self.data.KG1_data.jxb[chan].time,
+                                      self.data.KG1_data.jxb[chan].data * 1e6,
                                       marker='x', label=name2, color='c',
                                       linestyle='None')
                 vars()[ax_name1].legend()
 
-                # ax_mir.plot(self.KG1_data.vibration[chan].time,
-                #             self.KG1_data.vibration[chan].data * 1e6,
+                # ax_mir.plot(self.data.KG1_data.vibration[chan].time,
+                #             self.data.KG1_data.vibration[chan].data * 1e6,
                 #             marker='x', label=name1, linestyle='None')
                 # ax_mir.legend()
                 # draw_widget(chan)
 
-        logging.info('plotting second trace {}'.format(self.s2ndtrace))
-        if self.s2ndtrace == 'None':
+        logging.info('plotting second trace {}'.format(self.data.s2ndtrace))
+        if self.data.s2ndtrace == 'None':
             logging.info('no second trace selected')
-        if self.s2ndtrace == 'HRTS':
+        if self.data.s2ndtrace == 'HRTS':
             # check HRTS data exist
-            if self.HRTS_data is not None:
-                # if len(self.HRTS_data.density[chan].time) == 0:
+            if self.data.HRTS_data is not None:
+                # if len(self.data.HRTS_data.density[chan].time) == 0:
                 #     logging.info('NO HRTS data')
                 # else:
-                for chan in self.HRTS_data.density.keys():
+                for chan in self.data.HRTS_data.density.keys():
                     ax_name = 'ax' + str(chan)
                     name = 'HRTS ch.' + str(chan)
                     # noinspection PyUnusedLocal
                     widget_name = 'widget_LID' + str(chan)
 
-                    self.secondtrace_original[chan] = SignalBase(self.constants)
-                    self.secondtrace_norm[chan] = SignalBase(self.constants)
+                    self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                    self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
 
-                    self.secondtrace_original[chan].time = \
-                        self.HRTS_data.density[chan].time
-                    self.secondtrace_original[chan].data = \
-                        self.HRTS_data.density[chan].data
-                    # self.secondtrace_norm[chan].data = norm(self.HRTS_data.density[chan].data)
-                    self.secondtrace_norm[chan].data = normalise(
-                        self.HRTS_data.density[chan],
-                        self.HRTS_data.density[chan], self.dis_time)
+                    self.data.secondtrace_original[chan].time = \
+                        self.data.HRTS_data.density[chan].time
+                    self.data.secondtrace_original[chan].data = \
+                        self.data.HRTS_data.density[chan].data
+                    # self.data.secondtrace_norm[chan].data = norm(self.data.HRTS_data.density[chan].data)
+                    self.data.secondtrace_norm[chan].data = normalise(
+                        self.data.HRTS_data.density[chan],
+                        self.data.HRTS_data.density[chan], self.data.dis_time)
 
-                    vars()[ax_name].plot(self.HRTS_data.density[chan].time,
-                                         self.HRTS_data.density[chan].data,
+                    vars()[ax_name].plot(self.data.HRTS_data.density[chan].time,
+                                         self.data.HRTS_data.density[chan].data,
                                          label=name, marker='o',
                                          color='orange')
                     vars()[ax_name].legend()
@@ -1796,33 +1606,35 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     #     ax_name1 = 'ax' + str(chan) + str(1)
                     #     widget_name1 = 'widget_LID' + str(chan) + str(1)
                     #     vars()[ax_name].plot(
-                    #         self.HRTS_data.density[chan].time,
-                    #         self.HRTS_data.density[chan].data, label=name,
+                    #         self.data.HRTS_data.density[chan].time,
+                    #         self.data.HRTS_data.density[chan].data, label=name,
                     #         marker='o', color='orange')
-
-        if self.s2ndtrace == 'Lidar':
-            if len(self.LIDAR_data.density[chan].time) == 0:
-                logging.info('NO LIDAR data')
             else:
+                logging.warning('no {} data'.format(self.data.s2ndtrace))
+                    
 
-                for chan in self.KG1_data.constants.kg1v.keys():
+        if self.data.s2ndtrace == 'Lidar':
+            #if len(self.data.LIDAR_data.density[chan].time) == 0:
+            if self.data.KG4_data.density is not None:
+                      
+                for chan in self.data.KG1_data.constants.kg1v.keys():
                     ax_name = 'ax' + str(chan)
                     name = 'Lidar ch.' + str(chan)
 
-                    self.secondtrace_original[chan] = SignalBase(self.constants)
-                    self.secondtrace_norm[chan] = SignalBase(self.constants)
+                    self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                    self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
 
-                    self.secondtrace_original[chan].time = \
-                        self.LIDAR_data.density[chan].time
-                    self.secondtrace_original[chan].data = \
-                        self.LIDAR_data.density[chan].data
-                    # self.secondtrace_norm[chan].data = norm(self.LIDAR_data.density[chan].data)
-                    self.secondtrace_norm[chan].data = normalise(
-                        self.LIDAR_data.density[chan],
-                        self.HRTS_data.density[chan], self.dis_time)
+                    self.data.secondtrace_original[chan].time = \
+                        self.data.LIDAR_data.density[chan].time
+                    self.data.secondtrace_original[chan].data = \
+                        self.data.LIDAR_data.density[chan].data
+                    # self.data.secondtrace_norm[chan].data = norm(self.data.LIDAR_data.density[chan].data)
+                    self.data.secondtrace_norm[chan].data = normalise(
+                        self.data.LIDAR_data.density[chan],
+                        self.data.HRTS_data.density[chan], self.data.dis_time)
 
-                    vars()[ax_name].plot(self.LIDAR_data.density[chan].time,
-                                         self.LIDAR_data.density[chan].data,
+                    vars()[ax_name].plot(self.data.LIDAR_data.density[chan].time,
+                                         self.data.LIDAR_data.density[chan].data,
                                          label=name, marker='o',
                                          color='green')
                     vars()[ax_name].legend()
@@ -1831,77 +1643,82 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     #     ax_name1 = 'ax' + str(chan) + str(1)
                     #     widget_name1 = 'widget_LID' + str(chan) + str(1)
                     #     vars()[ax_name].plot(
-                    #         self.LIDAR_data.density[chan].time,
-                    #         self.LIDAR_data.density[chan].data, label=name,
+                    #         self.data.LIDAR_data.density[chan].time,
+                    #         self.data.LIDAR_data.density[chan].data, label=name,
                     #         marker='o', color='green')
+            else:
+                logging.warning('no {} data'.format(self.data.s2ndtrace))
 
-        if self.s2ndtrace == 'Far':
-            if self.KG4_data.faraday is not None:
-                # if len(self.KG4_data.faraday[chan].time) == 0:
+        if self.data.s2ndtrace == 'Far':
+            if self.data.KG4_data.faraday is not None:
+                # if len(self.data.KG4_data.faraday[chan].time) == 0:
                 #     logging.info('NO Far data')
                 # else:
 
-                for chan in self.KG4_data.faraday.keys():
+                for chan in self.data.KG4_data.faraday.keys():
                     ax_name = 'ax' + str(chan)
                     name = 'Far ch.' + str(chan)
 
-                    self.secondtrace_original[chan] = SignalBase(self.constants)
-                    self.secondtrace_norm[chan] = SignalBase(self.constants)
+                    self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                    self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
 
-                    self.secondtrace_original[chan].time = \
-                        self.KG4_data.faraday[
+                    self.data.secondtrace_original[chan].time = \
+                        self.data.KG4_data.faraday[
                             chan].time
-                    self.secondtrace_original[chan].data = \
-                        self.KG4_data.faraday[
+                    self.data.secondtrace_original[chan].data = \
+                        self.data.KG4_data.faraday[
                             chan].data
-                    # self.secondtrace_norm[chan].data = norm(self.KG4_data.faraday[chan].data)
-                    self.secondtrace_norm[chan].data = normalise(
-                        self.KG4_data.faraday[chan],
-                        self.HRTS_data.density[chan],
-                        self.dis_time)
+                    # self.data.secondtrace_norm[chan].data = norm(self.data.KG4_data.faraday[chan].data)
+                    self.data.secondtrace_norm[chan].data = normalise(
+                        self.data.KG4_data.faraday[chan],
+                        self.data.HRTS_data.density[chan],
+                        self.data.dis_time)
 
-                    vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
-                                         self.KG4_data.faraday[chan].data,
+                    vars()[ax_name].plot(self.data.KG4_data.faraday[chan].time,
+                                         self.data.KG4_data.faraday[chan].data,
                                          label=name, marker='o', color='red')
                     vars()[ax_name].legend()
 
                     # if chan > 4:
                     #     ax_name1 = 'ax' + str(chan) + str(1)
                     #     widget_name1 = 'widget_LID' + str(chan) + str(1)
-                    #     vars()[ax_name].plot(self.KG4_data.faraday[chan].time,
-                    #                          self.KG4_data.faraday[chan].data,
+                    #     vars()[ax_name].plot(self.data.KG4_data.faraday[chan].time,
+                    #                          self.data.KG4_data.faraday[chan].data,
                     #                          label=name, marker='o',
                     #                          color='red')
+            else:
+                logging.warning('no {} data'.format(self.data.s2ndtrace))
+                    
 
-        if self.s2ndtrace == 'CM':
-            if self.KG4_data.xg_ell_signal is not None:
+        if self.data.s2ndtrace == 'CM':
+            if self.data.KG4_data.xg_ell_signal is not None:
 
-                # if len(self.KG4_data.xg_ell_signal[chan].time) == 0:
+                # if len(self.data.KG4_data.xg_ell_signal[chan].time) == 0:
                 #     logging.info('NO CM data')
                 # else:
 
-                for chan in self.KG4_data.xg_ell_signal.keys():
+                for chan in self.data.KG4_data.xg_ell_signal.keys():
                     ax_name = 'ax' + str(chan)
                     name = 'CM ch.' + str(chan)
 
-                    self.secondtrace_original[chan] = SignalBase(self.constants)
-                    self.secondtrace_norm[chan] = SignalBase(self.constants)
+                    self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                    self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
 
-                    self.secondtrace_original[chan].time = \
-                        self.KG4_data.xg_ell_signal[
+                    self.data.secondtrace_original[chan].time = \
+                        self.data.KG4_data.xg_ell_signal[
                             chan].time
-                    self.secondtrace_original[chan].data = \
-                        self.KG4_data.xg_ell_signal[
+                    self.data.secondtrace_original[chan].data = \
+                        self.data.KG4_data.xg_ell_signal[
                             chan].data
-                    # self.secondtrace_norm[chan].data = norm(
-                    #     self.KG4_data.xg_ell_signal[chan].data)
-                    self.secondtrace_norm[chan].data = normalise(
-                        self.KG4_data.xg_ell_signal[chan],
-                        self.HRTS_data.density[chan],
-                        self.dis_time)
+                    # self.data.secondtrace_norm[chan].data = norm(
+                    #     self.data.KG4_data.xg_ell_signal[chan].data)
+                    self.data.secondtrace_norm[chan].data = normalise(
+                        self.data.KG4_data.xg_ell_signal[chan],
+                        self.data.HRTS_data.density[chan],
+                        self.data.dis_time)
 
-                    vars()[ax_name].plot(self.KG4_data.xg_ell_signal[chan].time,
-                                         self.KG4_data.xg_ell_signal[chan].data,
+                    vars()[ax_name].plot(self.data.KG4_data.xg_ell_signal[chan].time,
+                                         self.data.KG4_data.xg_ell_signal[chan].data,
                                          label=name, marker='o', color='purple')
                     vars()[ax_name].legend()
 
@@ -1909,47 +1726,49 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     #     ax_name1 = 'ax' + str(chan) + str(1)
                     #     widget_name1 = 'widget_LID' + str(chan) + str(1)
                     #     vars()[ax_name].plot(
-                    #         self.KG4_data.xg_ell_signal[chan].time,
-                    #         self.KG4_data.xg_ell_signal[chan].data, label=name,
+                    #         self.data.KG4_data.xg_ell_signal[chan].time,
+                    #         self.data.KG4_data.xg_ell_signal[chan].data, label=name,
                     #         marker='o', color='purple')
+            else:
+                logging.warning('no {} data'.format(self.data.s2ndtrace))
 
-        if self.s2ndtrace == 'KG1_RT':
-            if self.KG4_data.density is not None:
-                # if len(self.KG4_data.density[chan].time) == 0:
+        if self.data.s2ndtrace == 'KG1_RT':
+            if self.data.KG4_data.density is not None:
+                # if len(self.data.KG4_data.density[chan].time) == 0:
                 #     logging.info('NO KG1_RT data')
                 # else:
 
-                for chan in self.KG4_data.density.keys():
+                for chan in self.data.KG4_data.density.keys():
                     ax_name = 'ax' + str(chan)
                     name = 'KG1 RT ch.' + str(chan)
 
-                    self.secondtrace_original[chan] = SignalBase(self.constants)
-                    self.secondtrace_norm[chan] = SignalBase(self.constants)
+                    self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                    self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
 
-                    self.secondtrace_original[chan].time = self.KG1_data.kg1rt[
+                    self.data.secondtrace_original[chan].time = self.data.KG1_data.kg1rt[
                         chan].time
-                    self.secondtrace_original[chan].data = self.KG1_data.kg1rt[
+                    self.data.secondtrace_original[chan].data = self.data.KG1_data.kg1rt[
                         chan].data
-                    # self.secondtrace_norm[chan].data = norm(
-                    #     self.KG1_data.kg1rt[chan].data)
-                    self.secondtrace_norm[chan].data = normalise(
-                        self.KG1_data.kg1rt[chan], self.HRTS_data.density[chan],
-                        self.dis_time)
+                    # self.data.secondtrace_norm[chan].data = norm(
+                    #     self.data.KG1_data.kg1rt[chan].data)
+                    self.data.secondtrace_norm[chan].data = normalise(
+                        self.data.KG1_data.kg1rt[chan], self.data.HRTS_data.density[chan],
+                        self.data.dis_time)
 
-                    vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
-                                         self.KG1_data.kg1rt[chan].data,
+                    vars()[ax_name].plot(self.data.KG1_data.kg1rt[chan].time,
+                                         self.data.KG1_data.kg1rt[chan].data,
                                          label=name, marker='o', color='brown')
                     vars()[ax_name].legend()
 
                     # if chan > 4:
                     #     ax_name1 = 'ax' + str(chan) + str(1)
                     #     widget_name1 = 'widget_LID' + str(chan) + str(1)
-                    #     vars()[ax_name].plot(self.KG1_data.kg1rt[chan].time,
-                    #                          self.KG1_data.kg1rt[chan].data,
+                    #     vars()[ax_name].plot(self.data.KG1_data.kg1rt[chan].time,
+                    #                          self.data.KG1_data.kg1rt[chan].data,
                     #                          label=name, marker='o',
                     #                          color='brown')
 
-        if self.s2ndtrace == 'BremS':
+        if self.data.s2ndtrace == 'BremS':
             logging.error('not implemented yet')
 
         # update canvas
@@ -1974,9 +1793,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         This version creates sub plot inside the canvas
         :return:
         """
-        # self.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
+        # self.data.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
         self.comboBox_2ndtrace.setCurrentIndex(0)
-        self.marker = self.comboBox_markers.currentText()
+        self.data.marker = self.comboBox_markers.currentText()
 
         # self.widget_LID8.draw()
 
@@ -2077,11 +1896,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         heights21 = [3, 3]
         gs21 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights21)
 
-        for chan in self.KG1_data.density.keys():
+        for chan in self.data.KG1_data.density.keys():
             ax_name = 'ax' + str(chan)
             name = 'LID' + str(chan)
-            vars()[ax_name].plot(self.KG1_data.density[chan].time,
-                                 self.KG1_data.density[chan].data,
+            vars()[ax_name].plot(self.data.KG1_data.density[chan].time,
+                                 self.data.KG1_data.density[chan].data,
                                  label=name, marker='x', color='b',
                                  linestyle='None')
             vars()[ax_name].legend()
@@ -2093,25 +1912,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 ax_name1 = 'ax' + str(chan) + str(1)
                 # noinspection PyUnusedLocal
                 widget_name1 = 'widget_LID' + str(chan) + str(1)
-                vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                      self.KG1_data.vibration[chan].data * 1e6,
+                vars()[ax_name1].plot(self.data.KG1_data.vibration[chan].time,
+                                      self.data.KG1_data.vibration[chan].data * 1e6,
                                       marker='x', label=name1, color='b',
                                       linestyle='None')
-                vars()[ax_name1].plot(self.KG1_data.jxb[chan].time,
-                                      self.KG1_data.jxb[chan].data * 1e6,
+                vars()[ax_name1].plot(self.data.KG1_data.jxb[chan].time,
+                                      self.data.KG1_data.jxb[chan].data * 1e6,
                                       marker='x', label=name2, color='c',
                                       linestyle='None')
                 vars()[ax_name1].legend()
 
-                # ax_mir.plot(self.KG1_data.vibration[chan].time,
-                #             self.KG1_data.vibration[chan].data * 1e6,
+                # ax_mir.plot(self.data.KG1_data.vibration[chan].time,
+                #             self.data.KG1_data.vibration[chan].data * 1e6,
                 #             marker='x', label=name1, linestyle='None')
                 # ax_mir.legend()
                 # draw_widget(chan)
 
-        if self.marker is not None:
-            logging.info('plotting marker {}'.format(self.marker))
-        if self.marker == 'None':
+        if self.data.marker is not None:
+            logging.info('plotting marker {}'.format(self.data.marker))
+        if self.data.marker == 'None':
             logging.info('no marker selected')
 
             # if no marker hide axis showing markers
@@ -2138,22 +1957,22 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             ax8.set_position(gs21[0].get_position(self.widget_LID5.figure))
             ax81.set_position(gs21[1].get_position(self.widget_LID5.figure))
 
-        if self.marker == 'ELMs':
-            if self.ELM_data.elm_times is not None:
-                for chan in self.KG1_data.density.keys():
+        if self.data.marker == 'ELMs':
+            if self.data.ELM_data.elm_times is not None:
+                for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
                     # name = 'HRTS ch.' + str(chan)
 
-                    vars()[ax_name].plot(self.ELM_data.elms_signal.time,
-                                         self.ELM_data.elms_signal.data,
+                    vars()[ax_name].plot(self.data.ELM_data.elms_signal.time,
+                                         self.data.ELM_data.elms_signal.data,
                                          color='black')
 
-                    for vert in self.ELM_data.elm_times:
+                    for vert in self.data.ELM_data.elm_times:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
                                                 linewidth=2, color="red")
-                    # if len(self.ELM_data.elm_times) > 0:
-                    for horz in [self.ELM_data.UP_THRESH,
-                                 self.ELM_data.DOWN_THRESH]:
+                    # if len(self.data.ELM_data.elm_times) > 0:
+                    for horz in [self.data.ELM_data.UP_THRESH,
+                                 self.data.ELM_data.DOWN_THRESH]:
                         vars()[ax_name].axhline(y=horz, xmin=0, xmax=1,
                                                 linewidth=2, color="cyan")
             else:
@@ -2163,46 +1982,46 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 #     ax_name1 = 'ax' + str(chan) + str(1)
                 #     widget_name1 = 'widget_LID' + str(chan) + str(1)
                 #     vars()[ax_name].plot(
-                #         self.HRTS_data.density[chan].time,
-                #         self.HRTS_data.density[chan].data, label=name,
+                #         self.data.HRTS_data.density[chan].time,
+                #         self.data.HRTS_data.density[chan].data, label=name,
                 #         marker='o', color='orange')
 
-        if self.marker == 'MAGNETICs':
-            if (self.MAG_data.start_ip) > 0:
-                for chan in self.KG1_data.density.keys():
+        if self.data.marker == 'MAGNETICs':
+            if (self.data.MAG_data.start_ip) > 0:
+                for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
                     # name = 'HRTS ch.' + str(chan)
 
-                    for vert in [self.MAG_data.start_ip, self.MAG_data.end_ip]:
+                    for vert in [self.data.MAG_data.start_ip, self.data.MAG_data.end_ip]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
                                                 linewidth=2, color="red")
-                    for vert in [self.MAG_data.start_flattop,
-                                 self.MAG_data.end_flattop]:
+                    for vert in [self.data.MAG_data.start_flattop,
+                                 self.data.MAG_data.end_flattop]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
                                                 linewidth=2, color="green")
             else:
                 logging.info('No MAGNETICs marker')
 
-        if self.marker == 'NBI':
-            if (self.NBI_data.start_nbi) > 0.0:
-                for chan in self.KG1_data.density.keys():
+        if self.data.marker == 'NBI':
+            if (self.data.NBI_data.start_nbi) > 0.0:
+                for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
                     # name = 'HRTS ch.' + str(chan)
 
-                    for vert in [self.NBI_data.start_nbi,
-                                 self.NBI_data.end_nbi]:
+                    for vert in [self.data.NBI_data.start_nbi,
+                                 self.data.NBI_data.end_nbi]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
                                                 linewidth=2, color="red")
             else:
                 logging.info('No NBI marker')
 
-        if self.marker == 'PELLETs':
-            if self.PELLETS_data.time_pellets is not None:
-                for chan in self.KG1_data.density.keys():
+        if self.data.marker == 'PELLETs':
+            if self.data.PELLETS_data.time_pellets is not None:
+                for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
                     # name = 'HRTS ch.' + str(chan)
 
-                    for vert in [self.PELLETS_data.time_pellets]:
+                    for vert in [self.data.PELLETS_data.time_pellets]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
                                                 linewidth=2, color="red")
             else:
@@ -2233,14 +2052,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # self.widget_LID8.figure.clear()
         self.widget_LID8.draw()
 
-    # ------------------------
 
-    def handle_checkbutton(self):
-        pass
     # -------------------------
     def handle_check_status(self, button_newpulse):
         """
-        check if button "newpulse" is clicked
+        function used for debugging and control purposes -
+        -
+        checks if button "newpulse" is clicked
         :param button_newpulse:
         :return: disable/enable combobox
         """
@@ -2261,20 +2079,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         """
         save data
-        user can save either Status Flags or ppf (and SF)
-        :return:
+
+
+        user will save either Status Flags or ppf (and SF)
+
+        if user selects in GUI to save ppf a new PPF sequence will be written for dda='KG1V'
+        if user selects in GUI to save SF only the SF will be written in the last sequence (no new sequence)
+
         """
-
-
-        # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
-
 
         self.write_uid = self.comboBox_writeuid.currentText()
 
         # -------------------------------
         # 13. Write data to PPF
-        #     Don't allow for writing of new PPF if write UID is JETPPF and test is true.
-        #     This is since with test set we can over-write manually corrected data.
         # -------------------------------
         if self.radioButton_storeData.isChecked():
             logging.info(
@@ -2304,11 +2121,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
     # ------------------------
     def handle_save_data_statusflag(self):
+        """
+        function data handles the writing of a new PPF
+
+        :return: 67 if there has been an error in writing status flag
+                0 otherwise (success)
+        """
+
         logger.info("\n\n\n             Saving KG1 workspace to pickle")
         
         
 
-        err = open_ppf(self.pulse, self.write_uid)
+        err = open_ppf(self.data.pulse, self.write_uid)
 
         if err != 0:
             return 67
@@ -2317,26 +2141,26 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         dda = "KG1V"
         return_code = 0
 
-        for chan in self.KG1_data.density.keys():
+        for chan in self.data.KG1_data.density.keys():
             status = np.empty(
-                len(self.KG1_data.density[chan].time))
-            status.fill(self.SF_list[
+                len(self.data.KG1_data.density[chan].time))
+            status.fill(self.data.SF_list[
                             chan - 1])
             dtype_lid = "LID{}".format(chan)
             comment = "DATA FROM KG1 CHANNEL {}".format(chan)
-            write_err, itref_written = write_ppf(self.pulse, dda, dtype_lid,
-                                                 self.KG1_data.density[
+            write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_lid,
+                                                 self.data.KG1_data.density[
                                                      chan].data,
-                                                 time=self.KG1_data.density[
+                                                 time=self.data.KG1_data.density[
                                                      chan].time,
                                                  comment=comment,
                                                  unitd='M-2', unitt='SEC',
                                                  itref=itref_kg1v,
-                                                 nt=len(self.KG1_data.density[
+                                                 nt=len(self.data.KG1_data.density[
                                                             chan].time),
-                                                 status=self.KG1_data.status[
+                                                 status=self.data.KG1_data.status[
                                                      chan],
-                                                 global_status=self.SF_list[
+                                                 global_status=self.data.SF_list[
                                                      chan - 1])
 
             if write_err != 0:
@@ -2345,24 +2169,24 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                                  write_err))
                 break
             # Corrected FJs for vertical channels
-            if chan <= 4 and chan in self.KG1_data.fj_dcn.keys():
+            if chan <= 4 and chan in self.data.KG1_data.fj_dcn.keys():
 
                 # DCN fringes
-                if self.KG1_data.fj_dcn is not None:
+                if self.data.KG1_data.fj_dcn is not None:
                     dtype_fc = "FC{}".format(chan)
                     comment = "DCN FRINGE CORRECTIONS CH.{}".format(chan)
-                    write_err, itref_written = write_ppf(self.pulse, dda,
+                    write_err, itref_written = write_ppf(self.data.pulse, dda,
                                                          dtype_fc,
-                                                         self.KG1_data.fj_dcn[
+                                                         self.data.KG1_data.fj_dcn[
                                                              chan].data,
                                                          time=
-                                                         self.KG1_data.fj_dcn[
+                                                         self.data.KG1_data.fj_dcn[
                                                              chan].time,
                                                          comment=comment,
                                                          unitd=" ", unitt="SEC",
                                                          itref=itref_kg1v,
                                                          nt=len(
-                                                             self.KG1_data.fj_dcn[
+                                                             self.data.KG1_data.fj_dcn[
                                                                  chan].time),
                                                          status=None)
 
@@ -2371,55 +2195,55 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                             "Failed to write {}/{}. Errorcode {}".format(dda,
                                                                          dtype_fc,
                                                                          write_err))
-                        break
-                    # if write_err != 0:
-                    #     return write_err, itref
+                        return write_err
+                        # break
+
             # Vibration data and JXB for lateral channels, and corrected FJ
-            elif chan > 4 and chan in self.KG1_data.vibration.keys():
-                if self.KG1_data.vibration is not None:
+            elif chan > 4 and chan in self.data.KG1_data.vibration.keys():
+                if self.data.KG1_data.vibration is not None:
                     # Vibration
                     dtype_vib = "MIR{}".format(chan)
                     comment = "MOVEMENT OF MIRROR {}".format(chan)
-                    write_err, itref_written = write_ppf(self.pulse, dda,
+                    write_err, itref_written = write_ppf(self.data.pulse, dda,
                                                          dtype_vib,
-                                                         self.KG1_data.vibration[
+                                                         self.data.KG1_data.vibration[
                                                              chan].data,
                                                          time=
-                                                         self.KG1_data.vibration[
+                                                         self.data.KG1_data.vibration[
                                                              chan].time,
                                                          comment=comment,
                                                          unitd='M', unitt='SEC',
                                                          itref=itref_kg1v,
                                                          nt=len(
-                                                             self.KG1_data.vibration[
+                                                             self.data.KG1_data.vibration[
                                                                  chan].time),
                                                          status=
-                                                         self.KG1_data.status[
+                                                         self.data.KG1_data.status[
                                                              chan])
                     if write_err != 0:
                         logger.error(
                             "Failed to write {}/{}. Errorcode {}".format(dda,
                                                                          dtype_vib,
                                                                          write_err))
-                        break
+                        return write_err
 
                     # JXB movement
                     dtype_jxb = "JXB{}".format(chan)
                     comment = "JxB CALC. MOVEMENT CH.{}".format(chan)
-                    write_err, itref_written = write_ppf(self.pulse, dda,
+                    write_err, itref_written = write_ppf(self.data.pulse, dda,
                                                          dtype_jxb,
-                                                         self.KG1_data.jxb[
+                                                         self.data.KG1_data.jxb[
                                                              chan].data,
-                                                         time=self.KG1_data.jxb[
+                                                         time=self.data.KG1_data.jxb[
                                                              chan].time,
                                                          comment=comment,
                                                          unitd='M', unitt='SEC',
                                                          itref=itref_kg1v,
                                                          nt=len(
-                                                             self.KG1_data.jxb[
+                                                             self.data.KG1_data.jxb[
                                                                  chan].time),
                                                          status=
-                                                         self.KG1_data.status[
+                                                         self.data.KG1_data.status[
                                                              chan])
 
                     if write_err != 0:
@@ -2427,15 +2251,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                             "Failed to write {}/{}. Errorcode {}".format(dda,
                                                                          dtype_jxb,
                                                                          write_err))
-                        break
-            elif chan > 4 and chan in self.KG1_data.fj_met.keys():
+                        return write_err
+            elif chan > 4 and chan in self.data.KG1_data.fj_met.keys():
                 # MET fringes
-                if self.KG1_data.fj_met is not None:
+                if self.data.KG1_data.fj_met is not None:
                     dtype_fc = "MC{} ".format(chan)
                     comment = "MET FRINGE CORRECTIONS CH.{}".format(chan)
-                    write_err, itref_written = write_ppf(self.pulse, dda,
+                    write_err, itref_written = write_ppf(self.data.pulse, dda,
                                                          dtype_fc,
-                                                         self.KG1_data.fj_met[
+                                                         self.data.KG1_data.fj_met[
                                                              chan].data,
                                                          time=self.fj_met[
                                                              chan].time,
@@ -2443,7 +2267,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                          unitd=" ", unitt="SEC",
                                                          itref=-1,
                                                          nt=len(
-                                                             self.KG1_data.fj_met[
+                                                             self.data.KG1_data.fj_met[
                                                                  chan].time),
                                                          status=None)
 
@@ -2453,7 +2277,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 dda,
                                 dtype_fc,
                                 write_err))
-                        break
+                        return write_err
 
         if write_err != 0:
             return 67
@@ -2462,22 +2286,22 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         mode = "Correct.done by {}".format(self.owner)
         dtype_mode = "MODE"
         comment = mode
-        write_err, itref_written = write_ppf(self.pulse, dda, dtype_mode,
+        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_mode,
                                              np.array([1]),
                                              time=np.array([0]),
                                              comment=comment, unitd=" ",
                                              unitt=" ", itref=-1, nt=1,
                                              status=None)
         # Retrieve geometry data & write to PPF
-        temp, r_ref, z_ref, a_ref, r_coord, z_coord, a_coord, coord_err = self.KG1_data.get_coord(
-            self.pulse)
+        temp, r_ref, z_ref, a_ref, r_coord, z_coord, a_coord, coord_err = self.data.KG1_data.get_coord(
+            self.data.pulse)
 
         if coord_err != 0:
             return coord_err
 
         dtype_temp = "TEMP"
         comment = "Vessel temperature(degC)"
-        write_err, itref_written = write_ppf(self.pulse, dda, dtype_temp,
+        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_temp,
                                              np.array([temp]),
                                              time=np.array([0]),
                                              comment=comment, unitd="deg",
@@ -2487,7 +2311,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         geom_chan = np.arange(len(a_ref)) + 1
         dtype_aref = "AREF"
         comment = "CHORD(20 DEC.C): ANGLE"
-        write_err, itref_written = write_ppf(self.pulse, dda, dtype_aref, a_ref,
+        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_aref, a_ref,
                                              time=geom_chan, comment=comment,
                                              unitd="RADIANS", unitt="CHORD NO",
                                              itref=-1, nt=len(geom_chan),
@@ -2495,7 +2319,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         dtype_rref = "RREF"
         comment = "CHORD(20 DEC.C): RADIUS"
-        write_err, itref_written = write_ppf(self.pulse, dda, dtype_rref, r_ref,
+        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_rref, r_ref,
                                              time=geom_chan, comment=comment,
                                              unitd="M", unitt="CHORD NO",
                                              itref=itref_written,
@@ -2503,7 +2327,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         dtype_zref = "ZREF"
         comment = "CHORD(20 DEC.C): HEIGHT"
-        write_err, itref_written = write_ppf(self.pulse, dda, dtype_zref, z_ref,
+        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_zref, z_ref,
                                              time=geom_chan, comment=comment,
                                              unitd="M", unitt="CHORD NO",
                                              itref=itref_written,
@@ -2511,7 +2335,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         dtype_a = "A   "
         comment = "CHORD: ANGLE"
-        write_err, itref_written = write_ppf(self.pulse, dda, dtype_a, a_coord,
+        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_a, a_coord,
                                              time=geom_chan, comment=comment,
                                              unitd="RADIANS", unitt="CHORD NO",
                                              itref=itref_written,
@@ -2519,7 +2343,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         dtype_r = "R   "
         comment = "CHORD: RADIUS"
-        write_err, itref_written = write_ppf(self.pulse, dda, dtype_r, r_coord,
+        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_r, r_coord,
                                              time=geom_chan, comment=comment,
                                              unitd="M", unitt="CHORD NO",
                                              itref=itref_written,
@@ -2527,7 +2351,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         dtype_z = "Z   "
         comment = "CHORD: HEIGHT"
-        write_err, itref_written = write_ppf(self.pulse, dda, dtype_z, z_coord,
+        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_z, z_coord,
                                              time=geom_chan, comment=comment,
                                              unitd="M", unitt="CHORD NO",
                                              itref=itref_written,
@@ -2536,20 +2360,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if write_err != 0:
             return 67
         logger.info("Close PPF.")
-        err = close_ppf(self.pulse, self.write_uid, self.constants.code_version)
+        err = close_ppf(self.data.pulse, self.write_uid, self.data.constants.code_version)
 
         if err != 0:
             return 67
 
-        self.saved = True
-        self.data_changed = True
-        self.statusflag_changed = True
+        self.data.saved = True
+        self.data.data_changed = True
+        self.data.statusflag_changed = True
         
         self.save_kg1('saved')
         logger.log(5, '\n deleting scratch folder')
         delete_files_in_folder('./scratch')
         delete_files_in_folder('./saved')
-        logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.saved,self.data_changed, self.statusflag_changed))
+        logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
         self.ui_areyousure.pushButton_YES.setChecked(False)
 
         self.areyousure_window.hide()
@@ -2558,12 +2382,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
     # ------------------------
     def handle_save_statusflag(self):
+        """
+        function that uses ppfssf inside ppf library (ATTENTION this function is not listed yet in the ppf library python documentation (only C++ version)
+        :return: 0 if success
+                 68 if fails to write status flags
+        """
 
         return_code = 0
         
 
         # Initialise PPF system
-        ier = ppfgo(pulse=self.pulse)
+        ier = ppfgo(pulse=self.data.pulse)
 
         if ier != 0:
             return 68
@@ -2571,10 +2400,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # Set UID
         ppfuid(self.write_uid, 'w')
 
-        for chan in self.KG1_data.density.keys():
+        for chan in self.data.KG1_data.density.keys():
             dtype_lid = "LID{}".format(chan)
-            (write_err,) = ppfssf(self.pulse, self.val_seq, 'KG1V', dtype_lid,
-                                  self.SF_list[chan - 1])
+            (write_err,) = ppfssf(self.data.pulse, self.data.val_seq, 'KG1V', dtype_lid,
+                                  self.data.SF_list[chan - 1])
             if write_err != 0:
                 logger.error(
                     "Failed to write {}/{} status flag. Errorcode {}".format(
@@ -2585,16 +2414,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         self.areyousure_window.hide()
         logger.info("\n\n\n     Status flags written to ppf.")
-        self.saved = True
+        self.data.saved = True
         self.data_change = True
-        self.statusflag_changed = True
+        self.data.statusflag_changed = True
         
         
         self.save_kg1('saved')
         logger.log(5, '\n deleting scratch folder')
         delete_files_in_folder('./scratch')
         
-        logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.saved,self.data_changed, self.statusflag_changed))
+        logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
         delete_files_in_folder('./saved')
         
         return return_code
@@ -2602,11 +2431,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
     # ------------------------
 
     def handle_normalizebutton(self):
+        """
+        function thtat normalises the second trace to KG1 for comparing purposes during validation and fringe correction
+        :return:
+        """
 
-        if self.s2ndtrace == 'None':
+        if self.data.s2ndtrace == 'None':
             pass
         else:
-            logging.info('normalizing')
+            logging.info('\n Normalizing')
             snd = self.sender()
 
             self.widget_LID1.figure.clear()
@@ -2664,34 +2497,34 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             #
             # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
             # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
-            if self.s2ndtrace == 'HRTS':
+            if self.data.s2ndtrace == 'HRTS':
                 color = 'orange'
-            if self.s2ndtrace == 'Lidar':
+            if self.data.s2ndtrace == 'Lidar':
                 color = 'green'
-            if self.s2ndtrace == 'Far':
+            if self.data.s2ndtrace == 'Far':
                 color = 'red'
-            if self.s2ndtrace == 'CM':
+            if self.data.s2ndtrace == 'CM':
                 color = 'purple'
-            if self.s2ndtrace == 'KG1_RT':
+            if self.data.s2ndtrace == 'KG1_RT':
                 color = 'brown'
-            if self.s2ndtrace == 'BremS':
+            if self.data.s2ndtrace == 'BremS':
                 color = 'grey'
 
             # for every channel in KG1 (8 channels)
 
-            for chan in self.KG1_data.density.keys():
+            for chan in self.data.KG1_data.density.keys():
                 ax_name = 'ax' + str(chan)
                 name = 'LID' + str(chan)
-                vars()[ax_name].plot(self.KG1_data.density[chan].time,
-                                     self.KG1_data.density[chan].data,
+                vars()[ax_name].plot(self.data.KG1_data.density[chan].time,
+                                     self.data.KG1_data.density[chan].data,
                                      # kg1_norm
                                      label=name, marker='x', color='b',
                                      linestyle='None')
                 vars()[ax_name].legend()
 
-                name = self.s2ndtrace + ' ch.' + str(chan)
-                vars()[ax_name].plot(self.secondtrace_original[chan].time,
-                                     self.secondtrace_norm[chan].data,
+                name = self.data.s2ndtrace + ' ch.' + str(chan)
+                vars()[ax_name].plot(self.data.secondtrace_original[chan].time,
+                                     self.data.secondtrace_norm[chan].data,
                                      label=name, marker='o',
                                      color=color)
                 vars()[ax_name].legend()
@@ -2701,8 +2534,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     # channels 5-8 have mirror movement
                     name1 = 'MIR' + str(chan)
                     ax_name1 = 'ax' + str(chan) + str(1)
-                    vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                          self.KG1_data.vibration[
+                    vars()[ax_name1].plot(self.data.KG1_data.vibration[chan].time,
+                                          self.data.KG1_data.vibration[
                                               chan].data * 1e6,
                                           marker='x', label=name1, color='b',
                                           linestyle='None')
@@ -2721,12 +2554,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # self.widget_LID_ALL.draw()
             # self.widget_LID_58.draw()
             # self.widget_MIR.draw()
-            logging.info('signals have been normalized')
+            logging.info('\n signals have been normalized')
 
     # ------------------------
     def handle_button_restore(self):
+        """
+        function that restores signals to original amplitude
+        :return:
+        """
 
-        if self.s2ndtrace == 'None':
+        if self.data.s2ndtrace == 'None':
             pass
         else:
             logging.info('restoring signals to original amplitude')
@@ -2786,32 +2623,32 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
             #
             # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
-            if self.s2ndtrace == 'HRTS':
+            if self.data.s2ndtrace == 'HRTS':
                 color = 'orange'
-            if self.s2ndtrace == 'Lidar':
+            if self.data.s2ndtrace == 'Lidar':
                 color = 'green'
-            if self.s2ndtrace == 'Far':
+            if self.data.s2ndtrace == 'Far':
                 color = 'red'
-            if self.s2ndtrace == 'CM':
+            if self.data.s2ndtrace == 'CM':
                 color = 'purple'
-            if self.s2ndtrace == 'KG1_RT':
+            if self.data.s2ndtrace == 'KG1_RT':
                 color = 'brown'
-            if self.s2ndtrace == 'BremS':
+            if self.data.s2ndtrace == 'BremS':
                 color = 'grey'
             # for every channel in KG1 (8 channels)
 
-            for chan in self.KG1_data.density.keys():
+            for chan in self.data.KG1_data.density.keys():
                 ax_name = 'ax' + str(chan)
                 name = 'LID' + str(chan)
-                vars()[ax_name].plot(self.KG1_data.density[chan].time,
-                                     self.KG1_data.density[chan].data,
+                vars()[ax_name].plot(self.data.KG1_data.density[chan].time,
+                                     self.data.KG1_data.density[chan].data,
                                      label=name, marker='x', color='b',
                                      linestyle='None')
                 vars()[ax_name].legend()
 
-                name = self.s2ndtrace + ' ch.' + str(chan)
-                vars()[ax_name].plot(self.secondtrace_original[chan].time,
-                                     self.secondtrace_original[chan].data,
+                name = self.data.s2ndtrace + ' ch.' + str(chan)
+                vars()[ax_name].plot(self.data.secondtrace_original[chan].time,
+                                     self.data.secondtrace_original[chan].data,
                                      label=name, marker='o',
                                      color=color)
                 vars()[ax_name].legend()
@@ -2821,8 +2658,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     # channels 5-8 have mirror movement
                     name1 = 'MIR' + str(chan)
                     ax_name1 = 'ax' + str(chan) + str(1)
-                    vars()[ax_name1].plot(self.KG1_data.vibration[chan].time,
-                                          self.KG1_data.vibration[
+                    vars()[ax_name1].plot(self.data.KG1_data.vibration[chan].time,
+                                          self.data.KG1_data.vibration[
                                               chan].data * 1e6,
                                           marker='x', label=name1, color='b',
                                           linestyle='None')
@@ -2845,22 +2682,43 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
     # ------------------------
     def handle_applybutton(self):
+        """
+        function that applies correction
+
+        :return:
+        """
         pass
 
     # ------------------------
     def handle_makepermbutton(self):
+        """
+        function that makes permanenet last correction
+        :return:
+        """
         pass
 
     # ------------------------
     def handle_undobutton(self):
+        """
+        function to undo last correction
+        :return:
+        """
         pass
 
     def check_current_tab(self):
+        """
+        return current tab
+        :return: current tab
+        """
         return self.QTabWidget.currentWidget()
 
     # ----------------------------
     @staticmethod
     def handle_help_menu():
+        """
+        opens Chrome browser to read HTML documentation
+        :return:
+        """
         import webbrowser
         url = 'file://' + os.path.realpath('../docs/_build/html/index.html')
         webbrowser.get(using='google-chrome').open(url, new=2)
@@ -2871,8 +2729,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
     def handle_pdf_open():
         """
 
-            :return: open pdf file of the guide
-            """
+        :return: opens pdf file of the guide
+        """
         file = os.path.realpath('../docs/CORMATpy_GUI_Documentation.pdf')
         import subprocess
 
@@ -2885,7 +2743,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         """
         Exit the application
         """
-        if self.pulse is None:
+        if self.data.pulse is None:
             logger.log(5,'no data has been loaded, it is save to exit')
 
             self.areyousure_window = QtGui.QMainWindow()
@@ -2918,12 +2776,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             
 #        try:
             # if data have been modified
-            #data_changed = equalsFile('./saved/' + str(self.pulse) + '_kg1.pkl',
+            #data_changed = equalsFile('./saved/' + str(self.data.pulse) + '_kg1.pkl',
                                       #'./scratch/' + str(
-                                          #self.pulse) + '_kg1.pkl')
-        elif (self.data_changed | self.statusflag_changed) is True:
-            logger.log(5, "data changed? {} status flags changed? {}".format(self.data_changed, self.statusflag_changed))
-            if self.saved:
+                                          #self.data.pulse) + '_kg1.pkl')
+        elif (self.data.data_changed | self.data.statusflag_changed) is True:
+            logger.log(5, "data changed? {} status flags changed? {}".format(self.data.data_changed, self.data.statusflag_changed))
+            if self.data.saved:
                 logger.log(5,"data has been saved")
                 self.handle_yes_exit()
             else:
@@ -2958,6 +2816,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
     @staticmethod
     def handle_yes_exit():
+        """
+        close application
+        :return:
+        """
 
         #logging.info('\n')
         logging.info('\n Exit now')
@@ -3023,7 +2885,15 @@ class MyFormatter(logging.Formatter):
     """
     class to handle the logging formatting
     """
+    # ----------------------------
+    BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
+    # The background is set with 40 plus the number of the color, and the foreground with 30
+
+    # These are the sequences need to get colored ouput
+    RESET_SEQ = "\033[0m"
+    COLOR_SEQ = "\033[1;%dm"
+    BOLD_SEQ = "\033[1m"
 
 
     err_fmt = "%(levelname)-8s %(message)s"
