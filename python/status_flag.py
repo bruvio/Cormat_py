@@ -74,7 +74,7 @@ def initread():
 
 def GetSF(pulse, dda,dtype):
     """
-
+    
     :param pulse:
     :param dda: string e.g. 'kg1v'
     :param dtype: string e.g. 'lid3'
@@ -93,7 +93,9 @@ def GetSF(pulse, dda,dtype):
 
 def Getnonvalidatedpulses(pulselist,dtypelist,SF_validated):
     """
-
+    
+    
+    
     :param pulselist: list of pulses
     :param dtypelist: string e.g. 'lid1','lid2',...
     :param SF_validated: integer rapresenting SF for validated shots

@@ -10,6 +10,10 @@ __author__ = "B. Viola"
 # ----------------------------
 
 class Canvas(FigureCanvas):
+    """
+    CLASS used to convert widget into a matplotlib figure
+    """
+    
     def __init__(self, parent=None):
         self.figure = plt.figure()
         FigureCanvas.__init__(self, self.figure)

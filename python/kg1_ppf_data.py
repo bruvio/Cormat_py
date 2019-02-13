@@ -1,7 +1,7 @@
 """
 Class to read and store KG1 PPF data for one channel.
 Reads in LIDX, FCX, MIRX, JXBX, TYPX
-Needs modifying so it would work with old KG1V & new KG1V dtypes
+
 """
 
 import logging
