@@ -119,6 +119,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         #logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
 
         #logTextBox.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
+
         logTextBox.setFormatter(HTMLFormatter())
         logging.getLogger().addHandler(logTextBox)
         # You can control the logging level
