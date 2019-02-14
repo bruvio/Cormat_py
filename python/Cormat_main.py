@@ -57,7 +57,7 @@ from pdb import set_trace as bp
 
 
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
-from texteditlogger import QPlainTextEditLogger
+from custom_formatters import MyFormatter,QPlainTextEditLogger,HTMLFormatter
 logger = logging.getLogger(__name__)
 
 import inspect
@@ -119,10 +119,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         #logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
 
         #logTextBox.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
-        logTextBox.setFormatter(MyFormatter())
+        logTextBox.setFormatter(HTMLFormatter())
         logging.getLogger().addHandler(logTextBox)
         # You can control the logging level
-        logging.getLogger().setLevel(logging.INFO)
+        # logging.getLogger().setLevel(logging.INFO)
 
         # -------------------------------
         # initialising new pulse checkbox to false
@@ -176,7 +176,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.home = cwd
         parent = Path(self.home)
 
-        
+
         if "USR" in os.environ:
             logger.log(5, 'USR in env')
             # self.owner = os.getenv('USR')
@@ -221,7 +221,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         self.exit_button.clicked.connect(self.handle_exit_button)
         self.PathTranfile = None
-        
+
         self.PathCatalog = '/home'
         # -------------------------------
         # list of option to write ppf for current user
@@ -285,7 +285,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.button_read_pulse.clicked.connect(self.handle_readbutton)
         self.button_saveppf.clicked.connect(self.handle_saveppfbutton)
         self.button_save.clicked.connect(self.dump_kg1)
-        
+
         self.button_normalize.clicked.connect(self.handle_normalizebutton)
         self.button_restore.clicked.connect(self.handle_button_restore)
 
@@ -320,7 +320,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # -------------------------------
         self.button_saveppf.setEnabled(False)
         self.button_save.setEnabled(False)
-        
+
         self.checkSFbutton.setEnabled(False)
         self.button_normalize.setEnabled(False)
         self.pushButton_apply.setEnabled(False)
@@ -497,8 +497,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         self.widget_MIR.figure.clear()
         self.widget_MIR.draw()
-        
-        
+
+
         # -------------------------------
         # backup for kg1 data
         self.kg1_original = {}
@@ -509,7 +509,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-        
+
         logger.log(1,'\n')
         # -------------------------------
         # check if kg1 is stored in workspace
@@ -762,14 +762,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 # -------------------------
     def checkstate(self, button):
-        
+
         """
         connect tab number to LID channel and sets status flag
         it also performs a check if the user clicked a radio button to change status flag for current tab/channel
         :param button:
         :return:
         """
-        snd = self.sender() # gets object that called 
+        snd = self.sender() # gets object that called
 
 
         SF = snd.objectName().split('_')[2]  # statusflag value selected
@@ -792,52 +792,52 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.SF_ch7 = SF
         if self.current_tab == 'LID_8':
             self.data.SF_ch8 = SF
-            
-        
+
+
         if (int(self.data.SF_old1) != int(self.data.SF_ch1)):
-            
+
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID1 changed by user")
 
         elif (int(self.data.SF_old2) != int(self.data.SF_ch2)):
-            
+
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID2 changed by user")
 
         elif (int(self.data.SF_old3) != int(self.data.SF_ch3)):
-            
+
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID3 changed by user")
 
         elif (int(self.data.SF_old4) != int(self.data.SF_ch4)):
-                
+
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID4 changed by user")
 
         elif (int(self.data.SF_old5) != int(self.data.SF_ch5)):
-            
+
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID5 changed by user")
 
         elif (int(self.data.SF_old6) != int(self.data.SF_ch6)):
-                
+
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID6 changed by user")
 
         elif (int(self.data.SF_old7) != int(self.data.SF_ch7)):
-                            
+
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID7 changed by user")
 
         elif (int(self.data.SF_old8) != int(self.data.SF_ch8)):
-                                
+
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID8 changed by user")
-        
 
-            
-            
-            
+
+
+
+
 
         # logger.log(5, '{} new status flag is {}'.format(self.current_tab, str(SF)))
 
@@ -886,22 +886,22 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.radioButton_statusflag_2.setChecked(False)
             self.radioButton_statusflag_3.setChecked(False)
             self.radioButton_statusflag_4.setChecked(True)
-        
-        
 
-            
+
+
+
             # do not change this flag after reading data_changed
-        
-        
+
+
         logger.log(5, 'data saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
-        
+
 
     # ------------------------
     def load_pickle(self):
         """
         loads last saved data from non saved operations
         data are saved in pickle format (binary)
-        
+
         also to be used when reloading a pulse
         """
         logging.info('\n loading pulse data from workspace')
@@ -928,7 +928,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.KG1_data.correctedby = self.data.KG1_data.mode.split(" ")[2]
             logging.info('{} last validated seq is {} by {}'.format(str(self.data.pulse),
                                                                     str(self.data.val_seq),self.data.KG1_data.correctedby))
-        
+
         [self.data.SF_ch1,
          self.data.SF_ch2,
          self.data.SF_ch3,
@@ -937,7 +937,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
          self.data.SF_ch6,
          self.data.SF_ch7,
          self.data.SF_ch8] = self.data.SF_list
-        
+
         self.data.SF_old1 = self.data.SF_ch1
         self.data.SF_old2 = self.data.SF_ch2
         self.data.SF_old3 = self.data.SF_ch3
@@ -952,7 +952,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.data.data_changed = False
         self.data.statusflag_changed = False
         logger.log(5, "load_pickle - saved is {} - data changed is {} - status flags changed is {}".format(self.data.saved,self.data.data_changed, self.data.statusflag_changed))
-        
+
     # ------------------------
     def save_to_pickle(self,folder):
         logging.info('\n saving pulse data')
@@ -975,7 +975,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  self.read_uid], f)
         f.close()
         logging.info('\n KG1 data saved')
-        
+
 
 
     def dump_kg1(self):
@@ -992,7 +992,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 #----------------------------
 
- 
+
 
     def handle_no(self):
         """
@@ -1004,7 +1004,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # button_name = button.objectName()
         # print(button_name)
 
-        
+
         logger.log(5, 'pressed %s button',
                       self.ui_areyousure.pushButton_NO.text())
         logging.info('go back and perform a different action')
@@ -1028,7 +1028,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         self.areyousure_window.hide()
 
-        
+
         logger.log(5, 'pressed %s button',
                       self.ui_areyousure.pushButton_YES.text())
 
@@ -1057,7 +1057,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.plot_data()
 
             self.update_GUI()
-            
+
             self.data.old_pulse = self.data.pulse
 
             # now set
@@ -1066,22 +1066,22 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.error("ERROR reading data")
     # -----------------------
     def handle_yes_reload(self):
-        
+
         logging.info('\n pulse data already downloaded')
         self.load_pickle()
         # self.tabWidget.setCurrentIndex(0)
         # self.tabSelected(arg=0)
-        
+
         # -------------------------------
         # PLOT KG1 data.
         # -------------------------------
-        
+
         self.plot_data()
-        
+
         # -------------------------------
         # update GUI after plot
         # -------------------------------
-        
+
         self.update_GUI()
         #
 
@@ -1207,7 +1207,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
          self.data.SF_ch6,
          self.data.SF_ch7,
          self.data.SF_ch8] = self.data.SF_list
-        
+
         self.data.SF_old1 = self.data.SF_ch1
         self.data.SF_old2 = self.data.SF_ch2
         self.data.SF_old3 = self.data.SF_ch3
@@ -1216,8 +1216,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.data.SF_old6 = self.data.SF_ch6
         self.data.SF_old7 = self.data.SF_ch7
         self.data.SF_old8 = self.data.SF_ch8
-        
-        
+
+
         self.data.unval_seq, self.data.val_seq = get_min_max_seq(self.data.pulse, dda="KG1V",
                                                        read_uid=self.read_uid)
         if self.read_uid.lower() == 'jetppf':
@@ -1229,8 +1229,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 '{} last private validated seq is {}'.format(str(self.data.pulse),
                                                              str(self.data.val_seq)))
             logging.info('userid is {}'.format(self.read_uid))
-            
-                                                                        
+
+
         # logging.info('unval_seq {}, val_seq {}'.format(str(self.data.unval_seq),str(self.data.val_seq)))
         # save data to pickle into saved folder
         self.save_to_pickle('saved')
@@ -1249,8 +1249,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.KG1_data.correctedby = self.data.KG1_data.mode.split(" ")[2]
             logging.info('{} last validated seq is {} by {}'.format(str(self.data.pulse),
                                                                     str(self.data.val_seq),self.data.KG1_data.correctedby))
-                
-        
+
+
         return True
 
 # -----------------------
@@ -1616,12 +1616,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     #         marker='o', color='orange')
             else:
                 logging.warning('no {} data'.format(self.data.s2ndtrace))
-                    
+
 
         if self.data.s2ndtrace == 'Lidar':
             #if len(self.data.LIDAR_data.density[chan].time) == 0:
             if self.data.KG4_data.density is not None:
-                      
+
                 for chan in self.data.KG1_data.constants.kg1v.keys():
                     ax_name = 'ax' + str(chan)
                     name = 'Lidar ch.' + str(chan)
@@ -1693,7 +1693,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     #                          color='red')
             else:
                 logging.warning('no {} data'.format(self.data.s2ndtrace))
-                    
+
 
         if self.data.s2ndtrace == 'CM':
             if self.data.KG4_data.xg_ell_signal is not None:
@@ -2067,16 +2067,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :param button_newpulse:
         :return: disable/enable combobox
         """
-        
+
         if button_newpulse.isChecked():
             logger.log(5, '{} is checked'.format(button_newpulse.objectName()))
             self.comboBox_readuid.setEnabled(True)
         else:
                 logger.log(5,'{} is NOT checked'.format(button_newpulse.objectName()))
                 self.comboBox_readuid.setEnabled(False)
-                
+
                 # ------------------------
-                
+
 
 
     # ------------------------
@@ -2134,8 +2134,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         """
 
         logger.info("\n\n             Saving KG1 workspace to pickle")
-        
-        
+
+
 
         err = open_ppf(self.data.pulse, self.write_uid)
 
@@ -2373,7 +2373,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.data.saved = True
         self.data.data_changed = True
         self.data.statusflag_changed = True
-        
+
         self.save_kg1('saved')
         logger.log(5, ' deleting scratch folder')
         delete_files_in_folder('./scratch')
@@ -2394,7 +2394,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         """
 
         return_code = 0
-        
+
 
         # Initialise PPF system
         ier = ppfgo(pulse=self.data.pulse)
@@ -2422,15 +2422,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.data.saved = True
         self.data_change = True
         self.data.statusflag_changed = True
-        
-        
+
+
         self.save_kg1('saved')
         logger.log(5, ' deleting scratch folder')
         delete_files_in_folder('./scratch')
-        
+
         logger.log(5, "\n {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
         delete_files_in_folder('./saved')
-        
+
         return return_code
 
     # ------------------------
@@ -2778,7 +2778,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             #logging.info('\n Exit now')
             #sys.exit()
-            
+
 #        try:
             # if data have been modified
             #data_changed = equalsFile('./saved/' + str(self.data.pulse) + '_kg1.pkl',
@@ -2833,70 +2833,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-# Custom formatter
-class MyFormatter(logging.Formatter):
-    """
-    class to handle the logging formatting
-    """
-    # ----------------------------
 
-
-
-
-
-    PURPLE = '\033[95m'
-    CYAN = '\033[96m'
-    DARKCYAN = '\033[36m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    END = '\033[0m'
-
-
-    err_fmt = "[\033[1m%(levelname)-8s\033[0m] %(message)s"
-    dbg_fmt = "[\033[94m%(levelname)-8s] [%(filename)s:%(lineno)d] %(message)s"
-    dbgplus_fmt = "[\033[92m%(levelname)-8s\033[0m] (%(filename)s:%(lineno)d) %(message)s"
-    info_fmt = "[\033[95m%(levelname)-8s\033[0m] %(message)s"
-    warn_fmt = "[\033[93m%(levelname)-8s\033[0m] %(message)s"
-
-
-
-    # def __init__(self):
-    #     super().__init__(fmt="%(levelno)d: %(msg)s", datefmt=None, style='%')
-
-    def format(self, record):
-
-        # Save the original format configured by the user
-        # when the logger formatter was instantiated
-        format_orig = self._style._fmt
-
-        # Replace the original format with one customized by logging level
-        if record.levelno == logging.DEBUG:
-            
-            self._style._fmt = MyFormatter.dbg_fmt
-
-        elif record.levelno == logging.INFO:
-            self._style._fmt = MyFormatter.info_fmt
-
-        elif record.levelno == logging.ERROR:
-            self._style._fmt = MyFormatter.err_fmt
-
-        elif record.levelno == logging.WARNING:
-            self._style._fmt = MyFormatter.warn_fmt
-
-        elif record.levelno == 5:
-            self._style._fmt = MyFormatter.dbgplus_fmt
-
-        # Call the original formatter class to do the grunt work
-        result = logging.Formatter.format(self, record)
-
-        # Restore the original format configured by the user
-        self._style._fmt = format_orig
-
-        return result
 
 
 
@@ -2943,6 +2880,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args(sys.argv[1:])
 
+
     debug_map = {0: logging.INFO,
                  1: logging.WARNING,
                  2: logging.DEBUG,
@@ -2954,6 +2892,9 @@ if __name__ == '__main__':
     logger.setLevel(level=debug_map[args.debug])
 
     logger = logging.getLogger(__name__)
+
+
+
 
 
     fmt = MyFormatter()
