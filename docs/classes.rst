@@ -16,5 +16,6 @@ Classes
    nbi_data
    pellet_data
    canvas
-   texteditlogger
+   support_classes
+   custom_formatters
    CORMAT_GUI

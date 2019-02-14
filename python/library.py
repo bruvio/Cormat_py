@@ -10,7 +10,51 @@ from numpy import arange,asscalar
 import os
 
 import shutil
+logger = logging.getLogger(__name__)
 
+def reconnect(signal, newhandler=None, oldhandler=None):
+    while True:
+        try:
+            if oldhandler is not None:
+                signal.disconnect(oldhandler)
+            else:
+                signal.disconnect()
+        except TypeError:
+            break
+    if newhandler is not None:
+        signal.connect(newhandler)
+
+def is_empty(any_structure):
+    if any_structure:
+        # print('Structure is not empty.')
+        return False
+    else:
+        # print('Structure is empty.')
+        return True
+
+def autoscale_data(ax, data):
+    ax.set_ylim(min(data),
+                max(data))
+def find_nearest(array,value):
+    # logger.log(5, "looking for value {}".format(value))
+    idx = (np.abs(array-value)).argmin()
+
+    # logger.log(5," found at {} with index {}".format(array[idx].item(),idx))
+    return idx,array[idx].item()
+
+def pyqt_set_trace():
+    '''Set a tracepoint in the Python debugger that works with Qt'''
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    import pdb
+    import sys
+    pyqtRemoveInputHook()
+    # set up the debugger
+    debugger = pdb.Pdb()
+    debugger.reset()
+    # custom next to get outside of function scope
+    debugger.do_next(None) # run the next command
+    users_frame = sys._getframe().f_back # frame where the user invoked `pyqt_set_trace()`
+    debugger.interaction(users_frame, None)
 
 def norm(data):
     return (data)/(max(data)-min(data))

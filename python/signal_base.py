@@ -106,6 +106,7 @@ class SignalBase():
         self.ihdata = None # For use with PPF data
         self.iwdata = None # For use with PPF data
 
+
     # ------------------------
     def read_data_ppf(self, dda, dtype, shot_no, read_bad=False, read_uid="JETPPF", seq=0):
         """
@@ -311,3 +312,4 @@ class SignalBase():
         """
         self.data = np.delete(self.data, ind_points)
         self.time = np.delete(self.time, ind_points)
+

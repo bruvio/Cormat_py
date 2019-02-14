@@ -22,7 +22,7 @@ path=os.getcwd()
 #print(path)
 # sys.path.append("/jet/share/lib/python")
 import logging
-
+logger = logging.getLogger(__name__)
 
 def _log_level_string_to_int(log_level_string):
     if not log_level_string in _LOG_LEVEL_STRINGS:
@@ -213,7 +213,7 @@ exceed the given threshold and marks if there was a disruption or not
     # except    :
 
     # sys.exit('failed to get non validated pulses')
-    logging.info('checking if not validated pulses have a lot of FJ')
+    logger.info('checking if not validated pulses have a lot of FJ')
     goodpulses ={}
     goodpulses.setdefault('JPN',[])
     goodpulses.setdefault('disruption',[])
