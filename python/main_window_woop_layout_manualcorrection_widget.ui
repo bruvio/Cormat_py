@@ -33,6 +33,23 @@
           <string>Input</string>
          </property>
          <layout class="QGridLayout" name="gridLayout">
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboBox_readuid">
+            <property name="editable">
+             <bool>true</bool>
+            </property>
+            <property name="insertPolicy">
+             <enum>QComboBox::InsertAtTop</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="button_read_pulse">
+            <property name="text">
+             <string>Load</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="0" colspan="2">
            <widget class="QLineEdit" name="lineEdit_jpn">
             <property name="text">
@@ -54,20 +71,10 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="comboBox_readuid">
-            <property name="editable">
-             <bool>true</bool>
-            </property>
-            <property name="insertPolicy">
-             <enum>QComboBox::InsertAtTop</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QPushButton" name="button_read_pulse">
+          <item row="4" column="0" colspan="2">
+           <widget class="QPushButton" name="button_save">
             <property name="text">
-             <string>Load</string>
+             <string>SAVE WORKSPACE</string>
             </property>
            </widget>
           </item>
@@ -118,9 +125,9 @@
            </widget>
           </item>
           <item row="3" column="0">
-           <widget class="QPushButton" name="button_save">
+           <widget class="QPushButton" name="button_saveppf">
             <property name="text">
-             <string>Save</string>
+             <string>WRITE PPF</string>
             </property>
            </widget>
           </item>
@@ -170,27 +177,7 @@
          <property name="title">
           <string>Corrections</string>
          </property>
-         <layout class="QFormLayout" name="formLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Total Corrections</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLineEdit" name="lineEdit_totcorr"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Manual Correction</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLineEdit" name="lineEdit_mancorr"/>
-          </item>
+         <layout class="QGridLayout" name="gridLayout_21">
           <item row="4" column="0">
            <widget class="QPushButton" name="pushButton_apply">
             <property name="text">
@@ -198,14 +185,34 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="4" column="1">
            <widget class="QPushButton" name="pushButton_undo">
             <property name="text">
              <string>Undo</string>
             </property>
            </widget>
           </item>
-          <item row="6" column="0">
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Total Corrections</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Manual Correction</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QWidget" name="widget_mancorr" native="true"/>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QLineEdit" name="lineEdit_totcorr"/>
+          </item>
+          <item row="5" column="0" colspan="2">
            <widget class="QPushButton" name="pushButton_makeperm">
             <property name="text">
              <string>Make Permanent</string>
@@ -279,7 +286,7 @@
        <item row="3" column="1">
         <widget class="QPushButton" name="exit_button">
          <property name="text">
-          <string>exit</string>
+          <string>EXIT</string>
          </property>
         </widget>
        </item>
@@ -461,7 +468,7 @@
   <customwidget>
    <class>Canvas</class>
    <extends>QWidget</extends>
-   <header location="global">canvas.h</header>
+   <header>canvas.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
