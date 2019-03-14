@@ -42,10 +42,11 @@ class Canvas(FigureCanvas):
 
                 logger.log(5, "(time, data) = ({},{})".format(self.xs,self.ys))
             self.signal.emit()
+            
             return self.xs, self.ys
 
-        if event.button != 3:
-            pass
+        elif event.button != 3:
+            return
 
 
 
