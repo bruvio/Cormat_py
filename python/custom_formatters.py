@@ -21,11 +21,11 @@ class MyFormatter(logging.Formatter):
     UNDERLINE = '\033[4m'
     END = '\033[0m'
 
-    err_fmt = "[\033[91m%(levelname)-8s\033[0m] \033[91m%(message)s\033[0m"
-    dbg_fmt = "[\033[36m%(levelname)-8s\033[0m] [\033[36m%(filename)s\033[0m:\033[36m%(lineno)d\033[0m] \033[36m%(message)s\033[0m"
+    err_fmt = "[\033[91m%(levelname)-5s\033[0m] \033[91m%(message)s\033[0m"
+    dbg_fmt = "[\033[36m%(levelname)-4s\033[0m] [\033[36m%(filename)s\033[0m:\033[36m%(lineno)d\033[0m] \033[36m%(message)s\033[0m"
     dbgplus_fmt = "[\033[92m%(levelname)-8s\033[0m] (\033[92m%(filename)s:%(lineno)d\033[0m) \033[92m%(message)s\033[0m"
-    info_fmt = "[\033[94m%(levelname)-8s\033[0m] \033[94m%(message)s\033[0m"
-    warn_fmt = "[\033[93m%(levelname)-8s\033[0m] \033[93m%(message)s\033[0m"
+    info_fmt = "[\033[94m%(levelname)-4s\033[0m] \033[94m%(message)s\033[0m"
+    warn_fmt = "[\033[93m%(levelname)-7s\033[0m] \033[93m%(message)s\033[0m"
 
     # def __init__(self):
     #     super().__init__(fmt="%(levelno)d: %(msg)s", datefmt=None, style='%')
@@ -88,10 +88,11 @@ class QPlainTextEditLogger(logging.Handler):
 
 class HTMLFormatter(logging.Formatter):
     FORMATS = {
-        logging.ERROR:   ("[%(levelname)-8s] %(message)s", QtGui.QColor("red")),
-        logging.DEBUG:   ("[%(levelname)-8s] [%(filename)s:%(lineno)d] %(message)s", "green"),
-        logging.INFO:    ("[%(levelname)-8s] %(message)s", "#0000FF"),
-        logging.WARNING: ('%(asctime)s - %(name)s - %(levelname)s - %(message)s', QtGui.QColor(100, 100, 0)),
+        logging.ERROR:   ("[%(levelname)-5s] %(message)s", QtGui.QColor("red")),
+        logging.DEBUG:   ("[%(levelname)-5s] [%(filename)s:%(lineno)d] %(message)s", "green"),
+        logging.INFO:    ("[%(levelname)-4s] %(message)s", "#0000FF"),
+        # logging.WARNING: ('%(asctime)s - %(name)s - %(levelname)s - %(message)s', QtGui.QColor(100, 100, 0)),
+        logging.WARNING: ('%(levelname)s - %(message)s', QtGui.QColor(100, 100, 0)),
         5: ('%(levelname)s - [%(filename)s:%(lineno)d] - %(message)s', QtGui.QColor(0, 100, 0))
 
 

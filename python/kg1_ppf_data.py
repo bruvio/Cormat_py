@@ -8,7 +8,7 @@ import logging
 import getdat
 import numpy as np
 from ppf_write import write_ppf
-
+from signal_kg1 import SignalKg1
 from signal_base import SignalBase
 from pdb import set_trace as bp
 
@@ -19,7 +19,7 @@ __author__ = "B. Viola"
 # ----------------------------
 
 
-class Kg1PPFData:
+class Kg1PPFData(SignalBase):
 
     # ------------------------
     def __init__(self, constants,pulse):
@@ -27,9 +27,10 @@ class Kg1PPFData:
         Init function
         :param constants: instance of Kg1Consts class
         """
+        # self.signal_type = ""  # kg1r, kg1c, kg1v
+        # self.dcn_or_met = "" # dcn, met
+
         self.constants = constants
-        self.corrections = SignalBase(constants)  # Corrections that have been made
-        self.correction_type = np.arange(0) # For debugging : to keep track of where corrections have been made
         self.pulse = pulse
         self.dda = "KG1V"
         self.density = {}
@@ -37,8 +38,6 @@ class Kg1PPFData:
         self.fj_dcn = {}
         self.fj_met = {}
         self.jxb = {}
-        self.bp_dcn = {}
-        self.bp_met = {}
 
         # Time dependent status flags
         self.status = {}
@@ -67,7 +66,8 @@ class Kg1PPFData:
         """
         for chan in self.constants.kg1v.keys():
             nodename = self.constants.kg1v[chan]
-            density = SignalBase(self.constants)
+            density = SignalKg1(self.constants,self.pulse)
+            # corrections = SignalBase(self.constants)
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
             status = density.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
@@ -77,13 +77,18 @@ class Kg1PPFData:
             #     logger.debug( "PPF data chan {}".format(status))
             if density.data is not None:
                 self.density[chan] = density
-                # self.status[chan] = status
-                # if chan in self.density.keys() and chan in self.vibration.keys():
                 self.status[chan] = SignalBase(self.constants)
                 self.status[chan].data = np.zeros(
                         len(self.density[chan].time))
                 self.status[chan].time = self.density[chan].time
                 self.global_status[chan] = 0
+                # self.density[chan].corrections = SignalBase(self.constants)
+                self.density[chan].signal_type = 'vert'
+                if chan >4:
+                    self.density[chan].signal_type = 'lat'
+                    self.density[chan].correction_dcn = SignalBase(self.constants)
+                    self.density[chan].correction_met = SignalBase(self.constants)
+
             # else:
             #     return False
             else:
@@ -100,20 +105,20 @@ class Kg1PPFData:
 
         for chan in self.constants.kg1r_ppf_vib.keys():
             nodename = self.constants.kg1r_ppf_vib[chan]
-            vibration = SignalBase(self.constants)
+            vibration = SignalKg1(self.constants,self.pulse)
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
             status = vibration.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
 
             if vibration.data is not None:
                 self.vibration[chan] = vibration
-                # self.status[chan] = status
-                # if chan in self.density.keys() and chan in self.vibration.keys():
+                self.vibration[chan].signal_type = 'lat'
                 self.status[chan] = SignalBase(self.constants)
                 self.status[chan].data = np.zeros(
                         len(self.density[chan].time))
                 self.status[chan].time = self.density[chan].time
                 self.global_status[chan] = 0
+                self.vibration[chan].corrections = SignalBase(self.constants)
 
         for chan in self.constants.kg1r_ppf_fj_dcn.keys():
             nodename = self.constants.kg1r_ppf_fj_dcn[chan]
@@ -233,85 +238,92 @@ class Kg1PPFData:
                                                                                    self.status[lid].time[index]))
 
 
-    # ------------------------
-    def uncorrect_fj(self, corr, index):
-        """
-        Uncorrect a fringe jump by corr, from the time corresponding to index onwards.
-        Not used ATM. Will need more testing if we want to use it... Suspect isclose is wrong.
+    # # ------------------------
+    # def uncorrect_fj(self, corr, index):
+    #     """
+    #     Uncorrect a fringe jump by corr, from the time corresponding to index onwards.
+    #     Not used ATM. Will need more testing if we want to use it... Suspect isclose is wrong.
+    #
+    #     :param corr: Correction to add to the data
+    #     :param index: Index from which to make the correction
+    #
+    #     """
+    #     # Check we made a correction at this time.
+    #     ind_corr = np.where(np.isclose(self.corrections.time, self.time[index], atol=5e-5, rtol=1e-6) == 1)
+    #     if np.size(ind_corr) == 0:
+    #         return
+    #
+    #     # Uncorrect correction
+    #     self.data[index:] = self.data[index:] + corr
+    #
+    #     self.corrections.data = np.delete(self.corrections.data, ind_corr)
+    #     self.corrections.time = np.delete(self.corrections.time, ind_corr)
+    #
+    # # ------------------------
+    # def correct_fj(self, chan, fringe,mirror=None, time=None, index=None, store=True, correct_type="", corr_dcn=None, corr_met=None):
+    #     """
+    #     Shifts all data from time onwards, or index onwards,
+    #     down by corr. Either time or index must be specified
+    #
+    #     :param corr: The correction to be subtracted
+    #     :param time: The time from which to make the correction (if this is specified index is ignored)
+    #     :param index: The index from which to make the correction
+    #     :param store: To record the correction set to True
+    #     :param correct_type: String describing which part of the code made the correction
+    #     :param corr_dcn: Only for use with lateral channels. Stores the correction,
+    #                      in terms of the number of FJ in DCN laser (as opposed to in the combined density)
+    #     :param corr_met: Only for use with lateral channels. Stores the correction,
+    #                      in terms of the number of FJ in the MET laser (as opposed to the correction in the vibration)
+    #
+    #     """
+    #     poss_ne_corr = np.array([self.data.constants.CORR_NE]*20) * np.array([np.arange(20)+1]*len(self.data.constants.CORR_NE)).transpose()
+    #     poss_vib_corr = np.array([self.data.constants.CORR_VIB]*20) * np.array([np.arange(20)+1]*len(self.data.constants.CORR_VIB)).transpose()
+    #     poss_dcn_corr = np.array([self.data.constants.FJ_DCN]*20) * np.array([np.arange(20)+1]*len(self.data.constants.FJ_DCN)).transpose()
+    #     poss_met_corr = np.array([self.data.constants.FJ_MET]*20) * np.array([np.arange(20)+1]*len(self.data.constants.FJ_MET)).transpose()
+    #
+    #
+    #     if time is None and index is None:
+    #         logger.warning("No time or index was specified for making the FJ correction.")
+    #         return
+    #
+    #     if time is not None:
+    #         index = np.where(self.time > time),
+    #         if np.size(index) == 0:
+    #             logger.warning("Could not find time near {} for making the FJ correction.".format(time))
+    #             return
+    #
+    #         index = np.min(index)
+    #
+    #     logger.debug( "From index {}, time {}, subtracting {} ({} fringes)".format(index, self.time[index],
+    #                                                                                   corr, corr/self.dfr))
+    #     corr = fringe * self.dfr
+    #
+    #     self.density[chan].data[index:] = self.density[chan].data[index:] - corr
+    #
+    #     # Store correction in terms of number of fringes
+    #     # corr_store = int(corr / self.dfr)
+    #     corr_store = int(corr)
+    #
+    #     # If this is a mirror movement signal, store raw correction
+    #
+    #     if store:
+    #         # Store in terms of the number of fringes for density, or vibration itself for vibration
+    #         if self.fj_dcn[chan].data is None:
+    #             self.fj_dcn[chan].data = np.array([corr_store])
+    #             self.fj_dcn[chan].time = np.array([self.time[index]])
+    #         else:
+    #             self.fj_dcn[chan].data = np.append(self.fj_dcn.data, corr_store)
+    #             self.fj_dcn[chan].time = np.append(self.fj_dcn.time, self.time[index])
+    #
+    #         kg1_signals.density[chan].correct_fj(corr_ne, time=start_time, correct_type="zeroend", corr_dcn=corr_dcn)
+    #         kg1_signals.vibration[chan].correct_fj(corr_vib, time=start_time, correct_type="zeroend", corr_met=corr_met)
+    #     else:
+    #         logger.debug("Setting the end to zero from {}".format(start_time))
+    #         # Set end to zero from ind_time (corresponds to CORRECT_TIME)
+    #         kg1_signals.density[chan].correct_fj(corr_ne, index=ind_time, correct_type="zeroend", corr_dcn=corr_dcn)
+    #         kg1_signals.vibration[chan].correct_fj(corr_vib, index=ind_time, correct_type="zeroend", corr_met=corr_met)
+    #
 
-        :param corr: Correction to add to the data
-        :param index: Index from which to make the correction
-
-        """
-        # Check we made a correction at this time.
-        ind_corr = np.where(np.isclose(self.corrections.time, self.time[index], atol=5e-5, rtol=1e-6) == 1)
-        if np.size(ind_corr) == 0:
-            return
-
-        # Uncorrect correction
-        self.data[index:] = self.data[index:] + corr
-
-        self.corrections.data = np.delete(self.corrections.data, ind_corr)
-        self.corrections.time = np.delete(self.corrections.time, ind_corr)
-
-    # ------------------------
-    def correct_fj(self, corr, time=None, index=None, store=True, correct_type="", corr_dcn=None, corr_met=None):
-        """
-        Shifts all data from time onwards, or index onwards,
-        down by corr. Either time or index must be specified
-
-        :param corr: The correction to be subtracted
-        :param time: The time from which to make the correction (if this is specified index is ignored)
-        :param index: The index from which to make the correction
-        :param store: To record the correction set to True
-        :param correct_type: String describing which part of the code made the correction
-        :param corr_dcn: Only for use with lateral channels. Stores the correction,
-                         in terms of the number of FJ in DCN laser (as opposed to in the combined density)
-        :param corr_met: Only for use with lateral channels. Stores the correction,
-                         in terms of the number of FJ in the MET laser (as opposed to the correction in the vibration)
-
-        """
-
-        if time is None and index is None:
-            logger.warning("No time or index was specified for making the FJ correction.")
-            return
-
-        if time is not None:
-            index = np.where(self.time > time),
-            if np.size(index) == 0:
-                logger.warning("Could not find time near {} for making the FJ correction.".format(time))
-                return
-
-            index = np.min(index)
-
-        logger.debug( "From index {}, time {}, subtracting {} ({} fringes)".format(index, self.time[index],
-                                                                                       corr, corr/self.dfr))
-        self.data[index:] = self.data[index:] - corr
-
-        # Store correction in terms of number of fringes
-        corr_store = int(corr / self.dfr)
-
-        # If this is a mirror movement signal, store raw correction
-        if "vib" in self.signal_type:
-            corr_store = corr
-
-        if store:
-            # Store in terms of the number of fringes for density, or vibration itself for vibration
-            if self.corrections.data is None:
-                self.corrections.data = np.array([corr_store])
-                self.corrections.time = np.array([self.time[index]])
-            else:
-                self.corrections.data = np.append(self.corrections.data, corr_store)
-                self.corrections.time = np.append(self.corrections.time, self.time[index])
-
-            self.correction_type = np.append(self.correction_type, correct_type)
-
-            # Also store corresponding correction for the DCN & MET lasers (for use with lateral channels only)
-            if corr_dcn is not None:
-                self.correction_dcn = np.append(self.correction_dcn, corr_dcn)
-
-            if corr_met is not None:
-                self.correction_met = np.append(self.correction_met, corr_met)
 
     # ------------------------
 
@@ -405,3 +417,83 @@ class Kg1PPFData:
                 #Debug_msg(1,'Pulse' +str(jpn)+node+' '+t)
         return (t,ecode)
 
+    # # ------------------------
+    # def uncorrect_fj(self, corr, index):
+    #     """
+    #     Uncorrect a fringe jump by corr, from the time corresponding to index onwards.
+    #     Not used ATM. Will need more testing if we want to use it... Suspect isclose is wrong.
+    #
+    #     :param corr: Correction to add to the data
+    #     :param index: Index from which to make the correction
+    #
+    #     """
+    #     # Check we made a correction at this time.
+    #     ind_corr = np.where(np.isclose(self.corrections.time, self.time[index], atol=5e-5, rtol=1e-6) == 1)
+    #     if np.size(ind_corr) == 0:
+    #         return
+    #
+    #     # Uncorrect correction
+    #     self.data[index:] = self.data[index:] + corr
+    #
+    #     self.corrections.data = np.delete(self.corrections.data, ind_corr)
+    #     self.corrections.time = np.delete(self.corrections.time, ind_corr)
+    #
+    # # ------------------------
+    # def correct_fj(self, corr, time=None, index=None, store=True, correct_type="", corr_dcn=None, corr_met=None):
+    #     """
+    #     Shifts all data from time onwards, or index onwards,
+    #     down by corr. Either time or index must be specified
+    #
+    #     :param corr: The correction to be subtracted
+    #     :param time: The time from which to make the correction (if this is specified index is ignored)
+    #     :param index: The index from which to make the correction
+    #     :param store: To record the correction set to True
+    #     :param correct_type: String describing which part of the code made the correction
+    #     :param corr_dcn: Only for use with lateral channels. Stores the correction,
+    #                      in terms of the number of FJ in DCN laser (as opposed to in the combined density)
+    #     :param corr_met: Only for use with lateral channels. Stores the correction,
+    #                      in terms of the number of FJ in the MET laser (as opposed to the correction in the vibration)
+    #
+    #     """
+    #
+    #     if time is None and index is None:
+    #         logger.warning("No time or index was specified for making the FJ correction.")
+    #         return
+    #
+    #     if time is not None:
+    #         index = np.where(self.time > time),
+    #         if np.size(index) == 0:
+    #             logger.warning("Could not find time near {} for making the FJ correction.".format(time))
+    #             return
+    #
+    #         index = np.min(index)
+    #
+    #     logger.log(5, "From index {}, time {}, subtracting {} ({} fringes)".format(index, self.time[index],
+    #                                                                                    corr, corr/self.dfr))
+    #     self.data[index:] = self.data[index:] - corr
+    #
+    #     # Store correction in terms of number of fringes
+    #     corr_store = int(corr / self.dfr)
+    #
+    #     # If this is a mirror movement signal, store raw correction
+    #     if "vib" in self.signal_type:
+    #         corr_store = corr
+    #
+    #     if store:
+    #         # Store in terms of the number of fringes for density, or vibration itself for vibration
+    #         if self.corrections.data is None:
+    #             self.corrections.data = np.array([corr_store])
+    #             self.corrections.time = np.array([self.time[index]])
+    #         else:
+    #             self.corrections.data = np.append(self.corrections.data, corr_store)
+    #             self.corrections.time = np.append(self.corrections.time, self.time[index])
+    #
+    #         self.correction_type = np.append(self.correction_type, correct_type)
+    #
+    #         # Also store corresponding correction for the DCN & MET lasers (for use with lateral channels only)
+    #         if corr_dcn is not None:
+    #             self.correction_dcn = np.append(self.correction_dcn, corr_dcn)
+    #
+    #         if corr_met is not None:
+    #             self.correction_met = np.append(self.correction_met, corr_met)
+    #
