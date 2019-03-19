@@ -3247,7 +3247,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.log(5, "{} has been pressed".format(event.text()))
             logger.info('multi correction mode')
             self.lineEdit_mancorr.setText("")
-            # self.getcorrectionpointswidget()
             self.getmultiplecorrectionpointswidget()
             self.kb.apply_pressed_signal.connect(self.multiplecorrections)
         elif event.key() == Qt.Key_S: # m key
@@ -3255,9 +3254,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.log(5, " {} has been pressed".format(event.text()))
             self.suggested_correction.emit() # suggestion mode
         elif event.key() == Qt.Key_N:
+            widget.blockSignals(False)
             logger.log(5, " {} has been pressed".format(event.text()))
             logger.info('neutralise corrections mode')
-            self.neutralisation_mode.emit() # neutralisation mode
+            self.lineEdit_mancorr.setText("")
+            self.getmultiplecorrectionpointswidget()
+            self.kb.apply_pressed_signal.connect(self.neutralisatecorrections)
         elif event.key() == Qt.Key_Backslash:
             logger.info('zeroing mode')
             logger.log(5, " {} has been pressed".format(event.text()))
@@ -3327,6 +3329,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             except ValueError:
                 logger.error('use numerical values')
                 self.lineEdit_mancorr.setText("")
+                self.update_channel(self.chan)
+                # self.lineEdit_mancorr.setText("")
+
+                # TypeError: arguments did not match any overloaded call:
+                # disconnect(QObject, QT_SIGNAL, QObject, QT_SLOT_QT_SIGNAL): not enough arguments
+                # disconnect(QObject, QT_SIGNAL, Callable[..., None]): not enough arguments
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(
+                    self.discard_multiple_points)
+                self.kb.apply_pressed_signal.disconnect(
+                    self.multiplecorrections)
+                self.disconnnet_multiplecorrectionpointswidget()
+
+                self.blockSignals(False)
                 return
         elif  int(self.chan) > 4:
             try:
@@ -3335,10 +3351,38 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             except IndexError:
                 logger.warning('no vibration correction')
                 self.lineEdit_mancorr.setText("")
+                self.update_channel(self.chan)
+                # self.lineEdit_mancorr.setText("")
+
+                # TypeError: arguments did not match any overloaded call:
+                # disconnect(QObject, QT_SIGNAL, QObject, QT_SLOT_QT_SIGNAL): not enough arguments
+                # disconnect(QObject, QT_SIGNAL, Callable[..., None]): not enough arguments
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(
+                    self.discard_multiple_points)
+                self.kb.apply_pressed_signal.disconnect(
+                    self.multiplecorrections)
+                self.disconnnet_multiplecorrectionpointswidget()
+
+                self.blockSignals(False)
                 return
             except ValueError:
                 logger.error('use numerical values')
                 self.lineEdit_mancorr.setText("")
+                self.update_channel(self.chan)
+                # self.lineEdit_mancorr.setText("")
+
+                # TypeError: arguments did not match any overloaded call:
+                # disconnect(QObject, QT_SIGNAL, QObject, QT_SLOT_QT_SIGNAL): not enough arguments
+                # disconnect(QObject, QT_SIGNAL, Callable[..., None]): not enough arguments
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(
+                    self.discard_multiple_points)
+                self.kb.apply_pressed_signal.disconnect(
+                    self.multiplecorrections)
+                self.disconnnet_multiplecorrectionpointswidget()
+
+                self.blockSignals(False)
                 return
         ###
 
@@ -3348,6 +3392,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             data = self.data.KG1_data.density[self.chan].data
             coord = self.setcoord(self.chan)
         else:
+            self.update_channel(self.chan)
+            # self.lineEdit_mancorr.setText("")
+
+            # TypeError: arguments did not match any overloaded call:
+            # disconnect(QObject, QT_SIGNAL, QObject, QT_SLOT_QT_SIGNAL): not enough arguments
+            # disconnect(QObject, QT_SIGNAL, Callable[..., None]): not enough arguments
+            self.gettotalcorrections()
+            self.pushButton_undo.clicked.connect(self.discard_multiple_points)
+            self.kb.apply_pressed_signal.disconnect(self.multiplecorrections)
+            self.disconnnet_multiplecorrectionpointswidget()
+
+            self.blockSignals(False)
             return
         # try:
         # pyqt_set_trace()
@@ -3380,6 +3436,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 except AttributeError:
                     logger.error('insert a correction for the mirror')
+                    self.update_channel(self.chan)
+                    # self.lineEdit_mancorr.setText("")
+
+                    # TypeError: arguments did not match any overloaded call:
+                    # disconnect(QObject, QT_SIGNAL, QObject, QT_SLOT_QT_SIGNAL): not enough arguments
+                    # disconnect(QObject, QT_SIGNAL, Callable[..., None]): not enough arguments
+                    self.gettotalcorrections()
+                    self.pushButton_undo.clicked.connect(
+                        self.discard_multiple_points)
+                    self.kb.apply_pressed_signal.disconnect(
+                        self.multiplecorrections)
+                    self.disconnnet_multiplecorrectionpointswidget()
+
+                    self.blockSignals(False)
                     return
         self.update_channel(self.chan)
         # self.lineEdit_mancorr.setText("")
@@ -3426,7 +3496,143 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         :return:
         """
-        pass
+        self.blockSignals(True)
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+        if str(self.chan).isdigit() == True:
+            self.chan = int(self.chan)
+            time = self.data.KG1_data.density[self.chan].time
+            data = self.data.KG1_data.density[self.chan].data
+            coord = self.setcoord(self.chan)
+        else:
+            self.update_channel(self.chan)
+            # self.lineEdit_mancorr.setText("")
+
+            # TypeError: arguments did not match any overloaded call:
+            # disconnect(QObject, QT_SIGNAL, QObject, QT_SLOT_QT_SIGNAL): not enough arguments
+            # disconnect(QObject, QT_SIGNAL, Callable[..., None]): not enough arguments
+            self.gettotalcorrections()
+            self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
+            self.kb.apply_pressed_signal.disconnect(
+                self.neutralisatecorrections)
+            self.disconnnet_neutralisepointswidget()
+
+            self.blockSignals(False)
+            return
+
+        min_coord = min(coord)
+        max_coord = max(coord)
+
+        indexes, values = find_within_range(self.data.KG1_data.fj_dcn[self.chan].time,min_coord[0],max_coord[0])
+
+        if self.data.KG1_data.fj_dcn[self.chan].data is None:
+            self.update_channel(self.chan)
+            # self.lineEdit_mancorr.setText("")
+
+            # TypeError: arguments did not match any overloaded call:
+            # disconnect(QObject, QT_SIGNAL, QObject, QT_SLOT_QT_SIGNAL): not enough arguments
+            # disconnect(QObject, QT_SIGNAL, Callable[..., None]): not enough arguments
+            self.gettotalcorrections()
+            self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
+            self.kb.apply_pressed_signal.disconnect(
+                self.neutralisatecorrections)
+            self.disconnnet_neutralisepointswidget()
+
+            self.blockSignals(False)
+            return
+
+        else:
+            if not indexes :
+                self.update_channel(self.chan)
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(
+                    self.discard_neutralise_corrections)
+                self.kb.apply_pressed_signal.disconnect(
+                    self.neutralisatecorrections)
+                self.disconnnet_multiplecorrectionpointswidget()
+
+                self.blockSignals(False)
+                return
+            else:
+
+                for i, value in enumerate(values):
+                    logger.log(5, "neutralising correction @t= {}".format(str(value)))
+                    index, value = find_nearest(time, value)
+
+                    self.corr_den = -int(self.data.KG1_data.fj_dcn[self.chan].data[i])
+                    time_corr =  self.data.KG1_data.fj_dcn[self.chan].time[i]
+
+
+
+                    # index, value = find_nearest(time, time_corr)
+                    logger.log(5,
+                               " found point where to neutralise correction at {} with index {}".format(
+                                   index,
+                                   value))
+
+                    self.data.KG1_data.density[self.chan].correct_fj(
+                        self.corr_den * self.data.constants.DFR_DCN, index=index
+                    )
+                if self.data.KG1_data.fj_dcn[self.chan].data is not None:
+                    ax_name = 'ax' + str(self.chan)
+
+                    # xposition = self.data.KG1_data.density[self.chan].corrections.time
+                    # for xc in xposition:
+                    vars()[ax_name].axvline(x=time[i], color='g',
+                                            linestyle='--')
+                    vars()[ax_name].plot(time[i], data[i], 'go')
+
+                if int(self.chan) > 4:
+                    try:
+                        self.data.KG1_data.vibration[self.chan].uncorrect_fj(
+                            self.corr_vib * self.data.constants.DFR_DCN,
+                            time=value)
+
+
+                    except AttributeError:
+                        logger.error('insert a correction for the mirror')
+                        return
+
+                num_of_correction = len(
+                    values)+2  # this number is always 2 for single correction mode!
+                if self.chan == 1:
+                    # del self.ax1.lines[-(len(self.ax1.lines)):-1]
+                    del self.ax1.lines[-num_of_correction:]
+                    # del self.ax1.lines[1:]
+                elif self.chan == 2:
+                    del self.ax2.lines[-num_of_correction:]
+                elif self.chan == 3:
+                    del self.ax3.lines[-num_of_correction:]
+                elif self.chan == 4:
+                    del self.ax4.lines[-num_of_correction:]
+                elif self.chan == 5:
+                    del self.ax5.lines[-num_of_correction:]
+                elif self.chan == 6:
+                    del self.ax6.lines[-num_of_correction:]
+                elif self.chan == 7:
+                    del self.ax7.lines[-num_of_correction:]
+                elif self.chan == 8:
+                    del self.ax8.lines[-num_of_correction:]
+
+                self.update_channel(self.chan)
+                # self.lineEdit_mancorr.setText("")
+
+                # TypeError: arguments did not match any overloaded call:
+                # disconnect(QObject, QT_SIGNAL, QObject, QT_SLOT_QT_SIGNAL): not enough arguments
+                # disconnect(QObject, QT_SIGNAL, Callable[..., None]): not enough arguments
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
+                self.kb.apply_pressed_signal.disconnect(self.neutralisatecorrections)
+                self.disconnnet_multiplecorrectionpointswidget()
+
+                self.blockSignals(False)
 
     # -------------------------------
     @QtCore.pyqtSlot()
@@ -3590,6 +3796,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             except ValueError:
                 logger.error('use numerical values')
                 self.lineEdit_mancorr.setText("")
+                self.update_channel(self.chan)
+                logger.info('applying this correction {} '.format(
+                    (self.correction_to_be_applied)))
+
+                # self.pushButton_undo.disconnect()
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(self.discard_single_point)
+                self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
+                self.blockSignals(False)
                 return
         elif  int(self.chan) > 4:
             try:
@@ -3598,10 +3813,28 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             except IndexError:
                 logger.warning('no vibration correction')
                 self.lineEdit_mancorr.setText("")
+                self.update_channel(self.chan)
+                logger.info('applying this correction {} '.format(
+                    (self.correction_to_be_applied)))
+
+                # self.pushButton_undo.disconnect()
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(self.discard_single_point)
+                self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
+                self.blockSignals(False)
                 return
             except ValueError:
                 logger.error('use numerical values')
                 self.lineEdit_mancorr.setText("")
+                self.update_channel(self.chan)
+                logger.info('applying this correction {} '.format(
+                    (self.correction_to_be_applied)))
+
+                # self.pushButton_undo.disconnect()
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(self.discard_single_point)
+                self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
+                self.blockSignals(False)
                 return
 
         if str(self.chan).isdigit() == True:
@@ -3610,6 +3843,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             data = self.data.KG1_data.density[self.chan].data
             coord = self.setcoord(self.chan)
         else:
+            self.update_channel(self.chan)
+            logger.info('applying this correction {} '.format(
+                (self.correction_to_be_applied)))
+
+            # self.pushButton_undo.disconnect()
+            self.gettotalcorrections()
+            self.pushButton_undo.clicked.connect(self.discard_single_point)
+            self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
+            self.blockSignals(False)
             return
 
         index, value = find_nearest(time, coord[0][0])
@@ -3657,6 +3899,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             except AttributeError:
                 logger.error('insert a correction for the mirror')
+                self.update_channel(self.chan)
+                logger.info('applying this correction {} '.format(
+                    (self.correction_to_be_applied)))
+
+                # self.pushButton_undo.disconnect()
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(self.discard_single_point)
+                self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
+                self.blockSignals(False)
                 return
         self.update_channel(self.chan)
         logger.info('applying this correction {} '.format(
@@ -3873,7 +4124,98 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.gettotalcorrections()
         self.pushButton_undo.clicked.disconnect(self.discard_single_point)
 
-# -----------------------------------------------
+        # -----------------------------------------------
+    @QtCore.pyqtSlot()
+    def discard_neutralise_corrections(self):
+            """
+            after a single correction is applied
+            this function allows the user to undo it
+
+            before it is permanently applied
+
+            :return:
+            """
+            ax1 = self.ax1
+            ax2 = self.ax2
+            ax3 = self.ax3
+            ax4 = self.ax4
+            ax5 = self.ax5
+            ax6 = self.ax6
+            ax7 = self.ax7
+            ax8 = self.ax8
+            
+            if str(self.chan).isdigit() == True:
+                chan = int(self.chan)
+                time = self.data.KG1_data.density[chan].time
+                data = self.data.KG1_data.density[chan].data
+
+                coord = self.setcoord(self.chan)
+                if is_empty(coord):
+                    logger.error(
+                        "no data points collected from canvas, nothing to undo")
+                    self.update_channel(self.chan)
+                    self.gettotalcorrections()
+                    self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
+                    self.kb.apply_pressed_signal.disconnect(self.neutralisatecorrections)
+                    self.disconnnet_neutralisepointswidget()
+
+                    self.blockSignals(False)
+                    return
+                else:
+
+                    self.setcoord(self.chan, reset=True)
+            else:
+                self.update_channel(self.chan)
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(
+                    self.discard_neutralise_corrections)
+                self.kb.apply_pressed_signal.disconnect(
+                    self.neutralisatecorrections)
+                self.disconnnet_neutralisepointswidget()
+
+                self.blockSignals(False)
+
+                return
+            # try:
+            min_coord = min(coord)
+            max_coord = max(coord)
+            indexes, values = find_within_range(self.data.KG1_data.fj_dcn[self.chan].time,min_coord[0],max_coord[0])
+
+            for i, value in enumerate(values):
+                index, value = find_nearest(time, value)
+
+                self.corr_den = -self.data.KG1_data.fj_dcn[self.chan].data[i]
+                time_corr =  self.data.KG1_data.fj_dcn[self.chan].time[i]
+
+
+                logger.log(5, "undoing correction @t= {}".format(str(time_corr)))
+                self.data.KG1_data.density[chan].uncorrect_fj(
+                    self.corr_den * self.data.constants.DFR_DCN, index=index)
+
+                if self.data.KG1_data.density[
+                    self.chan].corrections is not None:
+                    ax_name = 'ax' + str(self.chan)
+
+                    # xposition = self.data.KG1_data.density[self.chan].corrections.time
+                    # for xc in xposition:
+                    vars()[ax_name].axvline(x=time_corr, color='y',
+                                            linestyle='--')
+
+
+                if int(self.chan) > 4:
+                    vibration = SignalBase(self.data.constants)
+                    vibration = self.data.KG1_data.vibration[chan]
+
+                    vibration.uncorrect_fj(
+                        self.corr_vib * self.data.constants.DFR_DCN,
+                        index=index)
+
+
+            self.update_channel(int(self.chan))
+            self.gettotalcorrections()
+            self.pushButton_undo.clicked.disconnect(self.discard_neutralise_corrections)
+
+    # -----------------------------------------------
     @QtCore.pyqtSlot()
     def discard_multiple_points(self):
         """

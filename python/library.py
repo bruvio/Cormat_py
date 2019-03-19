@@ -42,6 +42,23 @@ def find_nearest(array,value):
     # logger.log(5," found at {} with index {}".format(array[idx].item(),idx))
     return idx,array[idx].item()
 
+
+def find_within_range(array,minvalue,maxvalue):
+
+    # idxmin = (np.abs(array - min)).argmin()
+    # idxmax = (np.abs(array - max)).argmax()
+
+    l2 = []
+    l3 = []
+    for i,value in enumerate(array):
+        if(value >= minvalue and value <= maxvalue):
+            l2.append(value)
+            l3.append(i)
+
+    return l3,l2
+
+
+
 def pyqt_set_trace():
     '''Set a tracepoint in the Python debugger that works with Qt'''
     from PyQt4.QtCore import pyqtRemoveInputHook
