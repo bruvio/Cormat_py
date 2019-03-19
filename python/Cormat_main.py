@@ -3563,7 +3563,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             else:
 
                 for i, value in enumerate(values):
-                    logger.log(5, "neutralising correction @t= {}".format(str(value)))
+
                     index, value = find_nearest(time, value)
 
                     self.corr_den = -int(self.data.KG1_data.fj_dcn[self.chan].data[i])
@@ -3573,9 +3573,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     # index, value = find_nearest(time, time_corr)
                     logger.log(5,
-                               " found point where to neutralise correction at {} with index {}".format(
-                                   index,
-                                   value))
+                               " found point where to neutralise correction @t= {} with index {}".format(
+                                   value,
+                                   index))
 
                     self.data.KG1_data.density[self.chan].correct_fj(
                         self.corr_den * self.data.constants.DFR_DCN, index=index
@@ -3585,41 +3585,43 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     # xposition = self.data.KG1_data.density[self.chan].corrections.time
                     # for xc in xposition:
-                    vars()[ax_name].axvline(x=time[i], color='g',
+                    vars()[ax_name].axvline(x=value, color='g',
                                             linestyle='--')
-                    vars()[ax_name].plot(time[i], data[i], 'go')
+                    # vars()[ax_name].plot(time[i], data[i], 'go')
 
-                if int(self.chan) > 4:
-                    try:
-                        self.data.KG1_data.vibration[self.chan].uncorrect_fj(
-                            self.corr_vib * self.data.constants.DFR_DCN,
-                            time=value)
-
-
-                    except AttributeError:
-                        logger.error('insert a correction for the mirror')
-                        return
+                # if int(self.chan) > 4:
+                #     try:
+                #         self.data.KG1_data.vibration[self.chan].uncorrect_fj(
+                #             self.corr_vib * self.data.constants.DFR_DCN,
+                #             time=value)
+                #
+                #
+                #     except AttributeError:
+                #         logger.error('insert a correction for the mirror')
+                #         return
 
                 num_of_correction = len(
                     values)+2  # this number is always 2 for single correction mode!
-                if self.chan == 1:
-                    # del self.ax1.lines[-(len(self.ax1.lines)):-1]
-                    del self.ax1.lines[-num_of_correction:]
-                    # del self.ax1.lines[1:]
-                elif self.chan == 2:
-                    del self.ax2.lines[-num_of_correction:]
-                elif self.chan == 3:
-                    del self.ax3.lines[-num_of_correction:]
-                elif self.chan == 4:
-                    del self.ax4.lines[-num_of_correction:]
-                elif self.chan == 5:
-                    del self.ax5.lines[-num_of_correction:]
-                elif self.chan == 6:
-                    del self.ax6.lines[-num_of_correction:]
-                elif self.chan == 7:
-                    del self.ax7.lines[-num_of_correction:]
-                elif self.chan == 8:
-                    del self.ax8.lines[-num_of_correction:]
+                for jj, ind in enumerate(indexes):
+                    print(jj,ind)
+                    if self.chan == 1:
+                        # del self.ax1.lines[-(len(self.ax1.lines)):-1]
+                        del self.ax1.lines[ind+1]
+                        # del self.ax1.lines[1:]
+                    elif self.chan == 2:
+                        del self.ax2.lines[ind+1]
+                    elif self.chan == 3:
+                        del self.ax3.lines[ind+1]
+                    elif self.chan == 4:
+                        del self.ax4.lines[ind+1]
+                    elif self.chan == 5:
+                        del self.ax5.lines[ind+1]
+                    elif self.chan == 6:
+                        del self.ax6.lines[ind+1]
+                    elif self.chan == 7:
+                        del self.ax7.lines[ind+1]
+                    elif self.chan == 8:
+                        del self.ax8.lines[ind+1]
 
                 self.update_channel(self.chan)
                 # self.lineEdit_mancorr.setText("")
