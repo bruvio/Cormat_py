@@ -170,6 +170,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.fj_vib7 = []
         self.fj_vib8 = []
 
+        ####
+
+
+
         # -------------------------------
         #old pulse contains information on the last pulse analysed
         self.data.old_pulse = None
@@ -266,6 +270,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         except KeyError:
             logger.error(" Could not read in configuration file consts.ini")
             sys.exit(65)
+
+        self.data.poss_ne_corr = np.array([self.data.constants.CORR_NE]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_NE)).transpose()
+        self.data.poss_vib_corr = np.array([self.data.constants.CORR_VIB]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_VIB)).transpose()
+        self.data.poss_dcn_corr = np.array([self.data.constants.FJ_DCN]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_DCN)).transpose()
+        self.data.poss_met_corr = np.array([self.data.constants.FJ_MET]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_MET)).transpose()
+
+        # matrix for converting DCN & MET signals into density & mirror movement
+        self.data.matrix_lat_channels = np.array([[self.data.constants.MAT11 , self.data.constants.MAT12 ],[self.data.constants.MAT21 , self.data.constants.MAT22 ]])
+
+
+        self.data.sign_vib_corr = np.array(np.zeros(self.data.poss_vib_corr.shape) + 1)
+        self.data.sign_vib_corr[np.where(self.data.poss_vib_corr < 0.0)] = -1
+
         # -------------------------------
         # list of authorized user to write KG1 ppfs
         # -------------------------------
@@ -1757,8 +1774,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.KG1_data.density[chan].data)
             self.ax_all.lines[chan - 1].set_ydata(
                 self.data.KG1_data.density[chan].data)
+            ax1 = self.ax51
+            ax1.lines[0].set_ydata(self.data.KG1_data.vibration[chan].data* 1e6)
+            autoscale_data(ax1, self.data.KG1_data.vibration[chan].data * 1e6)
+            ax1.lines[0].set_color('blue')
             self.ax_mir.lines[0].set_ydata(
-                self.data.KG1_data.vibration[chan].data)
+                self.data.KG1_data.vibration[chan].data* 1e6)
+            self.ax_mir.autoscale(axis='y')
             self.widget_LID_58.draw()
             self.widget_LID_58.flush_events()
             self.widget_MIR.draw()
@@ -1780,8 +1802,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.KG1_data.density[chan].data)
             self.ax_all.lines[chan - 1].set_ydata(
                 self.data.KG1_data.density[chan].data)
+            ax1 = self.ax61
+            ax1.lines[0].set_ydata(self.data.KG1_data.vibration[chan].data* 1e6)
+            autoscale_data(ax1, self.data.KG1_data.vibration[chan].data * 1e6)
+            ax1.lines[0].set_color('blue')
             self.ax_mir.lines[1].set_ydata(
-                self.data.KG1_data.vibration[chan].data)
+                self.data.KG1_data.vibration[chan].data* 1e6)
             self.widget_LID_58.draw()
             self.widget_LID_58.flush_events()
             self.widget_MIR.draw()
@@ -1803,8 +1829,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.KG1_data.density[chan].data)
             self.ax_all.lines[chan - 1].set_ydata(
                 self.data.KG1_data.density[chan].data)
+            ax1 = self.ax71
+            ax1.lines[0].set_ydata(self.data.KG1_data.vibration[chan].data* 1e6)
+            autoscale_data(ax1, self.data.KG1_data.vibration[chan].data * 1e6)
+            ax1.lines[0].set_color('blue')
             self.ax_mir.lines[2].set_ydata(
-                self.data.KG1_data.vibration[chan].data)
+                self.data.KG1_data.vibration[chan].data* 1e6)
             self.widget_LID_58.draw()
             self.widget_LID_58.flush_events()
             self.widget_MIR.draw()
@@ -1826,8 +1856,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.KG1_data.density[chan].data)
             self.ax_all.lines[chan - 1].set_ydata(
                 self.data.KG1_data.density[chan].data)
+            ax1 = self.ax81
+            ax1.lines[0].set_ydata(self.data.KG1_data.vibration[chan].data* 1e6)
+            autoscale_data(ax1, self.data.KG1_data.vibration[chan].data* 1e6)
+            ax1.lines[0].set_color('blue')
             self.ax_mir.lines[3].set_ydata(
-                self.data.KG1_data.vibration[chan].data)
+                self.data.KG1_data.vibration[chan].data* 1e6)
             self.widget_LID_58.draw()
             self.widget_LID_58.flush_events()
             self.widget_MIR.draw()
@@ -3325,7 +3359,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         if int(self.chan) <5:
             try:
-                self.corr_den = int(self.lineEdit_mancorr.text())
+                self.corr_den = int(self.lineEdit_mancorr.text()) * self.data.constants.DFR_DCN
             except ValueError:
                 logger.error('use numerical values')
                 self.lineEdit_mancorr.setText("")
@@ -3348,6 +3382,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             try:
                 self.corr_den = int(self.lineEdit_mancorr.text().split(",")[0])
                 self.corr_vib = int(self.lineEdit_mancorr.text().split(",")[1])
+
+                corrections = self.data.matrix_lat_channels.dot(
+                    [self.corr_den, self.corr_vib])
+                self.corr_den = corrections[0]
+                self.corr_vib = corrections[1]
+
             except IndexError:
                 logger.warning('no vibration correction')
                 self.lineEdit_mancorr.setText("")
@@ -3417,7 +3457,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
             self.data.KG1_data.density[self.chan].correct_fj(
-                self.corr_den * self.data.constants.DFR_DCN, index=index
+                self.corr_den , index=index
                 )
             if self.data.KG1_data.density[self.chan].corrections is not None:
                 ax_name = 'ax' + str(self.chan)
@@ -3430,7 +3470,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             if int(self.chan) > 4:
                 try:
                     self.data.KG1_data.vibration[self.chan].correct_fj(
-                        self.corr_vib * self.data.constants.DFR_DCN,
+                        self.corr_vib ,
                         time=value)
 
 
@@ -3563,7 +3603,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             else:
 
                 for i, value in enumerate(values):
-                    logger.log(5, "neutralising correction @t= {}".format(str(value)))
+
                     index, value = find_nearest(time, value)
 
                     self.corr_den = -int(self.data.KG1_data.fj_dcn[self.chan].data[i])
@@ -3573,9 +3613,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     # index, value = find_nearest(time, time_corr)
                     logger.log(5,
-                               " found point where to neutralise correction at {} with index {}".format(
-                                   index,
-                                   value))
+                               " found point where to neutralise correction @t= {} with index {}".format(
+                                   value,
+                                   index))
 
                     self.data.KG1_data.density[self.chan].correct_fj(
                         self.corr_den * self.data.constants.DFR_DCN, index=index
@@ -3585,41 +3625,43 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     # xposition = self.data.KG1_data.density[self.chan].corrections.time
                     # for xc in xposition:
-                    vars()[ax_name].axvline(x=time[i], color='g',
+                    vars()[ax_name].axvline(x=value, color='g',
                                             linestyle='--')
-                    vars()[ax_name].plot(time[i], data[i], 'go')
+                    # vars()[ax_name].plot(time[i], data[i], 'go')
 
-                if int(self.chan) > 4:
-                    try:
-                        self.data.KG1_data.vibration[self.chan].uncorrect_fj(
-                            self.corr_vib * self.data.constants.DFR_DCN,
-                            time=value)
-
-
-                    except AttributeError:
-                        logger.error('insert a correction for the mirror')
-                        return
+                # if int(self.chan) > 4:
+                #     try:
+                #         self.data.KG1_data.vibration[self.chan].uncorrect_fj(
+                #             self.corr_vib * self.data.constants.DFR_DCN,
+                #             time=value)
+                #
+                #
+                #     except AttributeError:
+                #         logger.error('insert a correction for the mirror')
+                #         return
 
                 num_of_correction = len(
                     values)+2  # this number is always 2 for single correction mode!
-                if self.chan == 1:
-                    # del self.ax1.lines[-(len(self.ax1.lines)):-1]
-                    del self.ax1.lines[-num_of_correction:]
-                    # del self.ax1.lines[1:]
-                elif self.chan == 2:
-                    del self.ax2.lines[-num_of_correction:]
-                elif self.chan == 3:
-                    del self.ax3.lines[-num_of_correction:]
-                elif self.chan == 4:
-                    del self.ax4.lines[-num_of_correction:]
-                elif self.chan == 5:
-                    del self.ax5.lines[-num_of_correction:]
-                elif self.chan == 6:
-                    del self.ax6.lines[-num_of_correction:]
-                elif self.chan == 7:
-                    del self.ax7.lines[-num_of_correction:]
-                elif self.chan == 8:
-                    del self.ax8.lines[-num_of_correction:]
+                for jj, ind in enumerate(indexes):
+                    print(jj,ind)
+                    if self.chan == 1:
+                        # del self.ax1.lines[-(len(self.ax1.lines)):-1]
+                        del self.ax1.lines[ind+1]
+                        # del self.ax1.lines[1:]
+                    elif self.chan == 2:
+                        del self.ax2.lines[ind+1]
+                    elif self.chan == 3:
+                        del self.ax3.lines[ind+1]
+                    elif self.chan == 4:
+                        del self.ax4.lines[ind+1]
+                    elif self.chan == 5:
+                        del self.ax5.lines[ind+1]
+                    elif self.chan == 6:
+                        del self.ax6.lines[ind+1]
+                    elif self.chan == 7:
+                        del self.ax7.lines[ind+1]
+                    elif self.chan == 8:
+                        del self.ax8.lines[ind+1]
 
                 self.update_channel(self.chan)
                 # self.lineEdit_mancorr.setText("")
@@ -3792,7 +3834,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         if int(self.chan) <5:
             try:
-                self.corr_den = int(self.lineEdit_mancorr.text())
+                self.corr_den = int(self.lineEdit_mancorr.text()) * self.data.constants.DFR_DCN
             except ValueError:
                 logger.error('use numerical values')
                 self.lineEdit_mancorr.setText("")
@@ -3810,6 +3852,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             try:
                 self.corr_den = int(self.lineEdit_mancorr.text().split(",")[0])
                 self.corr_vib = int(self.lineEdit_mancorr.text().split(",")[1])
+
+                corrections = self.data.matrix_lat_channels.dot([self.corr_den, self.corr_vib])
+                self.corr_den = corrections[0]
+                self.corr_vib = corrections[1]
+
             except IndexError:
                 logger.warning('no vibration correction')
                 self.lineEdit_mancorr.setText("")
@@ -3857,7 +3904,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         index, value = find_nearest(time, coord[0][0])
 
         self.data.KG1_data.density[self.chan].correct_fj(
-            self.corr_den * self.data.constants.DFR_DCN, index=index
+            self.corr_den , index=index
             )
         if self.data.KG1_data.density[self.chan].corrections is not None:
 
@@ -3893,7 +3940,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if int(self.chan) > 4:
             try:
                 self.data.KG1_data.vibration[self.chan].correct_fj(
-                    self.corr_vib * self.data.constants.DFR_DCN,
+                    self.corr_vib ,
                     time=value)
 
 
@@ -4086,14 +4133,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # density = SignalBase(self.data.constants)
         # density =
         self.data.KG1_data.density[chan].uncorrect_fj(
-            self.corr_den * self.data.constants.DFR_DCN, index=index)
+            self.corr_den , index=index)
 
         if int(self.chan) > 4:
             vibration = SignalBase(self.data.constants)
             vibration = self.data.KG1_data.vibration[chan]
 
             vibration.uncorrect_fj(
-                self.corr_vib * self.data.constants.DFR_DCN, index=index)
+                self.corr_vib , index=index)
         num_of_correction = 2 # this number is always 2 for single correction mode!
         if self.chan == 1:
             # del self.ax1.lines[-(len(self.ax1.lines)):-1]
@@ -4190,7 +4237,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 logger.log(5, "undoing correction @t= {}".format(str(time_corr)))
                 self.data.KG1_data.density[chan].uncorrect_fj(
-                    self.corr_den * self.data.constants.DFR_DCN, index=index)
+                    self.corr_den , index=index)
 
                 if self.data.KG1_data.density[
                     self.chan].corrections is not None:
@@ -4207,7 +4254,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     vibration = self.data.KG1_data.vibration[chan]
 
                     vibration.uncorrect_fj(
-                        self.corr_vib * self.data.constants.DFR_DCN,
+                        self.corr_vib ,
                         index=index)
 
 
@@ -4253,14 +4300,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # density = SignalBase(self.data.constants)
             # density =
             self.data.KG1_data.density[chan].uncorrect_fj(
-                self.corr_den * self.data.constants.DFR_DCN, index=index)
+                self.corr_den , index=index)
 
             if int(self.chan) > 4:
                 vibration = SignalBase(self.data.constants)
                 vibration = self.data.KG1_data.vibration[chan]
 
                 vibration.uncorrect_fj(
-                    self.corr_vib * self.data.constants.DFR_DCN, index=index)
+                    self.corr_vib , index=index)
         num_of_correction = 2*len(coord)  # this number is always 2 for single correction mode!
         if self.chan == 1:
             # del self.ax1.lines[-(len(self.ax1.lines)):-1]
