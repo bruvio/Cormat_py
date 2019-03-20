@@ -3,7 +3,9 @@
  Simple program to access status flags
  contains a main that creates a database for a given pulse list
 """
-
+# ----------------------------
+__author__ = "B. Viola"
+# ----------------------------
 from ppf import *
 import csv
 import sys
