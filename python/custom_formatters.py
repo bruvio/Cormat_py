@@ -1,4 +1,6 @@
-
+# ----------------------------
+__author__ = "B. Viola"
+# ----------------------------
 import logging
 from PyQt4 import Qt, QtCore,QtGui
 

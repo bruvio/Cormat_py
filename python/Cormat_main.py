@@ -83,7 +83,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
     # dataplot                = pyqtSignal()
     # single_correction       = pyqtSignal()
     # multiple_correction     = pyqtSignal()
-    # suggested_correction    = pyqtSignal()
+
     # neutralisation_mode     = pyqtSignal()
     # zeroing                 = pyqtSignal()
     # unzeroing               = pyqtSignal()
@@ -3283,10 +3283,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.lineEdit_mancorr.setText("")
             self.getmultiplecorrectionpointswidget()
             self.kb.apply_pressed_signal.connect(self.multiplecorrections)
-        elif event.key() == Qt.Key_S: # m key
-            logger.info('suggest correction mode')
-            logger.log(5, " {} has been pressed".format(event.text()))
-            self.suggested_correction.emit() # suggestion mode
         elif event.key() == Qt.Key_N:
             widget.blockSignals(False)
             logger.log(5, " {} has been pressed".format(event.text()))
@@ -3345,6 +3341,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         :return:
         """
+
         self.blockSignals(True)
         ax1=self.ax1
         ax2=self.ax2
@@ -3358,6 +3355,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.correction_to_be_applied = self.lineEdit_mancorr.text()
 
         if int(self.chan) <5:
+            suggested_den = self.suggestcorrection()
             try:
                 self.corr_den = int(self.lineEdit_mancorr.text()) * self.data.constants.DFR_DCN
             except ValueError:
@@ -3378,7 +3376,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 self.blockSignals(False)
                 return
+            if suggested_den != self.corr_den:
+                logger.warning('suggested correction is different, do you wish to use it?')
+                x  = input('y/n?')
+                if x.lower() == "y":
+                    self.corr_den = suggested_den
+                else:
+                    pass
         elif  int(self.chan) > 4:
+            suggested_den, suggested_vib = self.suggestcorrection()
             try:
                 self.corr_den = int(self.lineEdit_mancorr.text().split(",")[0])
                 self.corr_vib = int(self.lineEdit_mancorr.text().split(",")[1])
@@ -3424,6 +3430,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 self.blockSignals(False)
                 return
+            if (suggested_den != self.corr_den) & suggested_vib != self.corr_vib:
+                logger.warning('suggested correction is different, do you wish to use it?')
+                x  = input('y/n?')
+                if x.lower() == "y":
+                    self.corr_den = suggested_den
+                    self.corr_vib = suggested_vib
+                else:
+                    pass
         ###
 
         if str(self.chan).isdigit() == True:
@@ -3683,8 +3697,34 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         module that suggests correction to apply on selected point
         :return:
         """
-        pass
+        if str(self.chan).isdigit() == True:
+                self.chan = int(self.chan)
+                time = self.data.KG1_data.density[self.chan].time
+                data = self.data.KG1_data.density[self.chan].data
+                coord = self.setcoord(self.chan)
+                index, value = find_nearest(time, coord[0][0])
 
+                if int(self.chan) <5:
+                    diff =  self.data.KG1_data.density[self.chan].data[index+1] - self.data.KG1_data.density[self.chan].data[index]
+                    suggest_correction = int(round((diff /self.data.constants.DFR_DCN)))
+                    logger.info('suggested correction is {}'.format(suggest_correction))
+                    return suggest_correction
+
+                elif int(self.chan) > 4:
+                    diff_den =  self.data.KG1_data.density[self.chan].data[index+1] - self.data.KG1_data.density[self.chan].data[index]
+                    diff_vib =  self.data.KG1_data.vibration[self.chan].data[index+1] - self.data.KG1_data.vibration[self.chan].data[index]
+
+
+
+                    Minv = np.linalg.inv(self.data.matrix_lat_channels)
+
+                    suggest_correction = Minv.dot(np.array([diff_den, diff_vib]))
+                    suggest_correction = np.around(suggest_correction)
+                    suggested_den = int((suggest_correction[0]))
+                    suggested_vib = int((suggest_correction[1]))
+
+                    logger.info('suggested correction is {} , {}'.format(suggested_den,suggested_vib))
+                    return suggested_den,  suggested_vib
     # -------------------------------
     # @QtCore.pyqtSlot()
     # def stopaction(self):
@@ -3829,10 +3869,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         """
 
         # pyqt_set_trace()
+
         self.blockSignals(True)
         self.correction_to_be_applied = self.lineEdit_mancorr.text()
 
         if int(self.chan) <5:
+            suggested_den = self.suggestcorrection()
             try:
                 self.corr_den = int(self.lineEdit_mancorr.text()) * self.data.constants.DFR_DCN
             except ValueError:
@@ -3848,7 +3890,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
                 self.blockSignals(False)
                 return
+            if suggested_den != self.corr_den:
+                logger.warning('suggested correction is different, do you wish to use it?')
+                x  = input('y/n?')
+                if x.lower() == "y":
+                    self.corr_den = suggested_den
+                else:
+                    pass
         elif  int(self.chan) > 4:
+            suggested_den, suggested_vib = self.suggestcorrection()
             try:
                 self.corr_den = int(self.lineEdit_mancorr.text().split(",")[0])
                 self.corr_vib = int(self.lineEdit_mancorr.text().split(",")[1])
@@ -3883,7 +3933,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
                 self.blockSignals(False)
                 return
-
+            if (suggested_den != self.corr_den) & suggested_vib != self.corr_vib:
+                logger.warning('suggested correction is different, do you wish to use it?')
+                x  = input('y/n?')
+                if x.lower() == "y":
+                    self.corr_den = suggested_den
+                    self.corr_vib = suggested_vib
+                else:
+                    pass
         if str(self.chan).isdigit() == True:
             self.chan = int(self.chan)
             time = self.data.KG1_data.density[self.chan].time
@@ -4487,7 +4544,8 @@ def main():
 
     by default is set to INFO
     """
-
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
     pr = cProfile.Profile()
     pr.enable()
 
