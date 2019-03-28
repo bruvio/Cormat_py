@@ -36,6 +36,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from areyousure_gui import Ui_areyousure_window
+from accept_suggestion import Ui_suggestion_window
 from consts import Consts
 from elms_data import ElmsData
 from find_disruption import find_disruption
@@ -54,7 +55,6 @@ from pellet_data import PelletData
 from ppf import *
 from ppf_write import *
 from signal_base import SignalBase
-from pdb import set_trace as bp
 from custom_formatters import MyFormatter,QPlainTextEditLogger,HTMLFormatter
 from support_classes import LineEdit,Key,KeyBoard,MyLocator
 import inspect
@@ -65,8 +65,8 @@ from pycallgraph.output import GraphvizOutput
 
 
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
-logger = logging.getLogger(__name__)
 myself = lambda: inspect.stack()[1][3]
+logger = logging.getLogger(__name__)
 # noinspection PyUnusedLocal
 class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  QPlainTextEditLogger):
@@ -77,18 +77,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
     """
-
-    #signals
-    # dataread                = pyqtSignal()
-    # dataplot                = pyqtSignal()
-    # single_correction       = pyqtSignal()
-    # multiple_correction     = pyqtSignal()
-
-    # neutralisation_mode     = pyqtSignal()
-    # zeroing                 = pyqtSignal()
-    # unzeroing               = pyqtSignal()
-    # stop                    = pyqtSignal()
-
 
     def _initialize_widget(self, widget):
         """
@@ -126,7 +114,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         import os
         super(CORMAT_GUI, self).__init__(parent)
         self.setupUi(self)
-        # data = lambda: None
+
         self.data = SimpleNamespace() # dictionary object that contains all data
 
         # -------------------------------
@@ -187,6 +175,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.data.saved = False
         self.data.data_changed = False
         self.data.statusflag_changed = False
+
         logger.log(5,
                    "{} - saved is {} - data changed is {} - status flags changed is {}".format(
                        myself(), self.data.saved, self.data.data_changed,
@@ -264,6 +253,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # Read  config self.data.
         # -------------------------------
         logger.info(" Reading in constants.")
+        test_logger()
+        # raise SystemExit
+
+
         try:
             self.data.constants = Consts("consts.ini", __version__)
             # constants = Kg1Consts("kg1_consts.ini", __version__)
@@ -355,7 +348,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.button_normalize.clicked.connect(self.handle_normalizebutton)
         self.button_restore.clicked.connect(self.handle_button_restore)
         # self.pushButton_apply.clicked.connect(self.handle_applybutton)
-        # self.pushButton_makeperm.clicked.connect(self.handle_makepermbutton)
+        self.pushButton_makeperm.clicked.connect(self.handle_makepermbutton)
         # self.pushButton_undo.clicked.connect(self.handle_undobutton)
         self.checkSFbutton.clicked.connect(self.checkStatuFlags)
         self.actionHelp.triggered.connect(self.handle_help_menu)
@@ -885,7 +878,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 return self.data.coord_ch7
             elif str(self.chan) == '8':
                 return self.data.coord_ch8
-        elif reset is True & chan =='all':
+        elif reset is True and chan =='all':
             #reset all channels
             self.data.coord_ch1 = []
             self.data.coord_ch2 = []
@@ -1323,6 +1316,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.data.dis_time = dis_time[0]
         logger.info("Time of disruption {}".format(dis_time[0]))
 
+
+
         # -------------------------------
         # 8. Read in Be-II signals, and find ELMs
         # -------------------------------
@@ -1400,7 +1395,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.info('{} last validated seq is {} by {}'.format(str(self.data.pulse),
                                                                     str(self.data.val_seq),self.data.KG1_data.correctedby))
 
-        self.dataread.emit()
+
         return True
 
 # -----------------------
@@ -1576,7 +1571,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.widget_LID_58.draw()
         self.widget_MIR.draw()
 
-        # self.dataplot.emit()
+
 
     # -----------------------
     def GUI_refresh(self):
@@ -3116,21 +3111,22 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
     # # ------------------------
-    # def handle_makepermbutton(self):
-    #     """
-    #     function that makes permanenet last correction
-    #     :return:
-    #     """
-    #     pass
+    def handle_makepermbutton(self):
+        """
+        function that makes permanent last correction
+        store data into FC dtype only
 
-    # ------------------------
-    # def handle_undobutton(self):
-    #     """
-    #     function to undo last correction
-    #     :return:
-    #     """
-    #
-    #     pass
+
+        :return:
+
+        """
+        chan = self.chan
+        if self.data.KG1_data.density[chan].corrections is not None:
+            self.data.KG1_data.fj_dcn[chan].time = np.append(self.data.KG1_data.fj_dcn[chan].time,self.data.KG1_data.density[chan].corrections.time)
+            self.data.KG1_data.fj_dcn[chan].data = np.append(self.data.KG1_data.fj_dcn[chan].data,self.data.KG1_data.density[chan].corrections.data)
+            index = sorted(range(len(self.data.KG1_data.fj_dcn[chan].time)),key= lambda k: self.data.KG1_data.fj_dcn[chan].time[k])
+            self.data.KG1_data.fj_dcn[chan].data = self.data.KG1_data.fj_dcn[chan].data[index]
+            self.setcoord(self.chan, reset=True)
 
 
     # --------------------------
@@ -3190,12 +3186,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         elif event.key() == Qt.Key_Backslash:
             logger.info('zeroing mode')
             logger.log(5, " {} has been pressed".format(event.text()))
-            self.zeroing.emit() # zeroing
+            self.getcorrectionpointwidget()
+            self.kb.apply_pressed_signal.connect(self.zeroingcorrection)
+
 
         elif event.key() == Qt.Key_Slash:
             logger.log(5, " {} has been pressed".format(event.text()))
             logger.info('unzeroing mode')
-            self.unzeroing.emit()  # unzeroring
+
 
         else:
             super(CORMAT_GUI,self).keyPressEvent(event)
@@ -3425,11 +3423,147 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
     @QtCore.pyqtSlot()
     def zeroingcorrection(self):
         """
-        module that set to 0 channel
+        this module zeroes correction on selected channel
+
         :return:
         """
 
-        pass
+        # pyqt_set_trace()
+
+        self.blockSignals(True) # signals emitted by this object are blocked
+        self.gettotalcorrections()
+
+
+
+        total_den= int(self.lineEdit_totcorr.text().split(",")[0])
+        logger.info('applying this correction {} to zero total corrections'.format(
+                (total_den)))
+        if str(self.chan).isdigit() == True:
+            self.chan = int(self.chan)
+            time = self.data.KG1_data.density[self.chan].time
+            data = self.data.KG1_data.density[self.chan].data
+            coord = self.setcoord(self.chan) # get point selected from canvas
+        else:
+            self.update_channel(self.chan)
+            self.pushButton_undo.clicked.connect(self.unzerocorrection)
+            self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection)
+            self.blockSignals(False)
+            return
+        if int(self.chan) <5:
+            try:
+                self.corr_den = -int(total_den) * self.data.constants.DFR_DCN # convert fringe jump into density
+            except ValueError: #check if self.coor_den is a number
+                logger.error('use numerical values')
+                self.lineEdit_totcorr.setText("")
+                self.update_channel(self.chan) #update data and canvas
+                logger.info('applying this correction {} '.format(
+                    (total_den)))
+
+                # self.pushButton_undo.disconnect()
+                self.gettotalcorrections() # compute total correction
+                self.pushButton_undo.clicked.connect(self.unzerocorrection) # connect undo button to slot to undo single correction
+                self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection) # disconnect slot
+                self.blockSignals(False)
+                return
+        elif  int(self.chan) > 4:
+
+            try:
+                self.corr_den = -int(self.lineEdit_mancorr.text().split(",")[0])
+                self.corr_vib = -int(self.lineEdit_mancorr.text().split(",")[1])
+
+                corrections = self.data.matrix_lat_channels.dot([self.corr_den, self.corr_vib])
+                self.corr_den = corrections[0]
+                self.corr_vib = corrections[1]
+
+            except IndexError:
+                logger.warning('no vibration correction')
+                self.lineEdit_totcorr.setText("")
+                self.update_channel(self.chan)
+                logger.info('applying this correction {} '.format(
+                    (self.lineEdit_totcorr.text())))
+
+                # self.pushButton_undo.disconnect()
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(self.unzerocorrection)
+                self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection)
+                self.blockSignals(False)
+                return
+            except ValueError:
+                logger.error('use numerical values')
+                self.lineEdit_totcorr.setText("")
+                self.update_channel(self.chan)
+                logger.info('applying this correction {} '.format(
+                    (self.lineEdit_totcorr.text())))
+
+                # self.pushButton_undo.disconnect()
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(self.unzerocorrection)
+                self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection)
+                self.blockSignals(False)
+                return
+
+
+
+        index, value = find_nearest(time, coord[0][0]) # finds nearest data point to selected point on canvas
+
+        self.data.KG1_data.density[self.chan].correct_fj(
+            self.corr_den , index=index) # correct data
+
+        if self.data.KG1_data.density[self.chan].corrections is not None:
+
+
+            xc = coord[0][0]
+            # for xc in xposition:
+
+            self.ax1.axvline(x=xc, color='r', linestyle='--')
+            self.ax1.plot(xc,coord[0][1], 'ro')
+            self.ax2.axvline(x=xc, color='r', linestyle='--')
+            self.ax2.plot(xc,coord[0][1], 'ro')
+            self.ax3.axvline(x=xc, color='r', linestyle='--')
+            self.ax3.plot(xc,coord[0][1], 'ro')
+            self.ax4.axvline(x=xc, color='r', linestyle='--')
+            self.ax4.plot(xc,coord[0][1], 'ro')
+            self.ax5.axvline(x=xc, color='r', linestyle='--')
+            self.ax5.plot(xc,coord[0][1], 'ro')
+            self.ax6.axvline(x=xc, color='r', linestyle='--')
+            self.ax6.plot(xc,coord[0][1], 'ro')
+            self.ax7.axvline(x=xc, color='r', linestyle='--')
+            self.ax7.plot(xc,coord[0][1], 'ro')
+            self.ax8.axvline(x=xc, color='r', linestyle='--')
+            self.ax8.plot(xc,coord[0][1], 'ro')
+
+
+        if int(self.chan) > 4:
+            try:
+                self.data.KG1_data.vibration[self.chan].correct_fj(
+                    self.corr_vib ,
+                    time=value)
+
+
+            except AttributeError:
+                logger.error('insert a correction for the mirror')
+                self.update_channel(self.chan)
+                logger.info('applying this correction {} '.format(
+                    (self.lineEdit_totcorr.text())))
+
+                # self.pushButton_undo.disconnect()
+                self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(self.unzerocorrection)
+                self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection)
+                self.blockSignals(False)
+                return
+        self.update_channel(self.chan)
+        logger.info('applied this correction {} '.format(
+            (self.lineEdit_totcorr.text())))
+
+        # self.pushButton_undo.disconnect()
+        self.gettotalcorrections()
+        self.pushButton_undo.clicked.connect(self.unzerocorrection)
+        self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection)
+        self.blockSignals(False)
+
+
+
 
     # -------------------------------
     @QtCore.pyqtSlot()
@@ -3556,7 +3690,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 num_of_correction = len(
                     values)+2  # this number is always 2 for single correction mode!
                 for jj, ind in enumerate(indexes):
-                    print(jj,ind)
+                    # print(jj,ind)
                     if self.chan == 1:
                         # del self.ax1.lines[-(len(self.ax1.lines)):-1]
                         del self.ax1.lines[ind+1]
@@ -3749,14 +3883,29 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.lineEdit_totcorr.setEnabled(True)
             self.chan = int(self.chan)
             chan = int(self.chan)
-            if self.data.KG1_data.density[chan].corrections.data is None:
-                total = 0
-            else:
-                total = np.sum(self.data.KG1_data.density[chan].corrections.data)
+            if chan < 5:
 
-            self.lineEdit_totcorr.setText(str(total))
+                if self.data.KG1_data.density[chan].corrections.data is None:
+                    total = 0
+                else:
+                    total = np.sum(self.data.KG1_data.density[chan].corrections.data)
+                self.lineEdit_totcorr.setText(str(total))
+
+            if chan > 5:
+                if self.data.KG1_data.density[chan].corrections.data is None:
+                    total1 = 0
+                else:
+                    total1 = np.sum(self.data.KG1_data.density[chan].corrections.data)
+                if self.data.KG1_data.vibration[chan].corrections.data is None:
+                    total2 = 0
+                else:
+                    total2 = np.sum(self.data.KG1_data.vibration[chan].corrections.data)
+                self.lineEdit_totcorr.setText(str(total1),str(total2))
+
+
         else:
             self.lineEdit_totcorr.setEnabled(False)
+
 
 
     @QtCore.pyqtSlot()
@@ -3868,29 +4017,29 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             xc = self.data.KG1_data.density[self.chan].corrections.time
             # for xc in xposition:
             if self.chan == 1:
-                self.ax1.axvline(x=xc, color='m', linestyle='--')
-                self.ax1.plot(xc,coord[0][1], 'mo')
+                self.ax1.axvline(x=coord[0][0], color='m', linestyle='--')
+                self.ax1.plot(coord[0][0],coord[0][1], 'mo')
             elif self.chan == 2:
-                self.ax2.axvline(x=xc, color='m', linestyle='--')
-                self.ax2.plot(xc,coord[0][1], 'mo')
+                self.ax2.axvline(x=coord[0][0], color='m', linestyle='--')
+                self.ax2.plot(coord[0][0],coord[0][1], 'mo')
             elif self.chan == 3:
-                self.ax3.axvline(x=xc, color='m', linestyle='--')
-                self.ax3.plot(xc,coord[0][1], 'mo')
+                self.ax3.axvline(x=coord[0][0], color='m', linestyle='--')
+                self.ax3.plot(coord[0][0],coord[0][1], 'mo')
             elif self.chan == 4:
-                self.ax4.axvline(x=xc, color='m', linestyle='--')
-                self.ax4.plot(xc,coord[0][1], 'mo')
+                self.ax4.axvline(x=coord[0][0], color='m', linestyle='--')
+                self.ax4.plot(coord[0][0],coord[0][1], 'mo')
             elif self.chan == 5:
-                self.ax5.axvline(x=xc, color='m', linestyle='--')
-                self.ax5.plot(xc,coord[0][1], 'mo')
+                self.ax5.axvline(x=coord[0][0], color='m', linestyle='--')
+                self.ax5.plot(coord[0][0],coord[0][1], 'mo')
             elif self.chan == 6:
-                self.ax6.axvline(x=xc, color='m', linestyle='--')
-                self.ax6.plot(xc,coord[0][1], 'mo')
+                self.ax6.axvline(x=coord[0][0], color='m', linestyle='--')
+                self.ax6.plot(coord[0][0],coord[0][1], 'mo')
             elif self.chan == 7:
-                self.ax7.axvline(x=xc, color='m', linestyle='--')
-                self.ax7.plot(xc,coord[0][1], 'mo')
+                self.ax7.axvline(x=coord[0][0], color='m', linestyle='--')
+                self.ax7.plot(coord[0][0],coord[0][1], 'mo')
             elif self.chan == 8:
-                self.ax8.axvline(x=xc, color='m', linestyle='--')
-                self.ax8.plot(xc,coord[0][1], 'mo')
+                self.ax8.axvline(x=coord[0][0], color='m', linestyle='--')
+                self.ax8.plot(coord[0][0],coord[0][1], 'mo')
 
 
         if int(self.chan) > 4:
@@ -3983,7 +4132,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 (self.widget_LID8.ys)))
             self.widget_LID8.signal.disconnect(self.get_point)
 
-        # self.gotcorrectionpoint.emit()
+
 #----------------------------------
     @QtCore.pyqtSlot()
     def get_multiple_points(self):
@@ -4071,7 +4220,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             coord = self.setcoord(self.chan)
             if is_empty(coord):
                 logger.error(
-                    'no data points collected from canvas, nothing to undo')
+                    'nothing to undo')
                 return
             else:
 
@@ -4231,7 +4380,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             coord = self.setcoord(self.chan)
             if is_empty(coord):
                 logger.error(
-                    "no data points collected from canvas, nothing to undo")
+                    "nothing to undo")
                 return
             else:
 
@@ -4430,6 +4579,7 @@ def main():
 
     by default is set to INFO
     """
+
     from PyQt4.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
     pr = cProfile.Profile()
@@ -4447,12 +4597,7 @@ def main():
     screenShape = QtGui.QDesktopWidget().screenGeometry()
     logger.log(5, 'screen resolution is {} x {}'.format(screenShape.width(), screenShape.height()))
     # 1366x768 vnc viewer size
-    # logger.info('info')
-    # logger.debug('debug')
-    # logger.error('error')
-    # logger.warning('warning')
     time.sleep(3.0)
-    # raise SystemExit
     MainWindow.show()
     # MainWindow.resize(screenShape.width(), screenShape.height())
     MainWindow.resize(width, height)
@@ -4487,30 +4632,27 @@ if __name__ == '__main__':
     args = parser.parse_args(sys.argv[1:])
 
 
-    debug_map = {0: logging.info,
+    debug_map = {0: logging.INFO,
                  1: logging.WARNING,
                  2: logging.DEBUG,
                  3: logging.ERROR,
                  4: 5}
-
+    #this plots logger twice (black plus coloured)
     logging.addLevelName(5, "DEBUG_PLUS")
-
-    logger.setLevel(level=debug_map[args.debug])
-
     logger = logging.getLogger(__name__)
-
-
-
-
+    logging.basicConfig(level=debug_map[args.debug])
+    # logger.setLevel(debug_map[args.debug])
 
     fmt = MyFormatter()
     hdlr = logging.StreamHandler(sys.stdout)
+
 
     hdlr.setFormatter(fmt)
     logging.root.addHandler(hdlr)
     fh = handlers.RotatingFileHandler('./LOGFILE.DAT', mode = 'w',maxBytes=(1048576*5), backupCount=7)
     fh.setFormatter(fmt)
     logging.root.addHandler(fh)
+
 
 
     main()

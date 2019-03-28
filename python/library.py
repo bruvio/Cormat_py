@@ -12,6 +12,13 @@ import os
 import shutil
 logger = logging.getLogger(__name__)
 
+def test_logger():
+    logger.info('info')
+    logger.debug('debug')
+    logger.warning('warn')
+    logger.error('error')
+    logger.log(5, "debug plus")
+
 def reconnect(signal, newhandler=None, oldhandler=None):
     while True:
         try:
@@ -26,10 +33,10 @@ def reconnect(signal, newhandler=None, oldhandler=None):
 
 def is_empty(any_structure):
     if any_structure:
-        # print('Structure is not empty.')
+
         return False
     else:
-        # print('Structure is empty.')
+
         return True
 
 def autoscale_data(ax, data):

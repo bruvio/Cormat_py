@@ -8,7 +8,6 @@ import numpy as np
 
 from signal_base import SignalBase
 from make_plots import make_plot
-import pdb
 logger = logging.getLogger(__name__)
 
 # ----------------------------
@@ -119,8 +118,8 @@ class MagData:
 
         """
 
-        logger.debug( "Max ip : {}, Min ip allowed: {}".format(max(self.ip.data), self.MIN_IP))
-
+        logger.error( "Max ip : {}, Min ip allowed: {}".format(max(self.ip.data), self.MIN_IP))
+        logger.log(5, "test")
         # First, find if there was an ip above MIN_IP.
         ind_first_ip = np.argmax(self.ip.data > self.MIN_IP)
         ip_reversed = self.ip.data[::-1]
