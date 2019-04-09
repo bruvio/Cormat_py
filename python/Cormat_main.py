@@ -2140,6 +2140,24 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if self.data.s2ndtrace == 'BremS':
             logging.error('not implemented yet')
 
+
+        for chan in self.data.KG1_data.fj_dcn.keys():
+            ax_name = 'ax' + str(chan)
+            name = 'LID' + str(chan)
+            widget_name = 'widget_LID' + str(chan)
+            xposition = self.data.KG1_data.fj_dcn[chan].time
+            for xc in xposition:
+                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+        for chan in self.data.KG1_data.fj_met.keys():
+            ax_name = 'ax' + str(chan)
+            name = 'LID' + str(chan)
+            widget_name = 'widget_LID' + str(chan)
+            xposition = self.data.KG1_data.fjmet[chan].time
+            for xc in xposition:
+                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+
+
+
         # update canvas
         self.widget_LID1.draw()
         self.widget_LID2.draw()
@@ -2411,6 +2429,21 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                 linewidth=2, color="red")
             else:
                 logger.info('No PELLET marker')
+
+        for chan in self.data.KG1_data.fj_dcn.keys():
+            ax_name = 'ax' + str(chan)
+            name = 'LID' + str(chan)
+            widget_name = 'widget_LID' + str(chan)
+            xposition = self.data.KG1_data.fj_dcn[chan].time
+            for xc in xposition:
+                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+        for chan in self.data.KG1_data.fj_met.keys():
+            ax_name = 'ax' + str(chan)
+            name = 'LID' + str(chan)
+            widget_name = 'widget_LID' + str(chan)
+            xposition = self.data.KG1_data.fjmet[chan].time
+            for xc in xposition:
+                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
             # pass
         # self.widget_LID1.figure.clear()
@@ -3621,11 +3654,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         if self.data.KG1_data.fj_dcn[self.chan].data is None:
             self.update_channel(self.chan)
-            # self.lineEdit_mancorr.setText("")
-
-            # TypeError: arguments did not match any overloaded call:
-            # disconnect(QObject, QT_SIGNAL, QObject, QT_SLOT_QT_SIGNAL): not enough arguments
-            # disconnect(QObject, QT_SIGNAL, Callable[..., None]): not enough arguments
             self.gettotalcorrections()
             self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
             self.kb.apply_pressed_signal.disconnect(
@@ -3639,10 +3667,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             if not indexes :
                 self.update_channel(self.chan)
                 self.gettotalcorrections()
-                self.pushButton_undo.clicked.connect(
-                    self.discard_neutralise_corrections)
-                self.kb.apply_pressed_signal.disconnect(
-                    self.neutralisatecorrections)
+                self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
+                self.kb.apply_pressed_signal.disconnect(self.neutralisatecorrections)
                 self.disconnnet_multiplecorrectionpointswidget()
 
                 self.blockSignals(False)
@@ -3650,7 +3676,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             else:
 
                 for i, value in enumerate(values):
-
+                    print(i, indexes)
                     index, value = find_nearest(time, value)
 
                     self.corr_den = -int(self.data.KG1_data.fj_dcn[self.chan].data[i])
@@ -3667,6 +3693,30 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.data.KG1_data.density[self.chan].correct_fj(
                         self.corr_den * self.data.constants.DFR_DCN, index=index
                     )
+                num_of_correction = len(
+                    values)
+                indexes = [x+1 for x in indexes] # first line is kg1 data!
+                for jj, ind in enumerate(reversed(indexes)):
+                    # print(jj,ind)
+                    if self.chan == 1:
+                        # del self.ax1.lines[-(len(self.ax1.lines)):-1]
+                        del self.ax1.lines[ind]
+                        # del self.ax1.lines[1:]
+                    elif self.chan == 2:
+                        del self.ax2.lines[ind]
+                    elif self.chan == 3:
+                        del self.ax3.lines[ind]
+                    elif self.chan == 4:
+                        del self.ax4.lines[ind]
+                    elif self.chan == 5:
+                        del self.ax5.lines[ind]
+                    elif self.chan == 6:
+                        del self.ax6.lines[ind]
+                    elif self.chan == 7:
+                        del self.ax7.lines[ind]
+                    elif self.chan == 8:
+                        del self.ax8.lines[ind]
+
                 if self.data.KG1_data.fj_dcn[self.chan].data is not None:
                     ax_name = 'ax' + str(self.chan)
 
@@ -3687,28 +3737,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 #         logger.error('insert a correction for the mirror')
                 #         return
 
-                num_of_correction = len(
-                    values)+2  # this number is always 2 for single correction mode!
-                for jj, ind in enumerate(indexes):
-                    # print(jj,ind)
-                    if self.chan == 1:
-                        # del self.ax1.lines[-(len(self.ax1.lines)):-1]
-                        del self.ax1.lines[ind+1]
-                        # del self.ax1.lines[1:]
-                    elif self.chan == 2:
-                        del self.ax2.lines[ind+1]
-                    elif self.chan == 3:
-                        del self.ax3.lines[ind+1]
-                    elif self.chan == 4:
-                        del self.ax4.lines[ind+1]
-                    elif self.chan == 5:
-                        del self.ax5.lines[ind+1]
-                    elif self.chan == 6:
-                        del self.ax6.lines[ind+1]
-                    elif self.chan == 7:
-                        del self.ax7.lines[ind+1]
-                    elif self.chan == 8:
-                        del self.ax8.lines[ind+1]
+
 
                 self.update_channel(self.chan)
                 # self.lineEdit_mancorr.setText("")
@@ -4276,7 +4305,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
     @QtCore.pyqtSlot()
     def discard_neutralise_corrections(self):
             """
-            after a single correction is applied
+            after correction are neutralised
             this function allows the user to undo it
 
             before it is permanently applied
