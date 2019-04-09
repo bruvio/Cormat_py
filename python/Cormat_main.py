@@ -4579,7 +4579,6 @@ def main():
 
     by default is set to INFO
     """
-
     from PyQt4.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
     pr = cProfile.Profile()
@@ -4644,14 +4643,16 @@ if __name__ == '__main__':
     # logger.setLevel(debug_map[args.debug])
 
     fmt = MyFormatter()
-    hdlr = logging.StreamHandler(sys.stdout)
+    # hdlr = logging.StreamHandler(sys.stdout)
 
 
-    hdlr.setFormatter(fmt)
-    logging.root.addHandler(hdlr)
+    # hdlr.setFormatter(fmt)
+    # logging.root.addHandler(hdlr)
     fh = handlers.RotatingFileHandler('./LOGFILE.DAT', mode = 'w',maxBytes=(1048576*5), backupCount=7)
     fh.setFormatter(fmt)
     logging.root.addHandler(fh)
+
+
 
 
 

@@ -118,8 +118,8 @@ class MagData:
 
         """
 
-        logger.error( "Max ip : {}, Min ip allowed: {}".format(max(self.ip.data), self.MIN_IP))
-        logger.log(5, "test")
+        logger.debug( "Max ip : {}, Min ip allowed: {}".format(max(self.ip.data), self.MIN_IP))
+
         # First, find if there was an ip above MIN_IP.
         ind_first_ip = np.argmax(self.ip.data > self.MIN_IP)
         ip_reversed = self.ip.data[::-1]
