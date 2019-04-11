@@ -1544,19 +1544,29 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # draw_widget(chan)
 
         for chan in self.data.KG1_data.fj_dcn.keys():
-            ax_name = 'ax' + str(chan)
-            name = 'LID' + str(chan)
-            widget_name = 'widget_LID' + str(chan)
-            xposition = self.data.KG1_data.fj_dcn[chan].time
-            for xc in xposition:
-                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            if chan < 9:
+                ax_name = 'ax' + str(chan)
+                name = 'LID' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+                xposition = self.data.KG1_data.fj_dcn[chan].time
+                for xc in xposition:
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            else:
+                ax_name = 'ax' + str(chan - 4) + str(1)
+                name = 'LID' + str(chan-4)
+                widget_name = 'widget_LID' + str(chan)
+                xposition = self.data.KG1_data.fj_dcn[chan].time
+                for xc in xposition:
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
         for chan in self.data.KG1_data.fj_met.keys():
-            ax_name = 'ax' + str(chan)
-            name = 'LID' + str(chan)
-            widget_name = 'widget_LID' + str(chan)
-            xposition = self.data.KG1_data.fjmet[chan].time
-            for xc in xposition:
-                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+                ax_name = 'ax' + str(chan)
+                name = 'LID' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+                xposition = self.data.KG1_data.fjmet[chan].time
+                for xc in xposition:
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+
+
         # update canvas
         self.widget_LID1.draw()
         self.widget_LID2.draw()
@@ -3637,7 +3647,122 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         min_coord = min(coord)
         max_coord = max(coord)
 
-        indexes, values = find_within_range(self.data.KG1_data.fj_dcn[self.chan].time,min_coord[0],max_coord[0])
+        indexes_manual, values_manual = find_within_range(
+            self.data.KG1_data.density[self.chan].corrections.time,
+            min_coord[0], max_coord[0])
+        if self.data.KG1_data.density[
+                    self.chan].corrections.data is None:
+            self.update_channel(self.chan)
+            self.gettotalcorrections()
+            # self.pushButton_undo.clicked.connect(
+            #     self.discard_neutralise_corrections)
+            # self.kb.apply_pressed_signal.disconnect(
+            #     self.neutralisatecorrections)
+            # self.disconnnet_multiplecorrectionpointswidget()
+            #
+            # self.blockSignals(False)
+            # return
+
+        else:
+            if (not indexes_manual):
+                self.update_channel(self.chan)
+                self.gettotalcorrections()
+                # self.pushButton_undo.clicked.connect(
+                #     self.discard_neutralise_corrections)
+                # self.kb.apply_pressed_signal.disconnect(
+                #     self.neutralisatecorrections)
+                # self.disconnnet_multiplecorrectionpointswidget()
+                #
+                # self.blockSignals(False)
+                # return
+            else:
+
+                if self.data.KG1_data.density[
+                    self.chan].corrections.time is not None:
+
+                    corrections_manual = \
+                    self.data.KG1_data.density[self.chan].corrections.data[
+                        indexes_manual]
+                    corrections_manual_inverted = [x * (-1) for x in
+                                                   corrections_manual]
+
+                    logger.log(5, "applying this neutralaisation at {}".format(
+                        corrections_manual_inverted))
+
+
+                    for i, value in enumerate(values_manual):
+                        # print(i, indexes)
+                        index, value = find_nearest(time, value)
+
+                        self.corr_den = -int(self.data.KG1_data.density[self.chan].corrections.data[i])
+                        time_corr =  self.data.KG1_data.density[self.chan].corrections.time[i]
+
+
+
+                        # index, value = find_nearest(time, time_corr)
+                        logger.log(5,
+                                   " found point where to neutralise correction @t= {} with index {}".format(
+                                       value,
+                                       index))
+
+                        self.data.KG1_data.density[self.chan].correct_fj(
+                            self.corr_den * self.data.constants.DFR_DCN, index=index
+                        )
+
+                        if int(self.chan) > 4:
+                            logging.warning('assuming mirror correction = 0 !')
+                            self.corr_vib = 0
+
+                            self.data.KG1_data.vibration[
+                                    self.chan].correct_fj(
+                                    self.corr_vib * self.data.constants.DFR_DCN,
+                                    index=index)
+
+                        vars()[ax_name].axvline(x=value, color='g',
+                                                linestyle='--')
+
+
+
+                    indexes_manual = [x+1 for x in indexes_manual] # first line is kg1 data!
+                    for jj, ind in enumerate(reversed(indexes_manual)):
+                        # print(jj,ind)
+                        if self.chan == 1:
+                            # del self.ax1.lines[-(len(self.ax1.lines)):-1]
+                            del self.ax1.lines[ind]
+                            # del self.ax1.lines[1:]
+                        elif self.chan == 2:
+                            del self.ax2.lines[ind]
+                        elif self.chan == 3:
+                            del self.ax3.lines[ind]
+                        elif self.chan == 4:
+                            del self.ax4.lines[ind]
+                        elif self.chan == 5:
+                            del self.ax5.lines[ind]
+                        elif self.chan == 6:
+                            del self.ax6.lines[ind]
+                        elif self.chan == 7:
+                            del self.ax7.lines[ind]
+                        elif self.chan == 8:
+                            del self.ax8.lines[ind]
+
+
+
+
+                self.update_channel(self.chan)
+
+                self.gettotalcorrections()
+
+
+
+
+
+
+
+        indexes_automatic, values_automatic = find_within_range(
+            self.data.KG1_data.fj_dcn[self.chan].time, min_coord[0],
+            max_coord[0])
+
+
 
         if self.data.KG1_data.fj_dcn[self.chan].data is None:
             self.update_channel(self.chan)
@@ -3645,13 +3770,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
             self.kb.apply_pressed_signal.disconnect(
                 self.neutralisatecorrections)
-            self.disconnnet_neutralisepointswidget()
+            self.disconnnet_multiplecorrectionpointswidget()
 
             self.blockSignals(False)
             return
 
         else:
-            if not indexes :
+            if (not indexes_automatic)  :
                 self.update_channel(self.chan)
                 self.gettotalcorrections()
                 self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
@@ -3662,7 +3787,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 return
             else:
 
-                for i, value in enumerate(values):
+                corrections = self.data.KG1_data.fj_dcn[self.chan].data[
+                    indexes_automatic]
+                corrections_inverted = [x * (-1) for x in corrections]
+                logger.log(5, "applying this neutralaisation at {}".format(
+                    corrections_inverted))
+
+                for i, value in enumerate(values_automatic):
                     # print(i, indexes)
                     index, value = find_nearest(time, value)
 
@@ -3681,16 +3812,21 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         self.corr_den * self.data.constants.DFR_DCN, index=index
                     )
 
+                    if int(self.chan) > 4:
+                        logging.warning('assuming mirror correction = 0 !')
+                        self.corr_vib = 0
 
+                        self.data.KG1_data.vibration[
+                                self.chan].correct_fj(
+                                self.corr_vib * self.data.constants.DFR_DCN,
+                                index=index)
 
                     vars()[ax_name].axvline(x=value, color='g',
                                             linestyle='--')
 
-
-                num_of_correction = len(
-                    values)
-                indexes = [x+1 for x in indexes] # first line is kg1 data!
-                for jj, ind in enumerate(reversed(indexes)):
+                indexes_automatic = [x + 1 for x in
+                                     indexes_automatic]  # first line is kg1 data!
+                for jj, ind in enumerate(reversed(indexes_automatic)):
                     # print(jj,ind)
                     if self.chan == 1:
                         # del self.ax1.lines[-(len(self.ax1.lines)):-1]
@@ -3711,31 +3847,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     elif self.chan == 8:
                         del self.ax8.lines[ind]
 
-                # if self.data.KG1_data.fj_dcn[self.chan].data is not None:
-
-                    # vars()[ax_name].plot(time[i], data[i], 'go')
-
-                # if int(self.chan) > 4:
-                #     try:
-                #         self.data.KG1_data.vibration[self.chan].uncorrect_fj(
-                #             self.corr_vib * self.data.constants.DFR_DCN,
-                #             time=value)
-                #
-                #
-                #     except AttributeError:
-                #         logger.error('insert a correction for the mirror')
-                #         return
-
-
-
                 self.update_channel(self.chan)
 
                 self.gettotalcorrections()
-                self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
-                self.kb.apply_pressed_signal.disconnect(self.neutralisatecorrections)
-                self.disconnnet_multiplecorrectionpointswidget()
 
-                self.blockSignals(False)
+
+
+        self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
+        self.kb.apply_pressed_signal.disconnect(self.neutralisatecorrections)
+        self.disconnnet_multiplecorrectionpointswidget()
+
+        self.blockSignals(False)
 
     # -------------------------------
     @QtCore.pyqtSlot()
@@ -4363,14 +4485,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 vars()[ax_name].axvline(x=time_corr, color='y',
                                             linestyle='--')
 
-
                 if int(self.chan) > 4:
-                    vibration = SignalBase(self.data.constants)
-                    vibration = self.data.KG1_data.vibration[chan]
+                    logging.warning('assuming mirror correction = 0 !')
+                    self.corr_vib = 0
 
-                    vibration.uncorrect_fj(
-                        self.corr_vib ,
-                        index=index)
+                    self.data.KG1_data.vibration[
+                            self.chan].correct_fj(
+                            self.corr_vib * self.data.constants.DFR_DCN,
+                            index=index)
 
 
             self.update_channel(int(self.chan))
