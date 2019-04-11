@@ -38,6 +38,8 @@ def is_empty(any_structure):
     else:
 
         return True
+def are_eq(a, b):
+    return set(a) == set(b) and len(a) == len(b)
 
 def autoscale_data(ax, data):
     ax.set_ylim(min(data),
@@ -57,12 +59,15 @@ def find_within_range(array,minvalue,maxvalue):
 
     l2 = []
     l3 = []
-    for i,value in enumerate(array):
-        if(value >= minvalue and value <= maxvalue):
-            l2.append(value)
-            l3.append(i)
+    if array is None:
+        return l3, l2
+    else:
+        for i,value in enumerate(array):
+            if(value >= minvalue and value <= maxvalue):
+                l2.append(value)
+                l3.append(i)
 
-    return l3,l2
+        return l3,l2
 
 
 

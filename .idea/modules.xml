@@ -3,6 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Cormat_py.iml" filepath="$PROJECT_DIR$/.idea/Cormat_py.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../EDGE2D/.idea/EDGE2D.iml" filepath="$PROJECT_DIR$/../EDGE2D/.idea/EDGE2D.iml" />
+      <module fileurl="file://$USER_HOME$/eproc/EPROC/.idea/EPROC.iml" filepath="$USER_HOME$/eproc/EPROC/.idea/EPROC.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../bruvio_tool/.idea/bruvio_tool.iml" filepath="$PROJECT_DIR$/../bruvio_tool/.idea/bruvio_tool.iml" />
     </modules>
   </component>
 </project>

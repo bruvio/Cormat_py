@@ -4,5 +4,8 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="bruvio_tool" />
+    <orderEntry type="module" module-name="EPROC" />
+    <orderEntry type="module" module-name="EDGE2D" />
   </component>
 </module>
