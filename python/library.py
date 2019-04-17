@@ -38,6 +38,8 @@ def is_empty(any_structure):
     else:
 
         return True
+def are_eq(a, b):
+    return set(a) == set(b) and len(a) == len(b)
 
 def autoscale_data(ax, data):
     ax.set_ylim(min(data),

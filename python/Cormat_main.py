@@ -3600,16 +3600,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
     # -------------------------------
     @QtCore.pyqtSlot()
-    def unzeroingcorrection(self):
-        """
-        module that restores channel to original value before zeroing
-
-        :return:
-        """
-        pass
-
-    # -------------------------------
-    @QtCore.pyqtSlot()
     def neutralisatecorrections(self):
         """
         module that neutralises permanent corretions
@@ -3627,12 +3617,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         ax8 = self.ax8
         ax_name = 'ax' + str(self.chan)
 
-        if str(self.chan).isdigit() == True:
+        if str(self.chan).isdigit() == True: # if chan is 1-8 then
             self.chan = int(self.chan)
-            time = self.data.KG1_data.density[self.chan].time
-            data = self.data.KG1_data.density[self.chan].data
-            coord = self.setcoord(self.chan)
-        else:
+            time = self.data.KG1_data.density[self.chan].time # get time data
+            data = self.data.KG1_data.density[self.chan].data # get density data
+            coord = self.setcoord(self.chan) # get points selected by user
+        else:#the user has run the Neutralise event not on a 1-8 tab
             self.update_channel(self.chan)
 
             self.gettotalcorrections()
@@ -3643,15 +3633,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             self.blockSignals(False)
             return
-
+        # get coordinates seletecte by user
         min_coord = min(coord)
         max_coord = max(coord)
 
-        indexes_manual, values_manual = find_within_range(
-            self.data.KG1_data.density[self.chan].corrections.time,
-            min_coord[0], max_coord[0])
+
         if self.data.KG1_data.density[
-                    self.chan].corrections.data is None:
+                    self.chan].corrections.data is None: # if there are no manual corrections (yet) - skip
             self.update_channel(self.chan)
             self.gettotalcorrections()
             # self.pushButton_undo.clicked.connect(
@@ -3664,7 +3652,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # return
 
         else:
-            if (not indexes_manual):
+            indexes_manual, values_manual = find_within_range(
+                self.data.KG1_data.density[self.chan].corrections.time,
+                min_coord[0], max_coord[0]) # get time data and indexes of manual corrections
+            if (not indexes_manual):# if there are no manual correction in the selected interval skip
                 self.update_channel(self.chan)
                 self.gettotalcorrections()
                 # self.pushButton_undo.clicked.connect(
@@ -3758,9 +3749,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-        indexes_automatic, values_automatic = find_within_range(
-            self.data.KG1_data.fj_dcn[self.chan].time, min_coord[0],
-            max_coord[0])
+
 
 
 
@@ -3776,6 +3765,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             return
 
         else:
+            indexes_automatic, values_automatic = find_within_range(
+                self.data.KG1_data.fj_dcn[self.chan].time, min_coord[0],
+                max_coord[0])
             if (not indexes_automatic)  :
                 self.update_channel(self.chan)
                 self.gettotalcorrections()
@@ -3786,16 +3778,23 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.blockSignals(False)
                 return
             else:
+                print(self.data.KG1_data.fj_dcn[self.chan].time)
+                print(self.data.KG1_data.fj_dcn[self.chan].data)
+
+
 
                 corrections = self.data.KG1_data.fj_dcn[self.chan].data[
                     indexes_automatic]
+                print(values_automatic)
+                print(corrections)
+
                 corrections_inverted = [x * (-1) for x in corrections]
                 logger.log(5, "applying this neutralaisation at {}".format(
                     corrections_inverted))
 
                 for i, value in enumerate(values_automatic):
                     # print(i, indexes)
-                    index, value = find_nearest(time, value)
+                    index, value_found = find_nearest(time, value)
 
                     self.corr_den = -int(self.data.KG1_data.fj_dcn[self.chan].data[i])
                     time_corr =  self.data.KG1_data.fj_dcn[self.chan].time[i]
@@ -3867,27 +3866,29 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :return:
         """
         if str(self.chan).isdigit() == True:
+            # if current channel is a number (1-8 allowed values)
+            #then we assign to time and data the values of density for the current channel
                 self.chan = int(self.chan)
                 time = self.data.KG1_data.density[self.chan].time
                 data = self.data.KG1_data.density[self.chan].data
-                coord = self.setcoord(self.chan)
-                index, value = find_nearest(time, coord[0][0])
+                coord = self.setcoord(self.chan) # get the points selected by the user
+                index, value = find_nearest(time, coord[0][0]) #get nearest point close to selected point in the time array
 
-                if int(self.chan) <5:
-                    diff =  self.data.KG1_data.density[self.chan].data[index+1] - self.data.KG1_data.density[self.chan].data[index]
-                    suggest_correction = int(round((diff /self.data.constants.DFR_DCN)))
+                if int(self.chan) <5: # vertical channels
+                    diff =  self.data.KG1_data.density[self.chan].data[index+1] - self.data.KG1_data.density[self.chan].data[index] # difference between two consecutive points
+                    suggest_correction = int(round((diff /self.data.constants.DFR_DCN))) # check if diff is a fringe jump
                     logger.info('suggested correction is {}'.format(suggest_correction))
                     return suggest_correction
 
-                elif int(self.chan) > 4:
+                elif int(self.chan) > 4: # lateral channels
                     diff_den =  self.data.KG1_data.density[self.chan].data[index+1] - self.data.KG1_data.density[self.chan].data[index]
                     diff_vib =  self.data.KG1_data.vibration[self.chan].data[index+1] - self.data.KG1_data.vibration[self.chan].data[index]
 
 
 
-                    Minv = np.linalg.inv(self.data.matrix_lat_channels)
+                    Minv = np.linalg.inv(self.data.matrix_lat_channels) # invert correction matrix for lateral channels
 
-                    suggest_correction = Minv.dot(np.array([diff_den, diff_vib]))
+                    suggest_correction = Minv.dot(np.array([diff_den, diff_vib])) # get suggested correction by solving linear problem Ax=b
                     suggest_correction = np.around(suggest_correction)
                     suggested_den = int((suggest_correction[0]))
                     suggested_vib = int((suggest_correction[1]))
@@ -4464,9 +4465,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             min_coord = min(coord)
             max_coord = max(coord)
             indexes, values = find_within_range(self.data.KG1_data.density[self.chan].corrections.time,min_coord[0],max_coord[0])
+            indexes_automatic, values_automatic = find_within_range(
+                self.data.KG1_data.fj_dcn[self.chan].time, min_coord[0],
+                max_coord[0])
             #unique values
-            values = list(set(values))
+            # values = list(set(values)) # using this insctruction creates an error
+            # as creates a mismatch between times of correction and value of the correction
+            # even thought it is the best way to avoid duplicates
             corrections = self.data.KG1_data.density[self.chan].corrections.data[indexes]
+
             for i, value in enumerate(values):
 
                 index, value = find_nearest(time, value)
@@ -4494,8 +4501,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                             self.corr_vib * self.data.constants.DFR_DCN,
                             index=index)
 
-
             self.update_channel(int(self.chan))
+
+
+
             self.gettotalcorrections()
             self.pushButton_undo.clicked.disconnect(self.discard_neutralise_corrections)
 
@@ -4572,6 +4581,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 #--------------------------
     def which_tab(self):
+        """
+        function used to detect which tab is currently active and set ax and widget
+
+        :return: ax and widget name of current tab
+        """
         if int(self.chan) == 1:
             ax = self.ax1
             widget = self.widget_LID1
@@ -4734,7 +4748,7 @@ def main():
     screenShape = QtGui.QDesktopWidget().screenGeometry()
     logger.log(5, 'screen resolution is {} x {}'.format(screenShape.width(), screenShape.height()))
     # 1366x768 vnc viewer size
-    time.sleep(3.0)
+    # time.sleep(3.0)
     MainWindow.show()
     # MainWindow.resize(screenShape.width(), screenShape.height())
     MainWindow.resize(width, height)
