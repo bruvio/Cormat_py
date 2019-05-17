@@ -5,7 +5,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/Cormat_py.iml" filepath="$PROJECT_DIR$/.idea/Cormat_py.iml" />
       <module fileurl="file://$PROJECT_DIR$/../EDGE2D/.idea/EDGE2D.iml" filepath="$PROJECT_DIR$/../EDGE2D/.idea/EDGE2D.iml" />
       <module fileurl="file://$USER_HOME$/eproc/EPROC/.idea/EPROC.iml" filepath="$USER_HOME$/eproc/EPROC/.idea/EPROC.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../KG1_code/.idea/KG1_code.iml" filepath="$PROJECT_DIR$/../KG1_code/.idea/KG1_code.iml" />
       <module fileurl="file://$PROJECT_DIR$/../bruvio_tool/.idea/bruvio_tool.iml" filepath="$PROJECT_DIR$/../bruvio_tool/.idea/bruvio_tool.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../kg1_tools/.idea/tools.iml" filepath="$PROJECT_DIR$/../kg1_tools/.idea/tools.iml" />
     </modules>
   </component>
 </project>

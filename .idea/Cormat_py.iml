@@ -7,5 +7,7 @@
     <orderEntry type="module" module-name="bruvio_tool" />
     <orderEntry type="module" module-name="EPROC" />
     <orderEntry type="module" module-name="EDGE2D" />
+    <orderEntry type="module" module-name="KG1_code" />
+    <orderEntry type="module" module-name="tools" />
   </component>
 </module>

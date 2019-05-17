@@ -408,18 +408,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             lambda: self.handle_check_status(self.checkBox_newpulse))
         # -------------------------------
         # #disable tab as there is nothing plotted
-        # self.tabWidget.setTabEnabled(0, False)
-        # self.tabWidget.setTabEnabled(1, False)
-        # self.tabWidget.setTabEnabled(2, False)
-        # self.tabWidget.setTabEnabled(3, False)
-        # self.tabWidget.setTabEnabled(4, False)
-        # self.tabWidget.setTabEnabled(5, False)
-        # self.tabWidget.setTabEnabled(6, False)
-        # self.tabWidget.setTabEnabled(7, False)
-        # self.tabWidget.setTabEnabled(8, False)
-        # self.tabWidget.setTabEnabled(9, False)
-        # self.tabWidget.setTabEnabled(10, False)
-        # self.tabWidget.setTabEnabled(11, False)
+        self.tabWidget.setTabEnabled(0, False)
+        self.tabWidget.setTabEnabled(1, False)
+        self.tabWidget.setTabEnabled(2, False)
+        self.tabWidget.setTabEnabled(3, False)
+        self.tabWidget.setTabEnabled(4, False)
+        self.tabWidget.setTabEnabled(5, False)
+        self.tabWidget.setTabEnabled(6, False)
+        self.tabWidget.setTabEnabled(7, False)
+        self.tabWidget.setTabEnabled(8, False)
+        self.tabWidget.setTabEnabled(9, False)
+        self.tabWidget.setTabEnabled(10, False)
+        self.tabWidget.setTabEnabled(11, False)
         # -------------------------------
         # making documentation
         # -------------------------------
@@ -691,6 +691,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         logger.info('reading data with uid -  {}'.format(
                                 (str(self.read_uid))))
                         self.load_pickle()
+                        for chan in self.data.KG1_data.density.keys():
+                            logger.log(5, 'enabling channel {}'.format(chan))
+                            self.tabWidget.setTabEnabled(chan - 1, True)
+
+                        logger.log(5, 'enabling tab {}'.format(9))
+                        self.tabWidget.setTabEnabled(8, True)
+                        logger.log(5, 'enabling channel {}'.format(10))
+                        self.tabWidget.setTabEnabled(9, True)
+                        logger.log(5, 'enabling channel {}'.format(11))
+                        self.tabWidget.setTabEnabled(10, True)
+                        logger.log(5, 'enabling channel {}'.format(12))
+                        self.tabWidget.setTabEnabled(11, True)
                         # self.tabWidget.setCurrentIndex(0)
                         # self.tabSelected(arg=0)
                         # -------------------------------
@@ -1269,7 +1281,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         self.read_uid = self.comboBox_readuid.currentText()
         success = self.data.KG1_data.read_data(self.data.pulse, read_uid=self.read_uid)
-
+        print(success)
         # Exit if there were no good signals
         # If success == 1 it means that at least one channel was not available. But this shouldn't stop the rest of the code
         # from running.
@@ -1394,6 +1406,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.KG1_data.correctedby = self.data.KG1_data.mode.split(" ")[2]
             logger.info('{} last validated seq is {} by {}'.format(str(self.data.pulse),
                                                                     str(self.data.val_seq),self.data.KG1_data.correctedby))
+
+        for chan in self.data.KG1_data.density.keys():
+            logger.log(5,'enabling channel {}'.format(chan))
+            self.tabWidget.setTabEnabled(chan-1, True)
+
+        logger.log(5, 'enabling tab {}'.format(9))
+        self.tabWidget.setTabEnabled(8, True)
+        logger.log(5, 'enabling channel {}'.format(10))
+        self.tabWidget.setTabEnabled(9, True)
+        logger.log(5, 'enabling channel {}'.format(11))
+        self.tabWidget.setTabEnabled(10, True)
+        logger.log(5, 'enabling channel {}'.format(12))
+        self.tabWidget.setTabEnabled(11, True)
 
 
         return True
@@ -1964,19 +1989,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
         for chan in self.data.KG1_data.fj_dcn.keys():
-            ax_name = 'ax' + str(chan)
-            name = 'LID' + str(chan)
-            widget_name = 'widget_LID' + str(chan)
-            xposition = self.data.KG1_data.fj_dcn[chan].time
-            for xc in xposition:
-                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            if chan >9:
+                pass
+            else:
+                ax_name = 'ax' + str(chan)
+                name = 'LID' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+                xposition = self.data.KG1_data.fj_dcn[chan].time
+                for xc in xposition:
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
         for chan in self.data.KG1_data.fj_met.keys():
-            ax_name = 'ax' + str(chan)
-            name = 'LID' + str(chan)
-            widget_name = 'widget_LID' + str(chan)
-            xposition = self.data.KG1_data.fjmet[chan].time
-            for xc in xposition:
-                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            if chan >9:
+                pass
+            else:
+                ax_name = 'ax' + str(chan)
+                name = 'LID' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+                xposition = self.data.KG1_data.fjmet[chan].time
+                for xc in xposition:
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
 
         logger.info('plotting second trace {}'.format(self.data.s2ndtrace))
@@ -2152,19 +2183,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
         for chan in self.data.KG1_data.fj_dcn.keys():
-            ax_name = 'ax' + str(chan)
-            name = 'LID' + str(chan)
-            widget_name = 'widget_LID' + str(chan)
-            xposition = self.data.KG1_data.fj_dcn[chan].time
-            for xc in xposition:
-                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            if chan >9:
+                pass
+            else:
+                ax_name = 'ax' + str(chan)
+                name = 'LID' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+                xposition = self.data.KG1_data.fj_dcn[chan].time
+                for xc in xposition:
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
         for chan in self.data.KG1_data.fj_met.keys():
-            ax_name = 'ax' + str(chan)
-            name = 'LID' + str(chan)
-            widget_name = 'widget_LID' + str(chan)
-            xposition = self.data.KG1_data.fjmet[chan].time
-            for xc in xposition:
-                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            if chan >9:
+                pass
+            else:
+                ax_name = 'ax' + str(chan)
+                name = 'LID' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+                xposition = self.data.KG1_data.fjmet[chan].time
+                for xc in xposition:
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
 
 
@@ -4028,7 +4065,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     total = np.sum(self.data.KG1_data.density[chan].corrections.data)
                 self.lineEdit_totcorr.setText(str(total))
 
-            if chan > 5:
+            if chan > 4:
                 if self.data.KG1_data.density[chan].corrections.data is None:
                     total1 = 0
                 else:
@@ -4037,7 +4074,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     total2 = 0
                 else:
                     total2 = np.sum(self.data.KG1_data.vibration[chan].corrections.data)
-                self.lineEdit_totcorr.setText(str(total1),str(total2))
+                self.lineEdit_totcorr.setText(str(total1)+','+str(total2))
 
 
         else:

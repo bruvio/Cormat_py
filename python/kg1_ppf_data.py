@@ -91,8 +91,8 @@ class Kg1PPFData(SignalBase):
 
             # else:
             #     return False
-            else:
-                return False
+            # else:
+            #     return False
 
         for chan in self.constants.kg1rt.keys():
             node_name = self.constants.kg1rt[chan]
