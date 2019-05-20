@@ -2564,33 +2564,67 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # -------------------------------
         if self.radioButton_storeData.isChecked():
             logger.info(
-                ' Requesting to change ppf data')
+                ' Requesting to change ppf data\n')
             self.areyousure_window = QtGui.QMainWindow()
             self.ui_areyousure = Ui_areyousure_window()
             self.ui_areyousure.setupUi(self.areyousure_window)
             self.areyousure_window.show()
-            logger.info('writing a new ppf until ppf library is fixed - 20 may 2019')
+
+            ###temporary solution
+            logger.warning(
+                'writing a new ppf until ppf library is fixed - 20 may 2019\n')
+            self.ui_areyousure.pushButton_YES.clicked.connect(
+                self.handle_save_data_statusflag)
+            self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+            ###end of temporary solution
+
+
             # if self.data.data_changed is False:
             #     self.ui_areyousure.pushButton_YES.clicked.connect(
             #         self.handle_save_statusflag)
             #     self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
             # else:
-            self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_data_statusflag)
-            self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+
+
 
         if self.radioButton_storeSF.isChecked():
             logger.info(
-                ' Requesting to change ppf data')
+                ' Requesting to change ppf data\n')
             self.areyousure_window = QtGui.QMainWindow()
             self.ui_areyousure = Ui_areyousure_window()
             self.ui_areyousure.setupUi(self.areyousure_window)
             self.areyousure_window.show()
 
+            ###temporary solution
+            logger.warning(
+                'writing a new ppf until ppf library is fixed - 20 may 2019\n')
             self.ui_areyousure.pushButton_YES.clicked.connect(
-                self.handle_save_statusflag)
+                self.handle_save_data_statusflag)
             self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+            ###end of temporary solution
+            # if self.read_uid != self.write_uid:
+            #     logger.info('read_uid different from write_uid')
+            #     logger.info('retrieving sequence numbers for {}'.format{self.write_uid})
+            #
+            #     self.data.unval_seq, self.data.val_seq = get_min_max_seq(self.data.pulse, dda="KG1V",
+            #                                            read_uid=self.write_uid)
+            #     if self.data.val_seq <0:
+            #         logger.warning('no validated data for user {}\n'.format{self.write_uid})
+            #         logger.info('writing new PPF')
+            #
+            #         self.ui_areyousure.pushButton_YES.clicked.connect(
+            #             self.handle_save_data_statusflag)
+            #         self.ui_areyousure.pushButton_NO.clicked.connect(
+            #             self.handle_no)
+            #     else:
+            #         self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_data_statusflag)
+            #         self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+            #
+            # else:
+            #     self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_statusflag)
+            #     self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
         elif (self.radioButton_storeSF.isChecked() & self.radioButton_storeData.isChecked()):
-            logging.error(' please select action!')
+            logging.error(' please select action! \n')
 
 
     # ------------------------
@@ -2901,9 +2935,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     "Status Flag {} written to {}/{} ".format(self.data.SF_list[chan - 1],
                         'KG1V', dtype_lid,
                         ))
-        logger.info("Close PPF.")
-        err = close_ppf(self.data.pulse, self.write_uid,
-                        self.data.constants.code_version)
+        # logger.info("Close PPF.")
+        # err = close_ppf(self.data.pulse, self.write_uid,
+        #                 self.data.constants.code_version)
         self.ui_areyousure.pushButton_YES.setChecked(False)
 
         self.areyousure_window.hide()
