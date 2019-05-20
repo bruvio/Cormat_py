@@ -58,7 +58,7 @@ class Consts:
         self.plot_type = ""
 
         # Version of the code
-        self.code_version = code_version
+        self.code_version = int(float(code_version))
 
         # Important times
         self.time_ip = {"start_ip": 0.0,

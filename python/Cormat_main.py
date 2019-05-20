@@ -253,7 +253,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # Read  config self.data.
         # -------------------------------
         logger.info(" Reading in constants.")
-        test_logger()
+        # test_logger()
         # raise SystemExit
 
 
@@ -503,7 +503,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.error('PLEASE USE JPN lower than {}'.format((pdmsht())))
                 return
 
-            if int(self.data.pulse) < pdmsht():
+            if int(self.data.pulse) <= pdmsht():
                    pass # user has entered a valid pulse number
             else:
                 logger.error('PLEASE USE JPN lower than {}'.format((pdmsht())))
@@ -697,11 +697,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                         logger.log(5, 'enabling tab {}'.format(9))
                         self.tabWidget.setTabEnabled(8, True)
-                        logger.log(5, 'enabling channel {}'.format(10))
+                        logger.log(5, 'enabling tab {}'.format(10))
                         self.tabWidget.setTabEnabled(9, True)
-                        logger.log(5, 'enabling channel {}'.format(11))
+                        logger.log(5, 'enabling tab {}'.format(11))
                         self.tabWidget.setTabEnabled(10, True)
-                        logger.log(5, 'enabling channel {}'.format(12))
+                        logger.log(5, 'enabling tab {}'.format(12))
                         self.tabWidget.setTabEnabled(11, True)
                         # self.tabWidget.setCurrentIndex(0)
                         # self.tabSelected(arg=0)
@@ -1413,11 +1413,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         logger.log(5, 'enabling tab {}'.format(9))
         self.tabWidget.setTabEnabled(8, True)
-        logger.log(5, 'enabling channel {}'.format(10))
+        logger.log(5, 'enabling tab {}'.format(10))
         self.tabWidget.setTabEnabled(9, True)
-        logger.log(5, 'enabling channel {}'.format(11))
+        logger.log(5, 'enabling tab {}'.format(11))
         self.tabWidget.setTabEnabled(10, True)
-        logger.log(5, 'enabling channel {}'.format(12))
+        logger.log(5, 'enabling tab {}'.format(12))
         self.tabWidget.setTabEnabled(11, True)
 
 
@@ -1587,7 +1587,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 ax_name = 'ax' + str(chan)
                 name = 'LID' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
-                xposition = self.data.KG1_data.fjmet[chan].time
+                xposition = self.data.KG1_data.fj_met[chan].time
                 for xc in xposition:
                     vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
@@ -2020,28 +2020,29 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 #     logger.info('NO HRTS data')
                 # else:
                 for chan in self.data.HRTS_data.density.keys():
-                    ax_name = 'ax' + str(chan)
-                    name = 'HRTS ch.' + str(chan)
-                    # noinspection PyUnusedLocal
-                    widget_name = 'widget_LID' + str(chan)
+                    if chan in self.data.KG1_data.density.keys():
+                        ax_name = 'ax' + str(chan)
+                        name = 'HRTS ch.' + str(chan)
+                        # noinspection PyUnusedLocal
+                        widget_name = 'widget_LID' + str(chan)
 
-                    self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
-                    self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
+                        self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                        self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
 
-                    self.data.secondtrace_original[chan].time = \
-                        self.data.HRTS_data.density[chan].time
-                    self.data.secondtrace_original[chan].data = \
-                        self.data.HRTS_data.density[chan].data
-                    # self.data.secondtrace_norm[chan].data = norm(self.data.HRTS_data.density[chan].data)
-                    self.data.secondtrace_norm[chan].data = normalise(
-                        self.data.HRTS_data.density[chan],
-                        self.data.HRTS_data.density[chan], self.data.dis_time)
+                        self.data.secondtrace_original[chan].time = \
+                            self.data.HRTS_data.density[chan].time
+                        self.data.secondtrace_original[chan].data = \
+                            self.data.HRTS_data.density[chan].data
+                        # self.data.secondtrace_norm[chan].data = norm(self.data.HRTS_data.density[chan].data)
+                        self.data.secondtrace_norm[chan].data = normalise(
+                            self.data.HRTS_data.density[chan],
+                            self.data.KG1_data.density[chan], self.data.dis_time)
 
-                    vars()[ax_name].plot(self.data.HRTS_data.density[chan].time,
-                                         self.data.HRTS_data.density[chan].data,
-                                         label=name, marker='o',
-                                         color='orange')
-                    vars()[ax_name].legend()
+                        vars()[ax_name].plot(self.data.HRTS_data.density[chan].time,
+                                             self.data.HRTS_data.density[chan].data,
+                                             label=name, marker='o',
+                                             color='orange')
+                        vars()[ax_name].legend()
 
             else:
                 logging.warning('no {} data'.format(self.data.s2ndtrace))
@@ -2049,29 +2050,30 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         elif self.data.s2ndtrace == 'Lidar':
             #if len(self.data.LIDAR_data.density[chan].time) == 0:
-            if self.data.KG4_data.density is not None:
+            if self.data.LIDAR_data.density is not None:
 
-                for chan in self.data.KG1_data.constants.kg1v.keys():
-                    ax_name = 'ax' + str(chan)
-                    name = 'Lidar ch.' + str(chan)
+                for chan in self.data.LIDAR_data.density.keys():
+                    if chan in self.data.KG1_data.density.keys():
+                        ax_name = 'ax' + str(chan)
+                        name = 'Lidar ch.' + str(chan)
 
-                    self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
-                    self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
+                        self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                        self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
 
-                    self.data.secondtrace_original[chan].time = \
-                        self.data.LIDAR_data.density[chan].time
-                    self.data.secondtrace_original[chan].data = \
-                        self.data.LIDAR_data.density[chan].data
-                    # self.data.secondtrace_norm[chan].data = norm(self.data.LIDAR_data.density[chan].data)
-                    self.data.secondtrace_norm[chan].data = normalise(
-                        self.data.LIDAR_data.density[chan],
-                        self.data.HRTS_data.density[chan], self.data.dis_time)
+                        self.data.secondtrace_original[chan].time = \
+                            self.data.LIDAR_data.density[chan].time
+                        self.data.secondtrace_original[chan].data = \
+                            self.data.LIDAR_data.density[chan].data
+                        # self.data.secondtrace_norm[chan].data = norm(self.data.LIDAR_data.density[chan].data)
+                        self.data.secondtrace_norm[chan].data = normalise(
+                            self.data.LIDAR_data.density[chan],
+                            self.data.KG1_data.density[chan], self.data.dis_time)
 
-                    vars()[ax_name].plot(self.data.LIDAR_data.density[chan].time,
-                                         self.data.LIDAR_data.density[chan].data,
-                                         label=name, marker='o',
-                                         color='green')
-                    vars()[ax_name].legend()
+                        vars()[ax_name].plot(self.data.LIDAR_data.density[chan].time,
+                                             self.data.LIDAR_data.density[chan].data,
+                                             label=name, marker='o',
+                                             color='green')
+                        vars()[ax_name].legend()
 
 
             else:
@@ -2084,28 +2086,29 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # else:
 
                 for chan in self.data.KG4_data.faraday.keys():
-                    ax_name = 'ax' + str(chan)
-                    name = 'Far ch.' + str(chan)
+                    if chan in self.data.KG1_data.density.keys():
+                        ax_name = 'ax' + str(chan)
+                        name = 'Far ch.' + str(chan)
 
-                    self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
-                    self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
+                        self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                        self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
 
-                    self.data.secondtrace_original[chan].time = \
-                        self.data.KG4_data.faraday[
-                            chan].time
-                    self.data.secondtrace_original[chan].data = \
-                        self.data.KG4_data.faraday[
-                            chan].data
-                    # self.data.secondtrace_norm[chan].data = norm(self.data.KG4_data.faraday[chan].data)
-                    self.data.secondtrace_norm[chan].data = normalise(
-                        self.data.KG4_data.faraday[chan],
-                        self.data.HRTS_data.density[chan],
-                        self.data.dis_time)
+                        self.data.secondtrace_original[chan].time = \
+                            self.data.KG4_data.faraday[
+                                chan].time
+                        self.data.secondtrace_original[chan].data = \
+                            self.data.KG4_data.faraday[
+                                chan].data
+                        # self.data.secondtrace_norm[chan].data = norm(self.data.KG4_data.faraday[chan].data)
+                        self.data.secondtrace_norm[chan].data = normalise(
+                            self.data.KG4_data.faraday[chan],
+                            self.data.KG1_data.density[chan],
+                            self.data.dis_time)
 
-                    vars()[ax_name].plot(self.data.KG4_data.faraday[chan].time,
-                                         self.data.KG4_data.faraday[chan].data,
-                                         label=name, marker='o', color='red')
-                    vars()[ax_name].legend()
+                        vars()[ax_name].plot(self.data.KG4_data.faraday[chan].time,
+                                             self.data.KG4_data.faraday[chan].data,
+                                             label=name, marker='o', color='red')
+                        vars()[ax_name].legend()
 
 
             else:
@@ -2120,29 +2123,30 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # else:
 
                 for chan in self.data.KG4_data.xg_ell_signal.keys():
-                    ax_name = 'ax' + str(chan)
-                    name = 'CM ch.' + str(chan)
+                    if chan in self.data.KG1_data.density.keys():
+                        ax_name = 'ax' + str(chan)
+                        name = 'CM ch.' + str(chan)
 
-                    self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
-                    self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
+                        self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                        self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
 
-                    self.data.secondtrace_original[chan].time = \
-                        self.data.KG4_data.xg_ell_signal[
-                            chan].time
-                    self.data.secondtrace_original[chan].data = \
-                        self.data.KG4_data.xg_ell_signal[
-                            chan].data
-                    # self.data.secondtrace_norm[chan].data = norm(
-                    #     self.data.KG4_data.xg_ell_signal[chan].data)
-                    self.data.secondtrace_norm[chan].data = normalise(
-                        self.data.KG4_data.xg_ell_signal[chan],
-                        self.data.HRTS_data.density[chan],
-                        self.data.dis_time)
+                        self.data.secondtrace_original[chan].time = \
+                            self.data.KG4_data.xg_ell_signal[
+                                chan].time
+                        self.data.secondtrace_original[chan].data = \
+                            self.data.KG4_data.xg_ell_signal[
+                                chan].data
+                        # self.data.secondtrace_norm[chan].data = norm(
+                        #     self.data.KG4_data.xg_ell_signal[chan].data)
+                        self.data.secondtrace_norm[chan].data = normalise(
+                            self.data.KG4_data.xg_ell_signal[chan],
+                            self.data.KG1_data.density[chan],
+                            self.data.dis_time)
 
-                    vars()[ax_name].plot(self.data.KG4_data.xg_ell_signal[chan].time,
-                                         self.data.KG4_data.xg_ell_signal[chan].data,
-                                         label=name, marker='o', color='purple')
-                    vars()[ax_name].legend()
+                        vars()[ax_name].plot(self.data.KG4_data.xg_ell_signal[chan].time,
+                                             self.data.KG4_data.xg_ell_signal[chan].data,
+                                             label=name, marker='o', color='purple')
+                        vars()[ax_name].legend()
 
 
             else:
@@ -2155,26 +2159,27 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # else:
 
                 for chan in self.data.KG4_data.density.keys():
-                    ax_name = 'ax' + str(chan)
-                    name = 'KG1 RT ch.' + str(chan)
+                    if chan in self.data.KG1_data.density.keys():
+                        ax_name = 'ax' + str(chan)
+                        name = 'KG1 RT ch.' + str(chan)
 
-                    self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
-                    self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
+                        self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                        self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
 
-                    self.data.secondtrace_original[chan].time = self.data.KG1_data.kg1rt[
-                        chan].time
-                    self.data.secondtrace_original[chan].data = self.data.KG1_data.kg1rt[
-                        chan].data
-                    # self.data.secondtrace_norm[chan].data = norm(
-                    #     self.data.KG1_data.kg1rt[chan].data)
-                    self.data.secondtrace_norm[chan].data = normalise(
-                        self.data.KG1_data.kg1rt[chan], self.data.HRTS_data.density[chan],
-                        self.data.dis_time)
+                        self.data.secondtrace_original[chan].time = self.data.KG1_data.kg1rt[
+                            chan].time
+                        self.data.secondtrace_original[chan].data = self.data.KG1_data.kg1rt[
+                            chan].data
+                        # self.data.secondtrace_norm[chan].data = norm(
+                        #     self.data.KG1_data.kg1rt[chan].data)
+                        self.data.secondtrace_norm[chan].data = normalise(
+                            self.data.KG1_data.kg1rt[chan], self.data.HRTS_data.density[chan],
+                            self.data.dis_time)
 
-                    vars()[ax_name].plot(self.data.KG1_data.kg1rt[chan].time,
-                                         self.data.KG1_data.kg1rt[chan].data,
-                                         label=name, marker='o', color='brown')
-                    vars()[ax_name].legend()
+                        vars()[ax_name].plot(self.data.KG1_data.kg1rt[chan].time,
+                                             self.data.KG1_data.kg1rt[chan].data,
+                                             label=name, marker='o', color='brown')
+                        vars()[ax_name].legend()
 
 
 
@@ -2564,13 +2569,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.ui_areyousure = Ui_areyousure_window()
             self.ui_areyousure.setupUi(self.areyousure_window)
             self.areyousure_window.show()
-            if self.data.data_changed is False:
-                self.ui_areyousure.pushButton_YES.clicked.connect(
-                    self.handle_save_statusflag)
-                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-            else:
-                self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_data_statusflag)
-                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+            logger.info('writing a new ppf until ppf library is fixed - 20 may 2019')
+            # if self.data.data_changed is False:
+            #     self.ui_areyousure.pushButton_YES.clicked.connect(
+            #         self.handle_save_statusflag)
+            #     self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+            # else:
+            self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_data_statusflag)
+            self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
 
         if self.radioButton_storeSF.isChecked():
             logger.info(
@@ -2583,7 +2589,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.ui_areyousure.pushButton_YES.clicked.connect(
                 self.handle_save_statusflag)
             self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-        else:
+        elif (self.radioButton_storeSF.isChecked() & self.radioButton_storeData.isChecked()):
             logging.error(' please select action!')
 
 
@@ -2597,13 +2603,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 0 otherwise (success)
         """
 
-        logger.info("            Saving KG1 workspace to pickle")
+        # logger.info("            Saving KG1 workspace to pickle")
 
-
+        self.checkStatuFlags()
 
         err = open_ppf(self.data.pulse, self.write_uid)
 
         if err != 0:
+            logger.error('failed to open ppf')
             return 67
 
         itref_kg1v = -1
@@ -2611,10 +2618,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         return_code = 0
 
         for chan in self.data.KG1_data.density.keys():
-            status = np.empty(
-                len(self.data.KG1_data.density[chan].time))
-            status.fill(self.data.SF_list[
-                            chan - 1])
+            # status = np.empty(
+            #     len(self.data.KG1_data.density[chan].time))
+            # status.fill(self.data.SF_list[
+            #                 chan - 1])
             dtype_lid = "LID{}".format(chan)
             comment = "DATA FROM KG1 CHANNEL {}".format(chan)
             write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_lid,
@@ -2688,7 +2695,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                                  chan].time),
                                                          status=
                                                          self.data.KG1_data.status[
-                                                             chan])
+                                                             chan -1])
                     if write_err != 0:
                         logger.error(
                             "Failed to write {}/{}. Errorcode {}".format(dda,
@@ -2713,7 +2720,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                                  chan].time),
                                                          status=
                                                          self.data.KG1_data.status[
-                                                             chan])
+                                                             chan -1])
 
                     if write_err != 0:
                         logger.error(
@@ -2748,8 +2755,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 write_err))
                         return write_err
 
-        if write_err != 0:
-            return 67
+        # if write_err != 0:
+        #     logger.error('failed to write KG1 ppf')
+        #     return 67
         # Write mode DDA
 
         mode = "Correct.done by {}".format(self.owner)
@@ -2766,6 +2774,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.pulse)
 
         if coord_err != 0:
+            logger.error('failed to write coord ppf')
             return coord_err
 
         dtype_temp = "TEMP"
@@ -2827,11 +2836,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                              nt=len(geom_chan), status=None)
 
         if write_err != 0:
+            logger.error('failed to write ppf')
             return 67
         logger.info("Close PPF.")
         err = close_ppf(self.data.pulse, self.write_uid, self.data.constants.code_version)
 
         if err != 0:
+            logger.error('failed to close ppf')
             return 67
 
         self.data.saved = True
@@ -2860,7 +2871,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         return_code = 0
 
-
+        self.checkStatuFlags()
+        logger.log(5,"saving data to PPF using this SF list {}".format(self.data.SF_list))
         # Initialise PPF system
         ier = ppfgo(pulse=self.data.pulse)
 
@@ -2872,14 +2884,26 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         for chan in self.data.KG1_data.density.keys():
             dtype_lid = "LID{}".format(chan)
+            # if self.data.val_seq <0:
+
             (write_err,) = ppfssf(self.data.pulse, self.data.val_seq, 'KG1V', dtype_lid,
                                   self.data.SF_list[chan - 1])
+
+
             if write_err != 0:
                 logger.error(
                     "Failed to write {}/{} status flag. Errorcode {}".format(
                         'KG1V', dtype_lid,
                         write_err))
-            break
+                break
+            else:
+                logger.info(
+                    "Status Flag {} written to {}/{} ".format(self.data.SF_list[chan - 1],
+                        'KG1V', dtype_lid,
+                        ))
+        logger.info("Close PPF.")
+        err = close_ppf(self.data.pulse, self.write_uid,
+                        self.data.constants.code_version)
         self.ui_areyousure.pushButton_YES.setChecked(False)
 
         self.areyousure_window.hide()
@@ -2888,13 +2912,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         data_change = True
         self.data.statusflag_changed = True
 
-
         self.save_kg1('saved')
         logger.log(5, ' deleting scratch folder')
         delete_files_in_folder('./scratch')
 
-        logger.log(5, " {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
+        logger.log(5,
+                   " {} - saved is {} - data changed is {} - status flags changed is {}".format(
+                       myself(), self.data.saved,
+                       self.data.data_changed,
+                       self.data.statusflag_changed))
         delete_files_in_folder('./saved')
+
 
         return return_code
 
