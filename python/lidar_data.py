@@ -59,4 +59,5 @@ class LIDARData:
                     # Keep points where there is ip
                     
                     self.density[lidar_chan] = lidar_signal
-                    
+
+

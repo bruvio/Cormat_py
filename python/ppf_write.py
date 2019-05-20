@@ -171,7 +171,7 @@ def close_ppf(shot_no, write_uid,version):
     program = 'KG1 PPF  '
     # time, date, ier = pdstd(shot_no)
     seq, ier = ppfclo(shot_no, program, version)
-    with open('./python/run_out.txt','a+') as f_out:
+    with open('run_out.txt','a+') as f_out:
         f_out.write("shot: {} user: {} date: {} seq: {} written by: {}\n".format(shot_no,write_uid,str(timestr),seq,owner))
     f_out.close()
     logger.info("\n shot: {} user: {} date: {} seq: {} written by: {}\n".format(shot_no,write_uid,timestr,seq,owner))
