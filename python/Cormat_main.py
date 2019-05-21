@@ -7,7 +7,7 @@ Class that runs CORMAT_py GUI
 # ----------------------------
 __author__ = "Bruno Viola"
 __Name__ = "CORMAT_py"
-__version__ = "0.1"
+__version__ = "0.11"
 __release__ = "0"
 __maintainer__ = "Bruno Viola"
 __email__ = "bruno.viola@ukaea.uk"
@@ -63,7 +63,7 @@ import cProfile, pstats, io
 from pycallgraph import PyCallGraph
 from pycallgraph.output import GraphvizOutput
 
-
+qm = QtGui.QMessageBox
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 myself = lambda: inspect.stack()[1][3]
 logger = logging.getLogger(__name__)
@@ -144,21 +144,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.data.coord_ch7 = []
         self.data.coord_ch8 = []
 
-        self.data.fj_ch1 = []
-        self.data.fj_ch2 = []
-        self.data.fj_ch3 = []
-        self.data.fj_ch4 = []
-        self.data.fj_ch5 = []
-        self.data.fj_ch6 = []
-        self.data.fj_ch7 = []
-        self.data.fj_ch8 = []
 
-        self.fj_vib5 = []
-        self.fj_vib6 = []
-        self.fj_vib7 = []
-        self.fj_vib8 = []
+
 
         ####
+        self.totalcorrections_den =np.empty([7])
+        self.totalcorrections_vib =np.empty([7])
 
 
 
@@ -452,6 +443,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     logging.getLogger().disabled = True
 
                     self.load_pickle()
+
                     # logging.disable(logging.NOTSET)
                     logging.getLogger().disabled = False
                     logger.log(5,'checking pulse data in workspace')
@@ -462,6 +454,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                             delattr(self,attr)
                     self.setWindowTitle("CORMAT_py - {}".format(self.data.pulse))
                     self.lineEdit_jpn.setText(str(self.data.pulse))
+
+
                     del  self.data.pulse
 
 
@@ -597,7 +591,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # data_changed = equalsFile('./saved/' + str(self.data.pulse) + '_kg1.pkl',
         #                           './scratch/' + str(self.data.pulse) + '_kg1.pkl')
 
-        if self.data.data_changed | self.data.statusflag_changed == True: # data has changed
+        if (self.data.data_changed | self.data.statusflag_changed) == True: # data has changed
             logger.log(5," data or status flags have changed")
 
             if self.data.saved:  # data saved to ppf
@@ -666,6 +660,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     logging.getLogger().disabled = True
 
                     self.load_pickle()
+
                     # logging.disable(logging.NOTSET)
                     logging.getLogger().disabled = False
                     logger.log(5,'checking pulse data in workspace')
@@ -691,6 +686,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         logger.info('reading data with uid -  {}'.format(
                                 (str(self.read_uid))))
                         self.load_pickle()
+
                         for chan in self.data.KG1_data.density.keys():
                             logger.log(5, 'enabling channel {}'.format(chan))
                             self.tabWidget.setTabEnabled(chan - 1, True)
@@ -1127,7 +1123,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         with open('./' + folder + '/kg1_data.pkl', 'wb') as f:
             pickle.dump(
                 [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
-                 self.read_uid], f)
+                 self.read_uid,], f)
         f.close()
         logger.info(' KG1 data saved to {}'.format(folder))
 
@@ -1138,9 +1134,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         temporary save kg1 data to scratch folder
         :return:
         """
-        logger.info(' dumping KG1 data')
+        # logger.info(' dumping KG1 data')
         self.save_kg1('scratch')
-        logger.info(' KG1 data dumped to scratch')
+        # logger.info(' KG1 data dumped to scratch')
         # if workspace is saved then delete data point collected (so no need to undo)
         self.setcoord(reset=True,chan='all')
 
@@ -1224,6 +1220,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         logger.info(' pulse data already downloaded')
         self.load_pickle()
+
         # self.tabWidget.setCurrentIndex(0)
         # self.tabSelected(arg=0)
 
@@ -1246,6 +1243,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.data.saved = False
         self.data.statusflag_changed = False
         self.data.data_changed = False
+        self.gettotalcorrections()
         logger.log(5, 'data saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
 #-------------------------
 
@@ -3426,8 +3424,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 return
             if suggested_den != self.corr_den:
                 logger.warning('suggested correction is different, do you wish to use it?')
-                x  = input('y/n?')
-                if x.lower() == "y":
+                qm.setDetailedText("suggested correction is "+str(suggested_den))
+                ret = qm.question(self, '',
+                                  "suggested correction is different: " + str(
+                                      suggested_den) + "\n  Do you wish to use it?",
+                                  qm.Yes | qm.No)
+                # x  = input('y/n?')
+                if ret==qm.Yes:
+                # x  = input('y/n?')
+                # if x.lower() == "y":
                     self.corr_den = suggested_den
                 else:
                     pass
@@ -3474,8 +3479,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 return
             if (suggested_den != self.corr_den) & suggested_vib != self.corr_vib:
                 logger.warning('suggested correction is different, do you wish to use it?')
-                x  = input('y/n?')
-                if x.lower() == "y":
+                ret = qm.question(self, '',
+                                  "suggested correction is different: " + str(
+                                      suggested_den) + ', ' + str(
+                                      suggested_vib) + "\n  Do you wish to use it?",
+                                  qm.Yes | qm.No)
+                # x  = input('y/n?')
+                if ret==qm.Yes:
+                # x  = input('y/n?')
+                # if x.lower() == "y":
                     self.corr_den = suggested_den
                     self.corr_vib = suggested_vib
                 else:
@@ -3784,7 +3796,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         # print(i, indexes)
                         index, value = find_nearest(time, value)
 
-                        self.corr_den = -int(self.data.KG1_data.density[self.chan].corrections.data[i])
+                        self.corr_den = int(self.data.KG1_data.density[self.chan].corrections.data[i])
                         time_corr =  self.data.KG1_data.density[self.chan].corrections.time[i]
 
 
@@ -3870,22 +3882,23 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             if (not indexes_automatic)  :
                 self.update_channel(self.chan)
                 self.gettotalcorrections()
-                self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
-                self.kb.apply_pressed_signal.disconnect(self.neutralisatecorrections)
-                self.disconnnet_multiplecorrectionpointswidget()
-
-                self.blockSignals(False)
-                return
+                # self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
+                # self.kb.apply_pressed_signal.disconnect(self.neutralisatecorrections)
+                # self.disconnnet_multiplecorrectionpointswidget()
+                #
+                # self.blockSignals(False)
+                # return
             else:
-                print(self.data.KG1_data.fj_dcn[self.chan].time)
-                print(self.data.KG1_data.fj_dcn[self.chan].data)
+                logger.log(5,"automatic correction times \n ".format(self.data.KG1_data.fj_dcn[self.chan].time))
+                logger.log(5,"automatic correction data \n ".format(self.data.KG1_data.fj_dcn[self.chan].data))
 
 
 
                 corrections = self.data.KG1_data.fj_dcn[self.chan].data[
                     indexes_automatic]
-                print(values_automatic)
-                print(corrections)
+                for i,value in enumerate(corrections):
+                    logger.log(5," correction found  @ {}, value {}".format(values_automatic[i], corrections[i]))
+
 
                 corrections_inverted = [x * (-1) for x in corrections]
                 logger.log(5, "applying this neutralaisation at {}".format(
@@ -3895,7 +3908,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     # print(i, indexes)
                     index, value_found = find_nearest(time, value)
 
-                    self.corr_den = -int(self.data.KG1_data.fj_dcn[self.chan].data[i])
+                    self.corr_den = int(self.data.KG1_data.fj_dcn[self.chan].data[i])
                     time_corr =  self.data.KG1_data.fj_dcn[self.chan].time[i]
 
 
@@ -4115,6 +4128,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 # -------------------------
     @QtCore.pyqtSlot()
     def gettotalcorrections(self):
+
         if str(self.chan).isdigit() == True:
             self.lineEdit_totcorr.setEnabled(True)
             self.chan = int(self.chan)
@@ -4123,19 +4137,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 if self.data.KG1_data.density[chan].corrections.data is None:
                     total = 0
+                    self.totalcorrections_den[chan]= total
                 else:
                     total = np.sum(self.data.KG1_data.density[chan].corrections.data)
+                    self.totalcorrections_den[chan] = total
                 self.lineEdit_totcorr.setText(str(total))
 
             if chan > 4:
                 if self.data.KG1_data.density[chan].corrections.data is None:
                     total1 = 0
+                    self.totalcorrections_den[chan] = total1
                 else:
                     total1 = np.sum(self.data.KG1_data.density[chan].corrections.data)
+                    self.totalcorrections_den[chan] = total1
                 if self.data.KG1_data.vibration[chan].corrections.data is None:
                     total2 = 0
+                    self.totalcorrections_vib[chan] = total2
                 else:
                     total2 = np.sum(self.data.KG1_data.vibration[chan].corrections.data)
+                    self.totalcorrections_vib[chan] = total2
                 self.lineEdit_totcorr.setText(str(total1)+','+str(total2))
 
 
@@ -4191,8 +4211,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 return
             if suggested_den != self.corr_den:
                 logger.warning('suggested correction is different, do you wish to use it?')
-                x  = input('y/n?')
-                if x.lower() == "y":
+                ret = qm.question(self,'', "suggested correction is different: " +str(suggested_den)+"\n  Do you wish to use it?", qm.Yes | qm.No)
+                # x  = input('y/n?')
+                if ret==qm.Yes:
+                # if x.lower() == "y":
                     self.corr_den = suggested_den
                 else:
                     pass
@@ -4234,8 +4256,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 return
             if (suggested_den != self.corr_den) & suggested_vib != self.corr_vib:
                 logger.warning('suggested correction is different, do you wish to use it?')
-                x  = input('y/n?')
-                if x.lower() == "y":
+                ret = qm.question(self,'', "suggested correction is different: " +str(suggested_den)+', '+ str(suggested_vib) +"\n  Do you wish to use it?", qm.Yes | qm.No)
+
+                # x  = input('y/n?')
+                if ret==qm.Yes:
+                # x  = input('y/n?')
+                # if x.lower() == "y":
                     self.corr_den = suggested_den
                     self.corr_vib = suggested_vib
                 else:
