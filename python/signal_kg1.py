@@ -79,7 +79,7 @@ class SignalKg1(SignalBase):
 
 
     # ------------------------
-    def uncorrect_fj(self, corr, index):
+    def uncorrect_fj(self, corr, index,fringe_vib=None):
         """
         Uncorrect a fringe jump by corr, from the time corresponding to index onwards.
         Not used ATM. Will need more testing if we want to use it... Suspect isclose is wrong.
@@ -97,19 +97,27 @@ class SignalKg1(SignalBase):
         ind_corr, value = find_nearest(self.corrections.time, self.time[index])
         # ind_corr = np.where(np.isclose(self.corrections.time, self.time[index], atol=1e-3, rtol=1e-6) == 1)
         if np.size(ind_corr) == 0:
-             return
+            logger.error('no correction to Undo!')
+            return
         logger.log(5,
                    "From index {}, time {}, subtracting {} ({} fringes)".format(
                        ind_corr, value,
                        corr, corr / self.constants.DFR_DCN))
         # Uncorrect correction
-        self.data[index:] = self.data[index:] + corr
+        if fringe_vib is None:
+            self.data[index:] = self.data[index:] + corr
+
+
+        else:
+            self.data[index:] = self.data[index:] + fringe_vib
+
 
         self.corrections.data = np.delete(self.corrections.data, ind_corr)
         self.corrections.time = np.delete(self.corrections.time, ind_corr)
 
+
     # ------------------------
-    def correct_fj(self, corr, time=None, index=None, store=True, corr_dcn=None, corr_met=None):
+    def correct_fj(self, corr, time=None, index=None, store=True, corr_dcn=None, corr_met=None,lid=None):
         """
         Shifts all data from time onwards, or index onwards,
         down by corr. Either time or index must be specified
@@ -142,11 +150,16 @@ class SignalKg1(SignalBase):
         self.data[index:] = self.data[index:] - corr
 
         # Store correction in terms of number of fringes
-        corr_store = int(corr / self.constants.DFR_DCN)
+        if lid is None:
+            corr_store = int(corr / self.constants.DFR_DCN)
+        else:
+            corr_store = lid
+
 
         # If this is a mirror movement signal, store raw correction
         if "vib" in self.signal_type:
-            corr_store = corr
+                corr_store = corr
+
 
         if store:
             # Store in terms of the number of fringes for density, or vibration itself for vibration

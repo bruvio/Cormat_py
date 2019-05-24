@@ -3906,11 +3906,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 corrections = self.data.KG1_data.fj_dcn[self.chan].data[
                     indexes_automatic]
                 for i,value in enumerate(corrections):
-                    logger.log(5," correction found  @ {}, value {}".format(values_automatic[i], int(round(corrections[i]))))
+                    logger.log(5," correction found  @ {}".format(values_automatic[i]))
 
 
                 corrections_inverted = [x * (-1) for x in corrections]
-                logger.log(5, "applying this neutralaisation at {}".format(
+                logger.info("applying this {} neutralisation/s ".format(
                     corrections_inverted))
 
                 for i, value in enumerate(values_automatic):
@@ -3928,9 +3928,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                    value,
                                    index))
 
-                    self.data.KG1_data.density[self.chan].correct_fj(
-                        self.corr_den * self.data.constants.DFR_DCN, index=index
-                    )
+
 
                     if int(self.chan) > 4:
                         # logging.warning('assuming mirror correction = 0 !')
@@ -3942,11 +3940,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         else:
                             self.corr_vib = 0
 
+                        M = self.data.matrix_lat_channels
+                        neutralised_correction = M.dot(np.array([self.corr_den, self.corr_vib]))
 
-                        self.data.KG1_data.vibration[
-                                self.chan].correct_fj(
-                                self.corr_vib * self.data.constants.DFR_DCN,
-                                index=index)
+                        self.lid = neutralised_correction[0]
+                        self.mir = neutralised_correction[1]
+
+                        self.data.KG1_data.density[self.chan].correct_fj(self.lid,index=index,lid=self.corr_den)
+
+                        self.data.KG1_data.vibration[self.chan].correct_fj(self.mir,index=index)
+                    else:
+                        self.data.KG1_data.density[self.chan].correct_fj(
+                            self.corr_den * self.data.constants.DFR_DCN,
+                            index=index)
 
                     vars()[ax_name].axvline(x=value, color='g',
                                             linestyle='--')
@@ -4509,7 +4515,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         logger.log(5,"looking for correction at {}".format(coord[-1:][0][0]))
         index, value = find_nearest(time, coord[-1:][0][0])
-        logger.log(5,"undoing correction at {} with index {}".format(index, value))
+        logger.info("undoing correction at {} with index {}".format(index, value))
 
 
         self.data.KG1_data.density[chan].uncorrect_fj(
@@ -4623,27 +4629,42 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 time_corr =  values[i]
 
 
-                logger.log(5, "undoing correction @t= {}".format(str(time_corr)))
-                self.data.KG1_data.density[chan].uncorrect_fj(
-                    self.corr_den * self.data.constants.DFR_DCN , index=index)
+                logger.info("undoing correction @t= {}".format(str(time_corr)))
 
-                # if self.data.KG1_data.density[self.chan].corrections is not None:
-                ax_name = 'ax' + str(self.chan)
-
-                vars()[ax_name].axvline(x=time_corr, color='y',
-                                            linestyle='--')
 
                 if int(self.chan) > 4:
                     # logging.warning('assuming mirror correction = 0 !')
                     self.corr_vib = -int(
-                        self.data.KG1_data.density[self.chan].corrections.data[
+                        self.data.KG1_data.vibration[self.chan].corrections.data[
                             i])
-                    # self.corr_vib = 0
+                    M = self.data.matrix_lat_channels
+
+                    correction_to_be_restored = M.dot(np.array([self.corr_den,self.corr_vib]))  # get suggested correction by solving linear problem Ax=b
+
+                    restored_den = correction_to_be_restored[0]
+                    restored_vib = correction_to_be_restored[1]
+
+                    # lid = neutralised_correction[0]
+                    # mir = neutralised_correction[1]
+
+                    self.data.KG1_data.density[chan].uncorrect_fj(self.corr_den,
+                        index=index,fringe_vib = restored_den)
+
 
                     self.data.KG1_data.vibration[
-                            self.chan].correct_fj(
-                            self.corr_vib * self.data.constants.DFR_DCN,
-                            index=index)
+                            self.chan].uncorrect_fj(self.corr_vib,
+                            index=index,fringe_vib=restored_vib)
+                else:
+
+                    self.data.KG1_data.density[chan].uncorrect_fj(
+                        self.corr_den * self.data.constants.DFR_DCN,
+                        index=index)
+
+                    # if self.data.KG1_data.density[self.chan].corrections is not None:
+                ax_name = 'ax' + str(self.chan)
+
+                vars()[ax_name].axvline(x=time_corr, color='y',
+                                            linestyle='--')
 
             self.update_channel(int(self.chan))
 
@@ -4681,7 +4702,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # try:
 
         for i, value in enumerate(coord):
-            logger.log(5, "undoing correction @t= {}".format(str(value[0])))
+            logger.info("undoing correction @t= {}".format(str(value[0])))
             index, value = find_nearest(time, value[0])
             logger.log(5, " found point to undo at {} with index {}".format(index, value))
 
