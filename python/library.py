@@ -64,9 +64,9 @@ def find_nearest(array, value):
     if idx > 0 and (
             idx == len(array) or math.fabs(value - array[idx - 1]) < math.fabs(
             value - array[idx])):
-        return array[idx - 1], idx - 1
+        return idx - 1,array[idx - 1]
     else:
-        return array[idx], idx
+        return idx,array[idx]
 
 def find_in_list_array(array,value):
     found=False

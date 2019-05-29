@@ -366,7 +366,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.button_save.setEnabled(False)
         self.checkSFbutton.setEnabled(False)
         self.button_normalize.setEnabled(False)
-        self.pushButton_apply.setEnabled(False)
+        # self.pushButton_apply.setEnabled(False)
         self.pushButton_makeperm.setEnabled(False)
         self.pushButton_undo.setEnabled(False)
         self.button_restore.setEnabled(False)
@@ -1624,7 +1624,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # self.button_check_pulse.setEnabled(True)
         self.button_saveppf.setEnabled(True)
         self.button_save.setEnabled(True)
-        self.pushButton_apply.setEnabled(False)
+        # self.pushButton_apply.setEnabled(False)
         self.pushButton_makeperm.setEnabled(True)
         self.pushButton_undo.setEnabled(True)
         self.checkSFbutton.setEnabled(True)
@@ -3975,9 +3975,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                         self.data.KG1_data.vibration[self.chan].correct_fj(self.mir,index=index,lid=self.corr_vib)
                     else:
-                        self.data.KG1_data.density[self.chan].correct_fj(
-                            self.corr_den * self.data.constants.DFR_DCN,
-                            index=index)
+                        self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_DCN,index=index)
 
                     vars()[ax_name].axvline(x=value, color='g',
                                             linestyle='--')
