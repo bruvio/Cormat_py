@@ -44,12 +44,40 @@ def are_eq(a, b):
 def autoscale_data(ax, data):
     ax.set_ylim(min(data),
                 max(data))
-def find_nearest(array,value):
-    # logger.log(5, "looking for value {}".format(value))
-    idx = (np.abs(array-value)).argmin()
+# def find_nearest(array,value):
+#     # logger.log(5, "looking for value {}".format(value))
+#     idx = (np.abs(array-value)).argmin()
+#
+#     # logger.log(5," found at {} with index {}".format(array[idx].item(),idx))
+#     return idx,array[idx].item()
+def find_nearest(array, value):
+    """
 
-    # logger.log(5," found at {} with index {}".format(array[idx].item(),idx))
-    return idx,array[idx].item()
+    :param array:
+    :param value:
+    :return: returns value and index of the closest element in the array to the value
+    """
+    import numpy as np
+    import math
+
+    idx = np.searchsorted(array, value, side="left")
+    if idx > 0 and (
+            idx == len(array) or math.fabs(value - array[idx - 1]) < math.fabs(
+            value - array[idx])):
+        return idx - 1,array[idx - 1]
+    else:
+        return idx,array[idx]
+
+def find_in_list_array(array,value):
+    found=False
+    array2list = np.array(array)  # numpy array
+    try:
+        index = list(array2list).index(value)
+        found=True
+        return found, index
+    except ValueError:
+        index =[]
+        return found, index
 
 
 def find_within_range(array,minvalue,maxvalue):

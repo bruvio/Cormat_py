@@ -178,24 +178,18 @@
           <string>Corrections</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_21">
-          <item row="4" column="0">
-           <widget class="QPushButton" name="pushButton_apply">
-            <property name="text">
-             <string>Apply</string>
-            </property>
+          <item row="1" column="0" colspan="2">
+           <widget class="QLineEdit" name="lineEdit_totcorr"/>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QWidget" name="widget_mancorr" native="true">
+            <zorder>pushButton_undo</zorder>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="QPushButton" name="pushButton_undo">
+          <item row="5" column="0" colspan="2">
+           <widget class="QPushButton" name="pushButton_makeperm">
             <property name="text">
-             <string>Undo</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="2">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Total Corrections</string>
+             <string>Make Permanent</string>
             </property>
            </widget>
           </item>
@@ -206,16 +200,17 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="2">
-           <widget class="QWidget" name="widget_mancorr" native="true"/>
-          </item>
-          <item row="1" column="0" colspan="2">
-           <widget class="QLineEdit" name="lineEdit_totcorr"/>
-          </item>
-          <item row="5" column="0" colspan="2">
-           <widget class="QPushButton" name="pushButton_makeperm">
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Make Permanent</string>
+             <string>Total Corrections</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QPushButton" name="pushButton_undo">
+            <property name="text">
+             <string>Undo</string>
             </property>
            </widget>
           </item>
