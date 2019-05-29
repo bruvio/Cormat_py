@@ -13,7 +13,7 @@ __maintainer__ = "Bruno Viola"
 __email__ = "bruno.viola@ukaea.uk"
 __status__ = "Testing"
 # __status__ = "Production"
-__credits__ = ["aboboc"]
+
 
 import argparse
 import logging
@@ -3261,20 +3261,41 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         """
         chan = self.chan
+        #if correction is not empty than proceed
         if self.data.KG1_data.density[chan].corrections is not None:
-            self.data.KG1_data.fj_dcn[chan].time = np.append(self.data.KG1_data.fj_dcn[chan].time,self.data.KG1_data.density[chan].corrections.time)
-            self.data.KG1_data.fj_dcn[chan].data = np.append(self.data.KG1_data.fj_dcn[chan].data,self.data.KG1_data.density[chan].corrections.data)
+            #check if the corrections applied are already stored, if so overwrite
+            for i, value in enumerate(self.data.KG1_data.density[chan].corrections.time):
+                found, index = find_in_list_array(
+                    self.data.KG1_data.fj_dcn[chan].time, value)
+                if found:
+                    self.data.KG1_data.fj_dcn[chan].data[index] = self.data.KG1_data.density[chan].corrections.data[i]
+                else:
+                    self.data.KG1_data.fj_dcn[chan].time = np.append(self.data.KG1_data.fj_dcn[chan].time,self.data.KG1_data.density[chan].corrections.time)
+                    self.data.KG1_data.fj_dcn[chan].data = np.append(self.data.KG1_data.fj_dcn[chan].data,self.data.KG1_data.density[chan].corrections.data)
+            #emptying corrections
+            self.data.KG1_data.density[chan].corrections.time=[]
+            self.data.KG1_data.density[chan].corrections.data=[]
 
             index = sorted(range(len(self.data.KG1_data.fj_dcn[chan].time)),key= lambda k: self.data.KG1_data.fj_dcn[chan].time[k])
             self.data.KG1_data.fj_dcn[chan].data = self.data.KG1_data.fj_dcn[chan].data[index]
             self.setcoord(self.chan, reset=True)
         if chan >4:
             if chan + 4 in self.data.KG1_data.fj_dcn.keys():
-                self.data.KG1_data.fj_dcn[chan+4].time = np.append(self.data.KG1_data.fj_dcn[chan+4].time,self.data.KG1_data.density[chan+4].corrections.time)
-                self.data.KG1_data.fj_dcn[chan+4].data = np.append(self.data.KG1_data.fj_dcn[chan+4].data,self.data.KG1_data.density[chan].corrections.data)
+                for i, value in enumerate(self.data.KG1_data.density[chan].corrections.time):
+                    found, index = find_in_list_array(self.data.KG1_data.fj_dcn[chan].time, value)
+                    if found:
+                        self.data.KG1_data.fj_dcn[chan].data[index] = \
+                        self.data.KG1_data.density[chan].corrections.data[i]
+                    else:
+                        self.data.KG1_data.fj_dcn[chan+4].time = np.append(self.data.KG1_data.fj_dcn[chan+4].time,self.data.KG1_data.density[chan+4].corrections.time)
+                        self.data.KG1_data.fj_dcn[chan+4].data = np.append(self.data.KG1_data.fj_dcn[chan+4].data,self.data.KG1_data.density[chan].corrections.data)
+                self.data.KG1_data.density[chan + 4].corrections.time = []
+                self.data.KG1_data.density[chan + 4].corrections.data = []
+
                 index = sorted(range(len(self.data.KG1_data.fj_dcn[chan+4].time)),key=lambda k:self.data.KG1_data.fj_dcn[chan+4].time[k])
                 self.data.KG1_data.fj_dcn[chan+4].data = self.data.KG1_data.fj_dcn[chan+4].data[index]
-        logger.info('marking correction as permanent')
+
+            logger.info('marking correction as permanent')
     # --------------------------
     def check_current_tab(self):
         """
