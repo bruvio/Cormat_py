@@ -927,10 +927,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :param button:
         :return:
         """
-        snd = self.sender() # gets object that called
+        # snd = self.sender() # gets object that called
 
 
-        SF = snd.objectName().split('_')[2]  # statusflag value selected
+        SF = int(button.objectName().split('_')[2])  # statusflag value selected
 
 
 
@@ -3273,11 +3273,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.data.KG1_data.fj_dcn[chan].time = np.append(self.data.KG1_data.fj_dcn[chan].time,self.data.KG1_data.density[chan].corrections.time)
                     self.data.KG1_data.fj_dcn[chan].data = np.append(self.data.KG1_data.fj_dcn[chan].data,self.data.KG1_data.density[chan].corrections.data)
             #emptying corrections
-            self.data.KG1_data.density[chan].corrections.time=[]
-            self.data.KG1_data.density[chan].corrections.data=[]
+            self.data.KG1_data.density[chan].corrections = SignalBase(self.data.constants)
+
 
             index = sorted(range(len(self.data.KG1_data.fj_dcn[chan].time)),key= lambda k: self.data.KG1_data.fj_dcn[chan].time[k])
-            self.data.KG1_data.fj_dcn[chan].data = self.data.KG1_data.fj_dcn[chan].data[index]
+            self.data.KG1_data.fj_dcn[chan].data = \
+            self.data.KG1_data.fj_dcn[chan].data[index]
+            self.data.KG1_data.fj_dcn[chan].time = \
+            self.data.KG1_data.fj_dcn[chan].time[index]
+
             self.setcoord(self.chan, reset=True)
         if chan >4:
             if chan + 4 in self.data.KG1_data.fj_dcn.keys():
@@ -3289,8 +3293,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     else:
                         self.data.KG1_data.fj_dcn[chan+4].time = np.append(self.data.KG1_data.fj_dcn[chan+4].time,self.data.KG1_data.density[chan+4].corrections.time)
                         self.data.KG1_data.fj_dcn[chan+4].data = np.append(self.data.KG1_data.fj_dcn[chan+4].data,self.data.KG1_data.density[chan].corrections.data)
-                self.data.KG1_data.density[chan + 4].corrections.time = []
-                self.data.KG1_data.density[chan + 4].corrections.data = []
+                self.data.KG1_data.density[chan+4].corrections = SignalBase(
+                    self.data.constants)
+                # self.data.KG1_data.density[chan + 4].corrections.time = []
+                # self.data.KG1_data.density[chan + 4].corrections.data = []
 
                 index = sorted(range(len(self.data.KG1_data.fj_dcn[chan+4].time)),key=lambda k:self.data.KG1_data.fj_dcn[chan+4].time[k])
                 self.data.KG1_data.fj_dcn[chan+4].data = self.data.KG1_data.fj_dcn[chan+4].data[index]
@@ -3745,6 +3751,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         :return:
         """
+
         self.blockSignals(True)
         ax1 = self.ax1
         ax2 = self.ax2
@@ -3823,9 +3830,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         # print(i, indexes)
                         index, value = find_nearest(time, value)
 
-                        self.corr_den = int(round(self.data.KG1_data.density[self.chan].corrections.data[i]))
-                        time_corr =  self.data.KG1_data.density[self.chan].corrections.time[i]
-
+                        # self.corr_den = int(round(self.data.KG1_data.density[self.chan].corrections.data[i]))
+                        # time_corr =  self.data.KG1_data.density[self.chan].corrections.time[i]
+                        # self.corr_den = -int(round(self.data.KG1_data.fj_dcn[self.chan].data[i]))
+                        self.corr_den = int(round(corrections_manual_inverted[i]))
+                        # time_corr =  self.data.KG1_data.fj_dcn[self.chan].time[i]
+                        time_corr = values_manual[i]
 
 
                         # index, value = find_nearest(time, time_corr)
@@ -3948,8 +3958,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     # print(i, indexes)
                     index, value_found = find_nearest(time, value)
 
-                    self.corr_den = -int(round(self.data.KG1_data.fj_dcn[self.chan].data[i]))
-                    time_corr =  self.data.KG1_data.fj_dcn[self.chan].time[i]
+                    # self.corr_den = -int(round(self.data.KG1_data.fj_dcn[self.chan].data[i]))
+                    self.corr_den = int(round(corrections_inverted[i]))
+                    # time_corr =  self.data.KG1_data.fj_dcn[self.chan].time[i]
+                    time_corr =  values_automatic[i]
 
 
 
@@ -4116,22 +4128,31 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         and shows widget to apply correction
         :return:
         """
+
         if self.current_tab  == 'LID_1':
             self.widget_LID1.signal.connect(self.get_multiple_points)
+            self.setcoord(1, reset=True)
         elif self.current_tab  == 'LID_2':
             self.widget_LID2.signal.connect(self.get_multiple_points)
+            self.setcoord(2, reset=True)
         elif self.current_tab  == 'LID_3':
             self.widget_LID3.signal.connect(self.get_multiple_points)
+            self.setcoord(3, reset=True)
         elif self.current_tab  == 'LID_4':
             self.widget_LID4.signal.connect(self.get_multiple_points)
+            self.setcoord(4, reset=True)
         elif self.current_tab  == 'LID_5':
             self.widget_LID5.signal.connect(self.get_multiple_points)
+            self.setcoord(5, reset=True)
         elif self.current_tab  == 'LID_6':
             self.widget_LID6.signal.connect(self.get_multiple_points)
+            self.setcoord(6, reset=True)
         elif self.current_tab  == 'LID_7':
             self.widget_LID7.signal.connect(self.get_multiple_points)
+            self.setcoord(7, reset=True)
         elif self.current_tab  == 'LID_8':
             self.widget_LID8.signal.connect(self.get_multiple_points)
+            self.setcoord(8, reset=True)
 
         # #
 
@@ -4171,43 +4192,83 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
     #     else:
     #         return False
 # -------------------------
+
     @QtCore.pyqtSlot()
     def gettotalcorrections(self):
-
         if str(self.chan).isdigit() == True:
             self.lineEdit_totcorr.setEnabled(True)
             self.chan = int(self.chan)
             chan = int(self.chan)
             if chan < 5:
-
+                #temporary (not marked as permanent) corrections set by user during validation
                 if self.data.KG1_data.density[chan].corrections.data is None:
                     total = 0
-                    self.totalcorrections_den[chan]= total
+                    # self.totalcorrections_den[chan]= total
                 else:
-                    total = np.sum(self.data.KG1_data.density[chan].corrections.data)
-                    self.totalcorrections_den[chan] = total
-                self.lineEdit_totcorr.setText(str(total))
+                    total = int(round(np.sum(self.data.KG1_data.density[chan].corrections.data)))
+                    # self.totalcorrections_den[chan] = total
+
+                if chan in self.data.KG1_data.fj_dcn.keys():
+                    if self.data.KG1_data.fj_dcn[chan].data is None:
+                        total_dcn = 0
+                        # self.totalcorrections_den_dcn[chan]= total_dcn
+                    else:
+                        total_dcn = int(round(np.sum(self.data.KG1_data.fj_dcn[chan].data)))
+                        # self.totalcorrections_den_dcn[chan] = total_dcn
+                else:
+                    total_dcn = 0
+
+                self.lineEdit_totcorr.setText(str(total) + ' /DCN= '+ str(total_dcn))
+
+
+
+
+
 
             if chan > 4:
                 if self.data.KG1_data.density[chan].corrections.data is None:
                     total1 = 0
-                    self.totalcorrections_den[chan] = total1
+                    # self.totalcorrections_den_dcn[chan] = total1
                 else:
-                    total1 = np.sum(self.data.KG1_data.density[chan].corrections.data)
-                    self.totalcorrections_den[chan] = total1
+                    total1 = int(round(np.sum(self.data.KG1_data.density[chan].corrections.data)))
+                    # self.totalcorrections_den_dcn[chan] = total1
                 if self.data.KG1_data.vibration[chan].corrections.data is None:
                     total2 = 0
-                    self.totalcorrections_vib[chan] = total2
+                    # self.totalcorrections_vib_dcn[chan] = total2
                 else:
-                    total2 = np.sum(self.data.KG1_data.vibration[chan].corrections.data)
-                    self.totalcorrections_vib[chan] = total2
-                self.lineEdit_totcorr.setText(str(total1)+','+str(total2))
+                    total2 = int(round(np.sum(self.data.KG1_data.vibration[chan].corrections.data)))
+                    # self.totalcorrections_vib_dcn[chan] = total2
 
 
+                if chan in self.data.KG1_data.fj_dcn.keys():
+                    if self.data.KG1_data.fj_dcn[chan].data is None:
+                        total1_dcn = 0
+                        # self.totalcorrections_den_dcn[chan] = total1_dcn
+                    else:
+                        total1_dcn = int(round(np.sum(self.data.KG1_data.fj_dcn[chan].data)))
+                        # self.totalcorrections_den_dcn[chan] = total1_dcn
+                else:
+                    total1_dcn = 0
+
+                if chan + 4 in self.data.KG1_data.fj_dcn.keys():
+                    if self.data.KG1_data.fj_dcn[chan+4].data is None:
+                        total2_dcn = 0
+                        # self.totalcorrections_vib_dcn[chan] = total2_dcn
+                    else:
+                        total2_dcn = int(round(np.sum(self.data.KG1_data.fj_dcn[chan+4].data)))
+                        # self.totalcorrections_vib_dcn[chan+4] = total2_dcn
+                else:
+                    total2_dcn = 0
+
+
+
+
+
+                self.lineEdit_totcorr.setText(
+                        str(total1) + ',' + str(total2) + ' /DCN= '+ str(total1_dcn) + ',' + str(total2_dcn))
+                #
         else:
             self.lineEdit_totcorr.setEnabled(False)
-
-
 
     @QtCore.pyqtSlot()
     def singlecorrection(self):
