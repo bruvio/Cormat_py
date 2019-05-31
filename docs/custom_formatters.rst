@@ -1,7 +1,9 @@
-QPlainTextEditLogger
+Formatters
 ===============
 
-.. automodule:: texteditlogger
+.. automodule:: custom_formatters
     :members:
     :undoc-members:
-    :show-inheritance:
+    :private-members:
+    :show-inheritance:     
+                                

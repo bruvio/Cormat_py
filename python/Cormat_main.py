@@ -63,6 +63,7 @@ import cProfile, pstats, io
 from pycallgraph import PyCallGraph
 from pycallgraph.output import GraphvizOutput
 
+
 qm = QtGui.QMessageBox
 qm_permanent = QtGui.QMessageBox
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
@@ -85,12 +86,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
          - initialises every tab (widget)
          - add layout
          - add navigation toolbar and position it at the bottom of the tab
-        :param widget:
+        :param widget: tab to initialise
         :return:
         """
 
-        # widget.figure.clear()
-        # widget.draw()
+
 
         widget.setLayout(QtGui.QVBoxLayout())
         widget.layout().setContentsMargins(0, 710, 50,
@@ -108,368 +108,374 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         Initialise widgets and canvas.
         Define defaults
+        
+        Moreover it checks if there is data in workspace and load it if pulse number is correct.
+        
+        
 
 
         """
-
-        import os
-        super(CORMAT_GUI, self).__init__(parent)
-        self.setupUi(self)
-
-        self.data = SimpleNamespace() # dictionary object that contains all data
-
-        # -------------------------------
-        # backup for kg1 data
-        self.data.kg1_original = {}
-        # -------------------------------
-        # store normalised kg1?
-        self.data.kg1_norm = {}
-        # ----------------------
-        # initialise data
-        self.data.KG1_data = {}
-        self.data.KG4_data = {}
-        self.data.MAG_data = {}
-        self.data.PELLETS_data = {}
-        self.data.ELM_data = {}
-        self.data.HRTS_data = {}
-        self.data.NBI_data = {}
-        self.data.is_dis = {}
-        self.data.dis_time = {}
-        self.data.LIDAR_data = {}
-        self.data.coord_ch1 = []
-        self.data.coord_ch2 = []
-        self.data.coord_ch3 = []
-        self.data.coord_ch4 = []
-        self.data.coord_ch5 = []
-        self.data.coord_ch6 = []
-        self.data.coord_ch7 = []
-        self.data.coord_ch8 = []
-
-
-
-
-        ####
-        self.totalcorrections_den =np.empty([7])
-        self.totalcorrections_vib =np.empty([7])
-
-
-
-        # -------------------------------
-        #old pulse contains information on the last pulse analysed
-        self.data.old_pulse = None
-        #pulse is the current pulse
-        self.data.pulse = None
-        # -------------------------------
-        # initialisation of control variables
-        # -------------------------------
-        # set saved status to False
-
-        self.data.saved = False
-        self.data.data_changed = False
-        self.data.statusflag_changed = False
-
-        logger.log(5,
-                   "{} - saved is {} - data changed is {} - status flags changed is {}".format(
-                       myself(), self.data.saved, self.data.data_changed,
-                       self.data.statusflag_changed))
-
-        # -------------------------------
-        ###setting up the logger to write inside a Text box in the GUI
-        # -------------------------------
-        logTextBox = QPlainTextEditLogger(self)
-        # You can format what is printed to text box
-        #logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-
-        #logTextBox.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
-        logTextBox.setFormatter(HTMLFormatter())
-        logging.getLogger().addHandler(logTextBox)
-        # You can control the logging level
-        # logging.getLogger().setLevel(logger.info)
-
-        # -------------------------------
-        # initialising new pulse checkbox to false
-        # -------------------------------
-        self.checkBox_newpulse.setChecked(False)
-
-
-
-
-        # -------------------------------
-        # initialising tabs
-        # -------------------------------
-        self._initialize_widget(self.widget_LID1)
-        self._initialize_widget(self.widget_LID2)
-        self._initialize_widget(self.widget_LID3)
-        self._initialize_widget(self.widget_LID4)
-        self._initialize_widget(self.widget_LID5)
-        self._initialize_widget(self.widget_LID6)
-        self._initialize_widget(self.widget_LID7)
-        self._initialize_widget(self.widget_LID8)
-        self._initialize_widget(self.widget_LID_14)
-        self._initialize_widget(self.widget_LID_58)
-        self._initialize_widget(self.widget_LID_ALL)
-        self._initialize_widget(self.widget_MIR)
-
-        # set tabwidget index to 0 - lid1 is the tab shown at startup
-        # self.tabWidget.setCurrentWidget(self.tabWidget.findChild(tabWidget, 'tab_LID1'))
-        self.tabWidget.setCurrentIndex(0)
-        # -------------------------------
-        # initialising folders
-        # -------------------------------
-        logger.info('\tStart CORMATpy')
-        logger.info('\t {}'.format(datetime.datetime.today().strftime('%Y-%m-%d')))
-        cwd = os.getcwd()
-        self.workfold = cwd
-        self.home = cwd
-        parent = Path(self.home)
-        if "USR" in os.environ:
-            logger.log(5, 'USR in env')
-            # self.owner = os.getenv('USR')
-            self.owner = os.getlogin()
-        else:
-            logger.log(5, 'using getuser to authenticate')
-            import getpass
-            self.owner = getpass.getuser()
-        logger.log(5, 'this is your username {}'.format(self.owner))
-        self.homefold = os.path.join(os.sep, 'u', self.owner)
-        logger.log(5, 'this is your homefold {}'.format(self.homefold))
-        home = str(Path.home())
-        self.chain1 = '/common/chain1/kg1/'
-        extract_history(
-            self.workfold + '/run_out.txt',
-            self.chain1 + 'cormat_out.txt')
-        logger.info('copying to local user profile')
-        logger.log(5, 'we are in %s', cwd)
-
-        # -------------------------------
-        # Read  config self.data.
-        # -------------------------------
-        logger.info(" Reading in constants.")
-        # test_logger()
-        # raise SystemExit
-
-
         try:
-            self.data.constants = Consts("consts.ini", __version__)
-            # constants = Kg1Consts("kg1_consts.ini", __version__)
-        except KeyError:
-            logger.error(" Could not read in configuration file consts.ini")
-            sys.exit(65)
 
-        self.data.poss_ne_corr = np.array([self.data.constants.CORR_NE]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_NE)).transpose()
-        self.data.poss_vib_corr = np.array([self.data.constants.CORR_VIB]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_VIB)).transpose()
-        self.data.poss_dcn_corr = np.array([self.data.constants.FJ_DCN]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_DCN)).transpose()
-        self.data.poss_met_corr = np.array([self.data.constants.FJ_MET]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_MET)).transpose()
+            super(CORMAT_GUI, self).__init__(parent)
+            self.setupUi(self)
 
-        # matrix for converting DCN & MET signals into density & mirror movement
-        self.data.matrix_lat_channels = np.array([[self.data.constants.MAT11 , self.data.constants.MAT12 ],[self.data.constants.MAT21 , self.data.constants.MAT22 ]])
+            self.data = SimpleNamespace() # dictionary object that contains all data
 
-
-        self.data.sign_vib_corr = np.array(np.zeros(self.data.poss_vib_corr.shape) + 1)
-        self.data.sign_vib_corr[np.where(self.data.poss_vib_corr < 0.0)] = -1
-
-        # -------------------------------
-        # list of authorized user to write KG1 ppfs
-        # -------------------------------
-        read_uis = []
-        for user in self.data.constants.readusers.keys():
-            user_name = self.data.constants.readusers[user]
-            read_uis.append(user_name)
-        self.exit_button.clicked.connect(self.handle_exit_button)
-        self.PathTranfile = None
-        self.PathCatalog = '/home'
-        # -------------------------------
-        # list of option to write ppf for current user
-        # -------------------------------
-        write_uis = []
-        # -------------------------------
-        # check if owner is in list of authorised users
-        # -------------------------------
-        if self.owner in read_uis:
-            logger.info(
-                'user {} authorised to write public PPF'.format(self.owner))
-            write_uis.insert(0, 'JETPPF')  # jetppf first in the combobox list
-            write_uis.append(self.owner)
-            # users.append('chain1')
-        else:
-            logger.info(
-                'user {} NOT authorised to write public PPF'.format(self.owner))
-            write_uis.append(self.owner)
-        # -------------------------------
-        # initialise combobox
-        self.comboBox_readuid.addItems(read_uis)
-        self.comboBox_writeuid.addItems(write_uis)
-        # -------------------------------
-        # set combobox index to 1 so that the default write_uid is owner
-        if len(write_uis) == 2:
-            self.comboBox_writeuid.setCurrentIndex(1)
-        else:
-            self.comboBox_writeuid.setCurrentIndex(0)
-
-        # -------------------------------
-        # set default pulse
-        # initpulse = pdmsht()
-        #initpulse = 92121
-        #self.lineEdit_jpn.setText(str(initpulse))
-        # -------------------------------
-        # -------------------------------
-        # list of the second trace signal use to be compared with KG1
-        # -------------------------------
-        othersignallist = ['None', 'HRTS', 'Lidar', 'BremS', 'Far', 'CM',
-                           'KG1_RT']
-        self.comboBox_2ndtrace.addItems(othersignallist)
-        self.comboBox_2ndtrace.activated[str].connect(self.plot_2nd_trace)
-        # -------------------------------
-        # list of markers
-        # -------------------------------
-        markers = ['None', 'ELMs', 'NBI', 'PELLETs', 'MAGNETICs']
-        self.comboBox_markers.addItems(markers)
-        self.comboBox_markers.activated[str].connect(self.plot_markers)
-        # -------------------------------
-        # disabling marker and second trace combo boxes
-        # -------------------------------
-        self.comboBox_markers.setEnabled(False)
-        self.comboBox_2ndtrace.setEnabled(False)
-        # -------------------------------
-        # connecting functions to buttons
-        # -------------------------------
-        self.button_read_pulse.clicked.connect(self.handle_readbutton_master)
-        # self.button_read_pulse.clicked.connect(self.handle_readbutton)
-        self.button_saveppf.clicked.connect(self.handle_saveppfbutton)
-        self.button_save.clicked.connect(self.dump_kg1)
-        self.button_normalize.clicked.connect(self.handle_normalizebutton)
-        self.button_restore.clicked.connect(self.handle_button_restore)
-        # self.pushButton_apply.clicked.connect(self.handle_applybutton)
-        self.pushButton_makeperm.clicked.connect(self.handle_makepermbutton)
-        # self.pushButton_undo.clicked.connect(self.handle_undobutton)
-        self.checkSFbutton.clicked.connect(self.checkStatuFlags)
-        self.actionHelp.triggered.connect(self.handle_help_menu)
-        self.actionOpen_PDF_guide.triggered.connect(self.handle_pdf_open)
-        # -------------------------------
-        # initialising code folders
-        # -------------------------------
-        try:
-            # figure folder
-            pathlib.Path(cwd + os.sep + 'figures').mkdir(parents=True,
-                                                         exist_ok=True)
-            # scratch folder - where you keep unsaved unfinished data
-            pathlib.Path(cwd + os.sep + 'scratch').mkdir(parents=True,
-                                                         exist_ok=True)
-            # save foldere - where you keep saved pulse data
-            pathlib.Path(cwd + os.sep + 'saved').mkdir(parents=True,
-                                                       exist_ok=True)
-        except SystemExit:
-            raise SystemExit('failed to initialise folders')
-        # -------------------------------
-        # disable many button to avoid conflicts at startup
-        # -------------------------------
-        self.button_saveppf.setEnabled(False)
-        self.button_save.setEnabled(False)
-        self.checkSFbutton.setEnabled(False)
-        self.button_normalize.setEnabled(False)
-        # self.pushButton_apply.setEnabled(False)
-        self.pushButton_makeperm.setEnabled(False)
-        self.pushButton_undo.setEnabled(False)
-        self.button_restore.setEnabled(False)
-        # -------------------------------
-        # run code by default
-        # self.button_read_pulse.click()
-        # -------------------------------
-        # -------------------------------
-        # initialize to zero status flag radio buttons
-        # -------------------------------
-        self.radioButton_statusflag_0.setChecked(False)
-        self.radioButton_statusflag_1.setChecked(False)
-        self.radioButton_statusflag_2.setChecked(False)
-        self.radioButton_statusflag_3.setChecked(False)
-        self.radioButton_statusflag_4.setChecked(False)
-        # -------------------------------
-        # set status flag radio buttons to false
-        self.groupBox_statusflag.setEnabled(False)
-        # -------------------------------
-        # -------------------------------
-        # set read uid combo box to disabled
-        self.comboBox_readuid.setEnabled(False)
-        # -------------------------------
-        # to disable a tab use
-        # self.tabWidget.setTabEnabled(3, False)
-        # -------------------------------
-        # setup automatic check on status flag
-        # -------------------------------
-        self.checkBox_newpulse.toggled.connect(
-            lambda: self.handle_check_status(self.checkBox_newpulse))
-        # -------------------------------
-        # #disable tab as there is nothing plotted
-        self.tabWidget.setTabEnabled(0, False)
-        self.tabWidget.setTabEnabled(1, False)
-        self.tabWidget.setTabEnabled(2, False)
-        self.tabWidget.setTabEnabled(3, False)
-        self.tabWidget.setTabEnabled(4, False)
-        self.tabWidget.setTabEnabled(5, False)
-        self.tabWidget.setTabEnabled(6, False)
-        self.tabWidget.setTabEnabled(7, False)
-        self.tabWidget.setTabEnabled(8, False)
-        self.tabWidget.setTabEnabled(9, False)
-        self.tabWidget.setTabEnabled(10, False)
-        self.tabWidget.setTabEnabled(11, False)
-        # -------------------------------
-        # making documentation
-        # -------------------------------
-        if (args.documentation).lower() == 'yes':
-            logger.info('creating documentation')
-            os.chdir('../docs')
-            import subprocess
-            subprocess.check_output('make html', shell=True)
-            subprocess.check_output('make latex', shell=True)
-            os.chdir(self.home)
-
-        #adding personalized object LineEdit to widget in GUI
-        self.lineEdit_mancorr = LineEdit()
-        self.kb = KeyBoard(self.lineEdit_mancorr)
-        self.gridLayout_21.addWidget(self.lineEdit_mancorr, 3, 0, 1, 2)
+            # -------------------------------
+            # backup for kg1 data
+            self.data.kg1_original = {}
+            # -------------------------------
+            # store normalised kg1?
+            self.data.kg1_norm = {}
+            # ----------------------
+            # initialise data
+            self.data.KG1_data = {}
+            self.data.KG4_data = {}
+            self.data.MAG_data = {}
+            self.data.PELLETS_data = {}
+            self.data.ELM_data = {}
+            self.data.HRTS_data = {}
+            self.data.NBI_data = {}
+            self.data.is_dis = {}
+            self.data.dis_time = {}
+            self.data.LIDAR_data = {}
+            self.data.coord_ch1 = []
+            self.data.coord_ch2 = []
+            self.data.coord_ch3 = []
+            self.data.coord_ch4 = []
+            self.data.coord_ch5 = []
+            self.data.coord_ch6 = []
+            self.data.coord_ch7 = []
+            self.data.coord_ch8 = []
 
 
 
 
-        # -------------------------------
+            ####
+            self.totalcorrections_den =np.empty([7])
+            self.totalcorrections_vib =np.empty([7])
 
 
 
-        # -------------------------------
-        # check if kg1 is stored in workspace
-        # -------------------------------
-        exists = os.path.isfile('./scratch/kg1_data.pkl')
+            # -------------------------------
+            #old pulse contains information on the last pulse analysed
+            self.data.old_pulse = None
+            #pulse is the current pulse
+            self.data.pulse = None
+            # -------------------------------
+            # initialisation of control variables
+            # -------------------------------
+            # set saved status to False
 
-        if exists :
-                    logging.getLogger().disabled = True
+            self.data.saved = False
+            self.data.data_changed = False
+            self.data.statusflag_changed = False
 
-                    self.load_pickle()
+            logger.log(5,
+                       "{} - saved is {} - data changed is {} - status flags changed is {}".format(
+                           myself(), self.data.saved, self.data.data_changed,
+                           self.data.statusflag_changed))
 
-                    # logging.disable(logging.NOTSET)
-                    logging.getLogger().disabled = False
-                    logger.log(5,'checking pulse data in workspace')
-                    list_attr=['self.data.KG1_data','self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data','self.data.ELM_data', 'self.data.HRTS_data','self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time','self.data.LIDAR_data']
-                    for attr in list_attr:
-                        # pyqt_set_trace()
-                        if hasattr(self, attr):
-                            delattr(self,attr)
-                    self.setWindowTitle("CORMAT_py - {}".format(self.data.pulse))
-                    self.lineEdit_jpn.setText(str(self.data.pulse))
+            # -------------------------------
+            ###setting up the logger to write inside a Text box in the GUI
+            # -------------------------------
+            logTextBox = QPlainTextEditLogger(self)
+            # You can format what is printed to text box
+            #logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
 
+            #logTextBox.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
+            logTextBox.setFormatter(HTMLFormatter())
+            logging.getLogger().addHandler(logTextBox)
+            # You can control the logging level
+            # logging.getLogger().setLevel(logger.info)
 
-                    del  self.data.pulse
-
-
-
-
-
-        logger.info('INIT DONE')
-        #auto click read button
-        # self.button_read_pulse.click()
-
+            # -------------------------------
+            # initialising new pulse checkbox to false
+            # -------------------------------
+            self.checkBox_newpulse.setChecked(False)
 
 
-#-------------------------------
+
+
+            # -------------------------------
+            # initialising tabs
+            # -------------------------------
+            self._initialize_widget(self.widget_LID1)
+            self._initialize_widget(self.widget_LID2)
+            self._initialize_widget(self.widget_LID3)
+            self._initialize_widget(self.widget_LID4)
+            self._initialize_widget(self.widget_LID5)
+            self._initialize_widget(self.widget_LID6)
+            self._initialize_widget(self.widget_LID7)
+            self._initialize_widget(self.widget_LID8)
+            self._initialize_widget(self.widget_LID_14)
+            self._initialize_widget(self.widget_LID_58)
+            self._initialize_widget(self.widget_LID_ALL)
+            self._initialize_widget(self.widget_MIR)
+
+            # set tabwidget index to 0 - lid1 is the tab shown at startup
+            # self.tabWidget.setCurrentWidget(self.tabWidget.findChild(tabWidget, 'tab_LID1'))
+            self.tabWidget.setCurrentIndex(0)
+            # -------------------------------
+            # initialising folders
+            # -------------------------------
+            logger.info('\tStart CORMATpy')
+            logger.info('\t {}'.format(datetime.datetime.today().strftime('%Y-%m-%d')))
+            cwd = os.getcwd()
+            self.workfold = cwd
+            self.home = cwd
+            parent = Path(self.home)
+            if "USR" in os.environ:
+                logger.log(5, 'USR in env')
+                # self.owner = os.getenv('USR')
+                self.owner = os.getlogin()
+            else:
+                logger.log(5, 'using getuser to authenticate')
+                import getpass
+                self.owner = getpass.getuser()
+            logger.log(5, 'this is your username {}'.format(self.owner))
+            self.homefold = os.path.join(os.sep, 'u', self.owner)
+            logger.log(5, 'this is your homefold {}'.format(self.homefold))
+            home = str(Path.home())
+            self.chain1 = '/common/chain1/kg1/'
+            extract_history(
+                self.workfold + '/run_out.txt',
+                self.chain1 + 'cormat_out.txt')
+            logger.info('copying to local user profile')
+            logger.log(5, 'we are in %s', cwd)
+
+            # -------------------------------
+            # Read  config self.data.
+            # -------------------------------
+            logger.info(" Reading in constants.")
+            # test_logger()
+            # raise SystemExit
+
+
+            try:
+                self.data.constants = Consts("consts.ini", __version__)
+                # constants = Kg1Consts("kg1_consts.ini", __version__)
+            except KeyError:
+                logger.error(" Could not read in configuration file consts.ini")
+                sys.exit(65)
+
+            self.data.poss_ne_corr = np.array([self.data.constants.CORR_NE]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_NE)).transpose()
+            self.data.poss_vib_corr = np.array([self.data.constants.CORR_VIB]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_VIB)).transpose()
+            self.data.poss_dcn_corr = np.array([self.data.constants.FJ_DCN]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_DCN)).transpose()
+            self.data.poss_met_corr = np.array([self.data.constants.FJ_MET]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_MET)).transpose()
+
+            # matrix for converting DCN & MET signals into density & mirror movement
+            self.data.matrix_lat_channels = np.array([[self.data.constants.MAT11 , self.data.constants.MAT12 ],[self.data.constants.MAT21 , self.data.constants.MAT22 ]])
+
+
+            self.data.sign_vib_corr = np.array(np.zeros(self.data.poss_vib_corr.shape) + 1)
+            self.data.sign_vib_corr[np.where(self.data.poss_vib_corr < 0.0)] = -1
+
+            # -------------------------------
+            # list of authorized user to write KG1 ppfs
+            # -------------------------------
+            read_uis = []
+            for user in self.data.constants.readusers.keys():
+                user_name = self.data.constants.readusers[user]
+                read_uis.append(user_name)
+            self.exit_button.clicked.connect(self.handle_exit_button)
+            self.PathTranfile = None
+            self.PathCatalog = '/home'
+            # -------------------------------
+            # list of option to write ppf for current user
+            # -------------------------------
+            write_uis = []
+            # -------------------------------
+            # check if owner is in list of authorised users
+            # -------------------------------
+            if self.owner in read_uis:
+                logger.info(
+                    'user {} authorised to write public PPF'.format(self.owner))
+                write_uis.insert(0, 'JETPPF')  # jetppf first in the combobox list
+                write_uis.append(self.owner)
+                # users.append('chain1')
+            else:
+                logger.info(
+                    'user {} NOT authorised to write public PPF'.format(self.owner))
+                write_uis.append(self.owner)
+            # -------------------------------
+            # initialise combobox
+            self.comboBox_readuid.addItems(read_uis)
+            self.comboBox_writeuid.addItems(write_uis)
+            # -------------------------------
+            # set combobox index to 1 so that the default write_uid is owner
+            if len(write_uis) == 2:
+                self.comboBox_writeuid.setCurrentIndex(1)
+            else:
+                self.comboBox_writeuid.setCurrentIndex(0)
+
+            # -------------------------------
+            # set default pulse
+            # initpulse = pdmsht()
+            #initpulse = 92121
+            #self.lineEdit_jpn.setText(str(initpulse))
+            # -------------------------------
+            # -------------------------------
+            # list of the second trace signal use to be compared with KG1
+            # -------------------------------
+            othersignallist = ['None', 'HRTS', 'Lidar', 'BremS', 'Far', 'CM',
+                               'KG1_RT']
+            self.comboBox_2ndtrace.addItems(othersignallist)
+            self.comboBox_2ndtrace.activated[str].connect(self.plot_2nd_trace)
+            # -------------------------------
+            # list of markers
+            # -------------------------------
+            markers = ['None', 'ELMs', 'NBI', 'PELLETs', 'MAGNETICs']
+            self.comboBox_markers.addItems(markers)
+            self.comboBox_markers.activated[str].connect(self.plot_markers)
+            # -------------------------------
+            # disabling marker and second trace combo boxes
+            # -------------------------------
+            self.comboBox_markers.setEnabled(False)
+            self.comboBox_2ndtrace.setEnabled(False)
+            # -------------------------------
+            # connecting functions to buttons
+            # -------------------------------
+            self.button_read_pulse.clicked.connect(self.handle_readbutton_master)
+            # self.button_read_pulse.clicked.connect(self.handle_readbutton)
+            self.button_saveppf.clicked.connect(self.handle_saveppfbutton)
+            self.button_save.clicked.connect(self.dump_kg1)
+            self.button_normalize.clicked.connect(self.handle_normalizebutton)
+            self.button_restore.clicked.connect(self.handle_button_restore)
+            # self.pushButton_apply.clicked.connect(self.handle_applybutton)
+            self.pushButton_makeperm.clicked.connect(self.handle_makepermbutton)
+            # self.pushButton_undo.clicked.connect(self.handle_undobutton)
+            self.checkSFbutton.clicked.connect(self.checkStatuFlags)
+            self.actionHelp.triggered.connect(self.handle_help_menu)
+            self.actionOpen_PDF_guide.triggered.connect(self.handle_pdf_open)
+            # -------------------------------
+            # initialising code folders
+            # -------------------------------
+            try:
+                # figure folder
+                pathlib.Path(cwd + os.sep + 'figures').mkdir(parents=True,
+                                                             exist_ok=True)
+                # scratch folder - where you keep unsaved unfinished data
+                pathlib.Path(cwd + os.sep + 'scratch').mkdir(parents=True,
+                                                             exist_ok=True)
+                # save foldere - where you keep saved pulse data
+                pathlib.Path(cwd + os.sep + 'saved').mkdir(parents=True,
+                                                           exist_ok=True)
+            except SystemExit:
+                raise SystemExit('failed to initialise folders')
+            # -------------------------------
+            # disable many button to avoid conflicts at startup
+            # -------------------------------
+            self.button_saveppf.setEnabled(False)
+            self.button_save.setEnabled(False)
+            self.checkSFbutton.setEnabled(False)
+            self.button_normalize.setEnabled(False)
+            # self.pushButton_apply.setEnabled(False)
+            self.pushButton_makeperm.setEnabled(False)
+            self.pushButton_undo.setEnabled(False)
+            self.button_restore.setEnabled(False)
+            # -------------------------------
+            # run code by default
+            # self.button_read_pulse.click()
+            # -------------------------------
+            # -------------------------------
+            # initialize to zero status flag radio buttons
+            # -------------------------------
+            self.radioButton_statusflag_0.setChecked(False)
+            self.radioButton_statusflag_1.setChecked(False)
+            self.radioButton_statusflag_2.setChecked(False)
+            self.radioButton_statusflag_3.setChecked(False)
+            self.radioButton_statusflag_4.setChecked(False)
+            # -------------------------------
+            # set status flag radio buttons to false
+            self.groupBox_statusflag.setEnabled(False)
+            # -------------------------------
+            # -------------------------------
+            # set read uid combo box to disabled
+            self.comboBox_readuid.setEnabled(False)
+            # -------------------------------
+            # to disable a tab use
+            # self.tabWidget.setTabEnabled(3, False)
+            # -------------------------------
+            # setup automatic check on status flag
+            # -------------------------------
+            self.checkBox_newpulse.toggled.connect(
+                lambda: self.handle_check_status(self.checkBox_newpulse))
+            # -------------------------------
+            # #disable tab as there is nothing plotted
+            self.tabWidget.setTabEnabled(0, False)
+            self.tabWidget.setTabEnabled(1, False)
+            self.tabWidget.setTabEnabled(2, False)
+            self.tabWidget.setTabEnabled(3, False)
+            self.tabWidget.setTabEnabled(4, False)
+            self.tabWidget.setTabEnabled(5, False)
+            self.tabWidget.setTabEnabled(6, False)
+            self.tabWidget.setTabEnabled(7, False)
+            self.tabWidget.setTabEnabled(8, False)
+            self.tabWidget.setTabEnabled(9, False)
+            self.tabWidget.setTabEnabled(10, False)
+            self.tabWidget.setTabEnabled(11, False)
+            # -------------------------------
+            # making documentation
+            # -------------------------------
+            if (args.documentation).lower() == 'yes':
+                logger.info('creating documentation')
+                os.chdir('../docs')
+                import subprocess
+                subprocess.check_output('make html', shell=True)
+                subprocess.check_output('make latex', shell=True)
+                os.chdir(self.home)
+
+            #adding personalized object LineEdit to widget in GUI
+            self.lineEdit_mancorr = LineEdit()
+            self.kb = KeyBoard(self.lineEdit_mancorr)
+            self.gridLayout_21.addWidget(self.lineEdit_mancorr, 3, 0, 1, 2)
+
+
+
+
+            # -------------------------------
+
+
+
+            # -------------------------------
+            # check if kg1 is stored in workspace
+            # -------------------------------
+            exists = os.path.isfile('./scratch/kg1_data.pkl')
+
+            if exists :
+                        logging.getLogger().disabled = True
+
+                        self.load_pickle()
+
+                        # logging.disable(logging.NOTSET)
+                        logging.getLogger().disabled = False
+                        logger.log(5,'checking pulse data in workspace')
+                        list_attr=['self.data.KG1_data','self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data','self.data.ELM_data', 'self.data.HRTS_data','self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time','self.data.LIDAR_data']
+                        for attr in list_attr:
+                            # pyqt_set_trace()
+                            if hasattr(self, attr):
+                                delattr(self,attr)
+                        self.setWindowTitle("CORMAT_py - {}".format(self.data.pulse))
+                        self.lineEdit_jpn.setText(str(self.data.pulse))
+
+
+                        del  self.data.pulse
+
+
+
+
+            
+            logger.info('INIT DONE')
+            #auto click read button
+            # self.button_read_pulse.click()
+        except:
+            logger.error('Error!')
+
+
+
+    #-------------------------------
     @QtCore.pyqtSlot()
     def handle_readbutton_master(self):
         """
@@ -2553,6 +2559,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         if user selects in GUI to save ppf a new PPF sequence will be written for dda='KG1V'
         if user selects in GUI to save SF only the SF will be written in the last sequence (no new sequence)
+        
+        
+        is data is has not been modified it automatically switches to save status flags only
+        
+        as from May 2019 there is a bug in ppfssr so a new ppf will written in either cases.
+        
+
 
         """
 
@@ -2636,7 +2649,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 0 otherwise (success)
         """
 
-        # logger.info("            Saving KG1 workspace to pickle")
+
 
         self.checkStatuFlags()
 
@@ -5004,8 +5017,8 @@ def main():
     # 1366x768 vnc viewer size
     # time.sleep(3.0)
     MainWindow.show()
-    # MainWindow.resize(screenShape.width(), screenShape.height())
-    MainWindow.resize(width, height)
+    MainWindow.resize(screenShape.width(), screenShape.height())
+    # MainWindow.resize(width, height)
     # MainWindow.showMaximized()
     app.exec_()
     pr.disable()

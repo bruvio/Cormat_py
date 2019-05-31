@@ -5,6 +5,7 @@ Classes
    :maxdepth: 4
 
    signal_base
+   signal_kg1
    signal_amp
    kg1_ppf_data
    elms_data

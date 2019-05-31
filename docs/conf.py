@@ -50,7 +50,7 @@ from Cormat_main import __Name__
 from Cormat_main import __maintainer__
 from Cormat_main import __email__
 from Cormat_main import __status__
-from Cormat_main import __credits__
+
 
 #sys.path.append(os.path.join(os.path.dirname(__name__), '..')) 
 # -- General configuration ------------------------------------------------
