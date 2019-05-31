@@ -3749,6 +3749,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         """
         module that neutralises permanent corretions
 
+        first the code will process manual corrections not made permanent yet
+
+        then the code will process automatic corrections produced by hardware and stored inside KG1V/FCx
+
         :return:
         """
 
@@ -3787,69 +3791,54 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if self.data.KG1_data.density[self.chan].corrections.data is None: # if there are no manual corrections (yet) - skip
             self.update_channel(self.chan)
             self.gettotalcorrections()
-            # self.pushButton_undo.clicked.connect(
-            #     self.discard_neutralise_corrections)
-            # self.kb.apply_pressed_signal.disconnect(
-            #     self.neutralisatecorrections)
-            # self.disconnnet_multiplecorrectionpointswidget()
-            #
-            # self.blockSignals(False)
-            # return
+
 
         else:
+            #find time values and indexes of corrections within selected range
             indexes_manual, values_manual = find_within_range(
                 self.data.KG1_data.density[self.chan].corrections.time,
                 min_coord[0], max_coord[0]) # get time data and indexes of manual corrections
             if (not indexes_manual):# if there are no manual correction in the selected interval skip
                 self.update_channel(self.chan)
                 self.gettotalcorrections()
-                # self.pushButton_undo.clicked.connect(
-                #     self.discard_neutralise_corrections)
-                # self.kb.apply_pressed_signal.disconnect(
-                #     self.neutralisatecorrections)
-                # self.disconnnet_multiplecorrectionpointswidget()
-                #
-                # self.blockSignals(False)
-                # return
+
             else:
 
                 if self.data.KG1_data.density[
-                    self.chan].corrections.time is not None:
+                    self.chan].corrections.time is not None: # if there are corrections in that range
 
                     corrections_manual = \
                     self.data.KG1_data.density[self.chan].corrections.data[
                         indexes_manual]
+                    #change sign
                     corrections_manual_inverted = [x * (-1) for x in
                                                    corrections_manual]
 
                     logger.info("applying this neutralaisation at {}".format(
                         corrections_manual_inverted))
 
-
+                    #iterate corrections
                     for i, value in enumerate(values_manual):
-                        # print(i, indexes)
+                        #find times of correction and index inside time vector
                         index, value = find_nearest(time, value)
 
-                        # self.corr_den = int(round(self.data.KG1_data.density[self.chan].corrections.data[i]))
-                        # time_corr =  self.data.KG1_data.density[self.chan].corrections.time[i]
-                        # self.corr_den = -int(round(self.data.KG1_data.fj_dcn[self.chan].data[i]))
                         self.corr_den = int(round(corrections_manual_inverted[i]))
-                        # time_corr =  self.data.KG1_data.fj_dcn[self.chan].time[i]
+
                         time_corr = values_manual[i]
 
 
-                        # index, value = find_nearest(time, time_corr)
+
                         logger.log(5,
                                    " found point where to neutralise correction @t= {} with index {}".format(
                                        value,
                                        index))
-
+                        #apply correction
                         self.data.KG1_data.density[self.chan].correct_fj(
                             self.corr_den * self.data.constants.DFR_DCN, index=index
                         )
 
-                        if int(self.chan) > 4:
-                            if self.chan+4 in self.data.KG1_data.fj_dcn.keys():
+                        if int(self.chan) > 4: #if is a lateral channel
+                            if self.chan+4 in self.data.KG1_data.fj_dcn.keys(): # if there are automatic corrections in the vibration signal
                                 self.corr_vib = int(round(self.data.KG1_data.density[self.chan+4].corrections.data[i]))
                             else:
                                 self.corr_vib = 0
@@ -3904,6 +3893,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
         if self.data.KG1_data.fj_dcn[self.chan].data is None:
+            # if there are not automatic correction updated channel and close event
             self.update_channel(self.chan)
             self.gettotalcorrections()
             self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
@@ -3915,36 +3905,38 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             return
 
         else:
+            #find corrections
             indexes_automatic, values_automatic = find_within_range(
                 self.data.KG1_data.fj_dcn[self.chan].time, min_coord[0],
                 max_coord[0])
             if (not indexes_automatic)  :
+                #if no correction in selected range update and close event
                 self.update_channel(self.chan)
                 self.gettotalcorrections()
-                # self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
-                # self.kb.apply_pressed_signal.disconnect(self.neutralisatecorrections)
-                # self.disconnnet_multiplecorrectionpointswidget()
-                #
-                # self.blockSignals(False)
-                # return
             else:
                 logger.info("automatic correction times {} \n ".format(self.data.KG1_data.fj_dcn[self.chan].time[indexes_automatic]))
                 if self.chan <5:
                     logger.info("automatic correction data {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic]))
                 else:
+                    #if chan+4 is in fj_dcn means there are automatic corrections for vibration channel
                     if self.chan+4 in self.data.KG1_data.fj_dcn.keys():
-                        logger.info("automatic correction data {}, {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic],self.data.KG1_data.fj_dcn[self.chan+4].data[indexes_automatic]))
+                        #find values in range
+                        indexes_automatic_vib, values_automatic_vib = find_within_range(
+                            self.data.KG1_data.fj_dcn[self.chan+4].time,
+                            min_coord[0],
+                            max_coord[0])
+                        logger.info("automatic correction data {}, {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic],self.data.KG1_data.fj_dcn[self.chan+4].data[indexes_automatic_vib]))
                     else:
                         logger.info("automatic correction data {}\n ".format(
                             self.data.KG1_data.fj_dcn[self.chan].data[
                                 indexes_automatic]))
 
-
+                #create lists of corrections
                 corrections = self.data.KG1_data.fj_dcn[self.chan].data[
                     indexes_automatic]
                 if self.chan + 4 in self.data.KG1_data.fj_dcn.keys():
                     corrections_vib = self.data.KG1_data.fj_dcn[self.chan+4].data[
-                    indexes_automatic]
+                        indexes_automatic_vib]
 
                 for i,value in enumerate(corrections):
                     logger.log(5," correction found  @ {}".format(values_automatic[i]))
@@ -3953,29 +3945,37 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 corrections_inverted = [x * (-1) for x in corrections]
                 logger.info("applying this {} neutralisation/s ".format(
                     corrections_inverted))
-
+                # iterate corrections
                 for i, value in enumerate(values_automatic):
-                    # print(i, indexes)
+                    #look inside time array to find index of the correction
                     index, value_found = find_nearest(time, value)
 
-                    # self.corr_den = -int(round(self.data.KG1_data.fj_dcn[self.chan].data[i]))
+
                     self.corr_den = int(round(corrections_inverted[i]))
-                    # time_corr =  self.data.KG1_data.fj_dcn[self.chan].time[i]
+
                     time_corr =  values_automatic[i]
 
 
 
-                    # index, value = find_nearest(time, time_corr)
+
                     logger.log(5,
                                " found point where to neutralise correction @t= {} with index {}".format(value,index))
 
 
-
+                    #for lateral channels
                     if int(self.chan) > 4:
+                        #if there is a vibration automatic correction
                         if self.chan + 4 in self.data.KG1_data.fj_dcn.keys():
-                            self.corr_vib = -int(round(self.data.KG1_data.fj_dcn[self.chan + 4].data[i]))
+                            #iterate vibration correction
+                            for j,value_vib in enumerate(self.data.KG1_data.fj_dcn[self.chan +4].time[indexes_automatic_vib]):
+                                #if time vibration correction is the same
+                                if value == value_vib:
+
+                                    self.corr_vib = -int(round(self.data.KG1_data.fj_dcn[self.chan + 4].data[j]))
+                                else:
+                                    self.corr_vib = 0
                         else:
-                            self.corr_vib = 0
+                                self.corr_vib = 0
 
                         M = self.data.matrix_lat_channels
                         neutralised_correction = M.dot(np.array([self.corr_den, self.corr_vib]))
@@ -3995,11 +3995,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 indexes_automatic = [x + 1 for x in
                                      indexes_automatic]  # first line is kg1 data!
                 for jj, ind in enumerate(reversed(indexes_automatic)):
-                    # print(jj,ind)
+
                     if self.chan == 1:
-                        # del self.ax1.lines[-(len(self.ax1.lines)):-1]
+
                         del self.ax1.lines[ind]
-                        # del self.ax1.lines[1:]
+
                     elif self.chan == 2:
                         del self.ax2.lines[ind]
                     elif self.chan == 3:
@@ -4704,12 +4704,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # as creates a mismatch between times of correction and value of the correction
             # even thought it is the best way to avoid duplicates
             corrections = self.data.KG1_data.density[self.chan].corrections.data[indexes]
-
+            if int(self.chan) > 4:
+                corrections_vib = \
+                self.data.KG1_data.vibration[self.chan].corrections.data[indexes]
             for i, value in enumerate(values):
 
                 index, value = find_nearest(time, value)
 
-                self.corr_den = corrections[i]
+                self.corr_den = int(round(corrections[i]))
                 time_corr =  values[i]
 
 
@@ -4718,9 +4720,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 if int(self.chan) > 4:
                     # logging.warning('assuming mirror correction = 0 !')
-                    self.corr_vib = int(
-                        self.data.KG1_data.vibration[self.chan].corrections.data[
-                            i])
+
+                    self.corr_vib = int(round(corrections_vib[i]))
+
                     M = self.data.matrix_lat_channels
 
                     correction_to_be_restored = M.dot(np.array([self.corr_den,self.corr_vib]))  # get suggested correction by solving linear problem Ax=b
