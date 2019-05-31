@@ -64,6 +64,7 @@ from pycallgraph import PyCallGraph
 from pycallgraph.output import GraphvizOutput
 
 qm = QtGui.QMessageBox
+qm_permanent = QtGui.QMessageBox
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 myself = lambda: inspect.stack()[1][3]
 logger = logging.getLogger(__name__)
@@ -784,7 +785,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         """
         function that convert arg number into tab name
         it also sets the SF value when changing tabs
-        :param arg:
+        :param arg: index of canvas
         :return:
         """
 
@@ -998,7 +999,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
     def set_status_flag_radio(self, value):
         """
         converts status flag integer value into boolean to check SF radio buttons in GUI
-        :param value: status flaf to be applied to selected channel
+        :param value: status flag to be applied to selected channel
         :return:
         """
         if value == 0:
@@ -2962,7 +2963,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
     @QtCore.pyqtSlot()
     def handle_normalizebutton(self):
         """
-        function thtat normalises the second trace to KG1 for comparing purposes during validation and fringe correction
+        function that normalises the second trace to KG1 for comparing purposes during validation and fringe correction
         :return:
         """
 
@@ -3210,47 +3211,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # self.widget_MIR.draw()
             logger.info('signals have been restored')
 
-    # ------------------------
-    # def handle_applybutton(self):
-    #     """
-    #     function that applies correction
-    #
-    #     :return:
-    #     """
-    #     pass
-        # A matrix of possible corrections
-        # We will be correcting the density & vibration, but we need to also keep track of the equivalent
-        # correction in terms of the number of fringes in the DCN & MET phases, since this is required for
-        # the manual validation program.
 
 
 
 
-
-
-
-        # If this is a mirror movement signal, store raw correction
-
-        #     corr_store = corr
-        #
-        #
-        # #
-        # #     # Also store corresponding correction for the DCN & MET lasers (for use with lateral channels only)
-        # #     if corr_dcn is not None:
-        #         self.data.KG1_data.fj_dcn[chan] = np.append(data.KG1_data.fj_met[chan], corr_dcn)
-        #
-        # #     if corr_met is not None:
-        #         self.data.KG1_data.fj_dcn[chan] = np.append(self.data.KG1_data.fj_met[chan], corr_met)
-
-        # self.update_channel(self.chan)
-
-
-
-
-
-
-
-    # # ------------------------
+# # ------------------------
     def handle_makepermbutton(self):
         """
         function that makes permanent last correction
@@ -3305,22 +3270,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
     # --------------------------
     def check_current_tab(self):
         """
-        return current tab
+        returns current tab
         :return: current tab
         """
         return self.QTabWidget.currentWidget()
 
-# --------------------------
-# def keyPressEvent(self,event):
-#     if event.key() not in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
-#          super(Text_Edit, self).keyPressEvent(event)
-#     else:
-#          self.keyPressed.emit(event)
-
 
     def keyPressEvent(self, event):
         """
-        keyboard events that enable actions
+        keyboard events that enable actions are:
+
         . starts single correction mode
         m stats multiple correction mode
         \ starts zeroing
@@ -3594,7 +3553,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         self.blockSignals(False)
 
+        logger.warning(
+            'remember to mark corrections as permanent before proceeding!')
 
+        ret = qm_permanent.question(self, '',
+                          "Mark correction/s as permanent?",
+                                    qm_permanent.Yes | qm_permanent.No)
+
+        if ret == qm_permanent.Yes:
+
+            self.handle_makepermbutton()
+        else:
+            pass
 
 
 # -------------------------------
@@ -3740,7 +3710,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection)
         self.blockSignals(False)
 
+        logger.warning(
+            'remember to mark corrections as permanent before proceeding!')
+        ret = qm_permanent.question(self, '',
+                          "Mark correction/s as permanent?",
+                                    qm_permanent.Yes | qm_permanent.No)
 
+        if ret == qm_permanent.Yes:
+
+            self.handle_makepermbutton()
+        else:
+            pass
 
 
     # -------------------------------
@@ -4026,6 +4006,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.disconnnet_multiplecorrectionpointswidget()
 
         self.blockSignals(False)
+
+        logger.warning('remember to mark corrections as permanent before proceeding!')
+        ret = qm_permanent.question(self, '',
+                          "Mark correction/s as permanent?",
+                                    qm_permanent.Yes | qm_permanent.No)
+
+        if ret == qm_permanent.Yes:
+
+            self.handle_makepermbutton()
+        else:
+            pass
 
     # -------------------------------
     @QtCore.pyqtSlot()
@@ -4439,6 +4430,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
         self.blockSignals(False)
 
+        logger.warning(
+            'remember to mark corrections as permanent before proceeding!')
+
+        ret = qm_permanent.question(self, '',
+                          "Mark correction/s as permanent?",
+                                    qm_permanent.Yes | qm_permanent.No)
+
+        if ret == qm_permanent.Yes:
+
+            self.handle_makepermbutton()
+        else:
+            pass
 
 
     # -------------------------------.
