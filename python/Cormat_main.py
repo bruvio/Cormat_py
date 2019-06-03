@@ -156,6 +156,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.totalcorrections_den =np.empty([7])
             self.totalcorrections_vib =np.empty([7])
 
+            # storing backup of data when zeroing
+            self.data.zeroingbackup_den = []
+            self.data.zeroingbackup_vib = []
+        #
+
 
 
             # -------------------------------
@@ -3594,8 +3599,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         """
 
         # pyqt_set_trace()
-        self.zeroingcorrection_den = []
-        self.zeroingcorrection_vib = []
         self.blockSignals(True) # signals emitted by this object are blocked
         self.gettotalcorrections()
 
@@ -3624,9 +3627,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 diff =  self.data.KG1_data.density[self.chan].data[idx] # difference between two consecutive points
                 zeroing_correction = int(round((diff /self.data.constants.DFR_DCN))) # check if diff is a fringe jump
                 # logger.log(5,'zeroing correction is {}'.format(zeroing_correction))
+                self.data.zeroingbackup_den.append(self.data.KG1_data.density[self.chan].data[idx])
                 self.data.KG1_data.density[self.chan].data[idx] = self.data.KG1_data.density[self.chan].data[idx] - zeroing_correction*self.data.constants.DFR_DCN
 
-                self.zeroingcorrection_den.append(zeroing_correction)
+
 
 
         elif int(self.chan) > 4: # lateral channels
@@ -3644,9 +3648,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 zeroing_den = int((zeroing_correction[0]))
                 zeroing_vib = int((zeroing_correction[1]))
 
-                self.zeroingcorrection_den.append(zeroing_den)
-                self.zeroingcorrection_vib.append(zeroing_vib)
 
+                self.data.zeroingbackup_den.append(
+                    self.data.KG1_data.density[self.chan].data[idx])
+
+                self.data.zeroingbackup_vib.append(
+                    self.data.KG1_data.vibration[self.chan].data[idx])
 
                 self.data.KG1_data.density[self.chan].data[idx]= self.data.KG1_data.density[self.chan].data[idx] - M.dot([zeroing_den,zeroing_vib])[0]
 
@@ -3678,10 +3685,82 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         self.update_channel(self.chan)
         self.gettotalcorrections()
-      # self.pushButton_undo.clicked.connect(self.unzerotail)
+        self.pushButton_undo.clicked.connect(self.unzerotail)
         self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
         self.blockSignals(False)
         return
+
+
+    @QtCore.pyqtSlot()
+    def unzerotail(self):
+
+
+        if str(self.chan).isdigit() == True:
+            chan = int(self.chan)
+            time = self.data.KG1_data.density[chan].time
+            data = self.data.KG1_data.density[chan].data
+
+            coord = self.setcoord(self.chan)
+            if is_empty(coord):
+                logger.error(
+                    'nothing to undo')
+                return
+            else:
+
+                self.setcoord(self.chan,reset=True)
+
+        else:
+            return
+
+        M = self.data.matrix_lat_channels
+        Minv = np.linalg.inv(
+            self.data.matrix_lat_channels)  # invert correction matrix for lateral channels
+        index, value = find_nearest(time, coord[0][0]) #get nearest point close to selected point in the time array
+
+        if int(self.chan) <5: # vertical channels
+            self.data.KG1_data.density[self.chan].data[index:] = self.data.zeroingbackup_den
+
+
+
+
+        elif int(self.chan) > 4: # lateral channels
+                    self.data.KG1_data.density[self.chan].data[index:] = self.data.zeroingbackup_den
+                    self.data.KG1_data.vibration[self.chan].data[index:] = self.data.zeroingbackup_vib
+
+
+
+
+
+
+
+        num_of_correction = 2 # this number is always 2 for single correction mode!
+        if self.chan == 1:
+            del self.ax1.lines[-num_of_correction:]
+
+        elif self.chan == 2:
+            del self.ax2.lines[-num_of_correction:]
+
+        elif self.chan == 3:
+            del self.ax3.lines[-num_of_correction:]
+
+        elif self.chan == 4:
+            del self.ax4.lines[-num_of_correction:]
+
+        elif self.chan == 5:
+            del self.ax5.lines[-num_of_correction:]
+
+        elif self.chan == 6:
+            del self.ax6.lines[-num_of_correction:]
+
+        elif self.chan == 7:
+            del self.ax7.lines[-num_of_correction:]
+
+        elif self.chan == 8:
+            del self.ax8.lines[-num_of_correction:]
+
+        self.update_channel(int(self.chan))
+        self.gettotalcorrections()
+        self.pushButton_undo.clicked.disconnect(self.unzerotail)
 
 
 
