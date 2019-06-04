@@ -62,6 +62,8 @@ import fileinput
 import cProfile, pstats, io
 from pycallgraph import PyCallGraph
 from pycallgraph.output import GraphvizOutput
+import inspect
+
 
 
 qm = QtGui.QMessageBox
@@ -140,6 +142,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.is_dis = {}
             self.data.dis_time = {}
             self.data.LIDAR_data = {}
+
+            #list where storing data point selected by user clicking on canvas
             self.data.coord_ch1 = []
             self.data.coord_ch2 = []
             self.data.coord_ch3 = []
@@ -275,6 +279,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             # matrix for converting DCN & MET signals into density & mirror movement
             self.data.matrix_lat_channels = np.array([[self.data.constants.MAT11 , self.data.constants.MAT12 ],[self.data.constants.MAT21 , self.data.constants.MAT22 ]])
+            self.data.Minv= np.linalg.inv(self.data.matrix_lat_channels)  # invert correction matrix for lateral channels
 
 
             self.data.sign_vib_corr = np.array(np.zeros(self.data.poss_vib_corr.shape) + 1)
@@ -886,23 +891,39 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         """
         if reset is False:
             if str(chan) == '1':
+                logger.log(5, 'no reset, coord_ch1 '.format(self.data.coord_ch1))
                 return self.data.coord_ch1
             elif str(self.chan) == '2':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch2))
                 return self.data.coord_ch2
             elif str(self.chan) == '3':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch3))
                 return self.data.coord_ch3
             elif str(self.chan) == '4':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch4))
                 return self.data.coord_ch4
             elif str(self.chan) == '5':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch5))
                 return self.data.coord_ch5
             elif str(self.chan) == '6':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch6))
                 return self.data.coord_ch6
             elif str(self.chan) == '7':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch7))
                 return self.data.coord_ch7
             elif str(self.chan) == '8':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch8))
                 return self.data.coord_ch8
         elif reset is True and chan =='all':
             #reset all channels
+            logger.log(5, 'reset all ')
             self.data.coord_ch1 = []
             self.data.coord_ch2 = []
             self.data.coord_ch3 = []
@@ -916,21 +937,30 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         elif reset is True:
             #reset single channel
             if str(chan) == '1':
+                logger.log(5, ' reset coord_ch1 ')
                 self.data.coord_ch1 = []
             elif str(chan) == '2':
+                logger.log(5, ' reset coord_ch2 ')
                 self.data.coord_ch2 = []
             elif str(chan) == '3':
+                logger.log(5, ' reset coord_ch3 ')
                 self.data.coord_ch3 = []
             elif str(chan) == '4':
+                logger.log(5, ' reset coord_ch4 ')
                 self.data.coord_ch4 = []
             elif str(chan) == '5':
+                logger.log(5, ' reset coord_ch5 ')
                 self.data.coord_ch5 = []
             elif str(chan) == '6':
+                logger.log(5, ' reset coord_ch6 ')
                 self.data.coord_ch6 = []
             elif str(chan) == '7':
+                logger.log(5, ' reset coord_ch7 ')
                 self.data.coord_ch7 = []
             elif str(chan) == '8':
+                logger.log(5, ' reset coord_ch8 ')
                 self.data.coord_ch8 = []
+
 
 
 # -------------------------
@@ -3603,7 +3633,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         # pyqt_set_trace()
         self.blockSignals(True) # signals emitted by this object are blocked
-        self.gettotalcorrections()
+
 
 
 
@@ -3620,8 +3650,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.blockSignals(False)
             return
         M = self.data.matrix_lat_channels
-        Minv = np.linalg.inv(
-            self.data.matrix_lat_channels)  # invert correction matrix for lateral channels
         index, value = find_nearest(time, coord[0][0]) #get nearest point close to selected point in the time array
 
         if int(self.chan) <5: # vertical channels
@@ -3646,7 +3674,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-                zeroing_correction = Minv.dot(np.array([diff_den, diff_vib])) # get suggested correction by solving linear problem Ax=b
+                zeroing_correction = self.data.Minv.dot(np.array([diff_den, diff_vib])) # get suggested correction by solving linear problem Ax=b
                 zeroing_correction = np.around(zeroing_correction)
                 zeroing_den = int((zeroing_correction[0]))
                 zeroing_vib = int((zeroing_correction[1]))
@@ -3666,7 +3694,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # self.pushButton_undo.clicked.connect(self.unzerotail)
             self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
             self.blockSignals(False)
-            return
+            # return
 
         if coord[0][0] < self.data.xzero_tail:
             self.data.xzero_tail = coord[0][0]
@@ -3675,25 +3703,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-        self.ax1.axvline(x=xc, color='r', linestyle='--')
+            self.ax1.axvline(x=xc, color='r', linestyle='--')
 
-        self.ax2.axvline(x=xc, color='r', linestyle='--')
+            self.ax2.axvline(x=xc, color='r', linestyle='--')
 
-        self.ax3.axvline(x=xc, color='r', linestyle='--')
+            self.ax3.axvline(x=xc, color='r', linestyle='--')
 
-        self.ax4.axvline(x=xc, color='r', linestyle='--')
+            self.ax4.axvline(x=xc, color='r', linestyle='--')
 
-        self.ax5.axvline(x=xc, color='r', linestyle='--')
+            self.ax5.axvline(x=xc, color='r', linestyle='--')
 
-        self.ax6.axvline(x=xc, color='r', linestyle='--')
+            self.ax6.axvline(x=xc, color='r', linestyle='--')
 
-        self.ax7.axvline(x=xc, color='r', linestyle='--')
+            self.ax7.axvline(x=xc, color='r', linestyle='--')
 
-        self.ax8.axvline(x=xc, color='r', linestyle='--')
+            self.ax8.axvline(x=xc, color='r', linestyle='--')
 
 
         self.update_channel(self.chan)
-        self.gettotalcorrections()
+
         self.pushButton_undo.clicked.connect(self.unzerotail)
         self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
         self.blockSignals(False)
@@ -3722,8 +3750,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             return
 
         M = self.data.matrix_lat_channels
-        Minv = np.linalg.inv(
-            self.data.matrix_lat_channels)  # invert correction matrix for lateral channels
         index, value = find_nearest(time, coord[0][0]) #get nearest point close to selected point in the time array
 
         if int(self.chan) <5: # vertical channels
@@ -3783,7 +3809,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         # pyqt_set_trace()
         self.blockSignals(True) # signals emitted by this object are blocked
-        self.gettotalcorrections()
+        # self.gettotalcorrections()
 
 
 
@@ -3801,13 +3827,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.update_channel(self.chan)
             self.pushButton_undo.clicked.connect(self.unzeroinginterval)
             self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
+            self.disconnnet_multiplecorrectionpointswidget()
             self.blockSignals(False)
             return
 
         M = self.data.matrix_lat_channels
-        Minv = np.linalg.inv(
-            self.data.matrix_lat_channels)  # invert correction matrix for lateral channels
-        index_start, value_start = find_nearest(time, coord[0][0]) #get nearest point close to selected point in the time array
+        index_start, value_start = find_nearest(time, coord[0][
+            0])  # get nearest point close to selected point in the time array
         index_stop, value_stop = find_nearest(time, coord[1][0]) #get nearest point close to selected point in the time array
 
         if int(self.chan) <5: # vertical channels
@@ -3818,6 +3844,41 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # logger.log(5,'zeroing correction is {}'.format(zeroing_correction))
                 self.data.zeroingbackup_den.append(self.data.KG1_data.density[self.chan].data[idx])
                 self.data.KG1_data.density[self.chan].data[idx] = self.data.KG1_data.density[self.chan].data[idx] - zeroing_correction*self.data.constants.DFR_DCN
+
+                xc = coord[0][0]
+                xc1 = coord[1][0]
+                # for xc in xposition:
+
+                self.ax1.axvline(x=xc, color='r', linestyle='--')
+                self.ax1.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax1.plot(xc,coord[0][1], 'ro')
+                self.ax2.axvline(x=xc, color='r', linestyle='--')
+                self.ax2.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax2.plot(xc,coord[0][1], 'ro')
+                self.ax3.axvline(x=xc, color='r', linestyle='--')
+                self.ax3.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax3.plot(xc,coord[0][1], 'ro')
+                self.ax4.axvline(x=xc, color='r', linestyle='--')
+                self.ax4.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax4.plot(xc,coord[0][1], 'ro')
+                self.ax5.axvline(x=xc, color='r', linestyle='--')
+                self.ax5.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax5.plot(xc,coord[0][1], 'ro')
+                self.ax6.axvline(x=xc, color='r', linestyle='--')
+                self.ax6.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax6.plot(xc,coord[0][1], 'ro')
+                self.ax7.axvline(x=xc, color='r', linestyle='--')
+                self.ax7.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax7.plot(xc,coord[0][1], 'ro')
+                self.ax8.axvline(x=xc, color='r', linestyle='--')
+                self.ax8.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax8.plot(xc,coord[0][1], 'ro')
+
+                self.update_channel(self.chan)
+                # self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(self.unzeroinginterval)
+                self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
+                self.blockSignals(False)
 
 
 
@@ -3831,7 +3892,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-                zeroing_correction = Minv.dot(np.array([diff_den, diff_vib])) # get suggested correction by solving linear problem Ax=b
+                zeroing_correction = self.data.Minv.dot(np.array([diff_den, diff_vib])) # get suggested correction by solving linear problem Ax=b
                 zeroing_correction = np.around(zeroing_correction)
                 zeroing_den = int((zeroing_correction[0]))
                 zeroing_vib = int((zeroing_correction[1]))
@@ -3846,47 +3907,51 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.KG1_data.density[self.chan].data[idx]= self.data.KG1_data.density[self.chan].data[idx] - M.dot([zeroing_den,zeroing_vib])[0]
 
                 self.data.KG1_data.vibration[self.chan].data[idx] = self.data.KG1_data.vibration[self.chan].data[idx] - M.dot([zeroing_den,zeroing_vib])[1]
+
+                xc = coord[0][0]
+                xc1 = coord[1][0]
+                # for xc in xposition:
+
+                self.ax1.axvline(x=xc, color='r', linestyle='--')
+                self.ax1.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax1.plot(xc,coord[0][1], 'ro')
+                self.ax2.axvline(x=xc, color='r', linestyle='--')
+                self.ax2.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax2.plot(xc,coord[0][1], 'ro')
+                self.ax3.axvline(x=xc, color='r', linestyle='--')
+                self.ax3.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax3.plot(xc,coord[0][1], 'ro')
+                self.ax4.axvline(x=xc, color='r', linestyle='--')
+                self.ax4.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax4.plot(xc,coord[0][1], 'ro')
+                self.ax5.axvline(x=xc, color='r', linestyle='--')
+                self.ax5.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax5.plot(xc,coord[0][1], 'ro')
+                self.ax6.axvline(x=xc, color='r', linestyle='--')
+                self.ax6.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax6.plot(xc,coord[0][1], 'ro')
+                self.ax7.axvline(x=xc, color='r', linestyle='--')
+                self.ax7.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax7.plot(xc,coord[0][1], 'ro')
+                self.ax8.axvline(x=xc, color='r', linestyle='--')
+                self.ax8.axvline(x=xc1, color='r', linestyle='--')
+                # self.ax8.plot(xc,coord[0][1], 'ro')
+
+                self.update_channel(self.chan)
+                # self.gettotalcorrections()
+                self.pushButton_undo.clicked.connect(self.unzeroinginterval)
+                self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
+                self.disconnnet_multiplecorrectionpointswidget()
+                self.blockSignals(False)
         else:
-            self.pushButton_undo.clicked.connect(self.unzerotail)
-            self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
+            self.pushButton_undo.clicked.connect(self.unzeroinginterval)
+            self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
+            self.disconnnet_multiplecorrectionpointswidget()
             self.blockSignals(False)
-            return
 
-        xc = coord[0][0]
-        xc1= coord[1][0]
-        # for xc in xposition:
 
-        self.ax1.axvline(x=xc, color='r', linestyle='--')
-        self.ax1.axvline(x=xc1, color='r', linestyle='--')
-        # self.ax1.plot(xc,coord[0][1], 'ro')
-        self.ax2.axvline(x=xc, color='r', linestyle='--')
-        self.ax2.axvline(x=xc1, color='r', linestyle='--')
-        # self.ax2.plot(xc,coord[0][1], 'ro')
-        self.ax3.axvline(x=xc, color='r', linestyle='--')
-        self.ax3.axvline(x=xc1, color='r', linestyle='--')
-        # self.ax3.plot(xc,coord[0][1], 'ro')
-        self.ax4.axvline(x=xc, color='r', linestyle='--')
-        self.ax4.axvline(x=xc1, color='r', linestyle='--')
-        # self.ax4.plot(xc,coord[0][1], 'ro')
-        self.ax5.axvline(x=xc, color='r', linestyle='--')
-        self.ax5.axvline(x=xc1, color='r', linestyle='--')
-        # self.ax5.plot(xc,coord[0][1], 'ro')
-        self.ax6.axvline(x=xc, color='r', linestyle='--')
-        self.ax6.axvline(x=xc1, color='r', linestyle='--')
-        # self.ax6.plot(xc,coord[0][1], 'ro')
-        self.ax7.axvline(x=xc, color='r', linestyle='--')
-        self.ax7.axvline(x=xc1, color='r', linestyle='--')
-        # self.ax7.plot(xc,coord[0][1], 'ro')
-        self.ax8.axvline(x=xc, color='r', linestyle='--')
-        self.ax8.axvline(x=xc1, color='r', linestyle='--')
-        # self.ax8.plot(xc,coord[0][1], 'ro')
 
-        self.update_channel(self.chan)
-        self.gettotalcorrections()
-        self.pushButton_undo.clicked.connect(self.unzeroinginterval)
-        self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
-        self.blockSignals(False)
-        return
+        # return
 
 
 #------------------------
@@ -3904,9 +3969,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.error(
                     'nothing to undo')
                 return
-            else:
+            # else:
 
-                self.setcoord(self.chan, reset=True)
+                # self.setcoord(self.chan, reset=True)
 
         else:
             return
@@ -3915,208 +3980,84 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             0])  # get nearest point close to selected point in the time array
         index_stop, value_stop = find_nearest(time, coord[1][
             0])  # get nearest point close to selected point in the time array
+        try:
+            if int(self.chan) < 5:  # vertical channels
+                self.data.KG1_data.density[self.chan].data[index_start:index_stop] = self.data.zeroingbackup_den
+                self.data.zeroingbackup_den = []
 
-        if int(self.chan) < 5:  # vertical channels
-            self.data.KG1_data.density[self.chan].data[index_start:index_stop] = self.data.zeroingbackup_den
-            self.data.zeroingbackup_den = []
+                num_of_correction = 2  # removing last line
+                if self.chan == 1:
+                    del self.ax1.lines[-num_of_correction:]
 
+                elif self.chan == 2:
+                    del self.ax2.lines[-num_of_correction:]
 
+                elif self.chan == 3:
+                    del self.ax3.lines[-num_of_correction:]
 
-        elif int(self.chan) > 4:  # lateral channels
-            self.data.KG1_data.density[self.chan].data[
-            index_start:index_stop] = self.data.zeroingbackup_den
-            self.data.KG1_data.vibration[self.chan].data[
-            index_start:index_stop] = self.data.zeroingbackup_vib
+                elif self.chan == 4:
+                    del self.ax4.lines[-num_of_correction:]
 
-            self.data.zeroingbackup_den = []
-            self.data.zeroingbackup_vib = []
+                elif self.chan == 5:
+                    del self.ax5.lines[-num_of_correction:]
 
-        num_of_correction = 2  # removing last line
-        if self.chan == 1:
-            del self.ax1.lines[-num_of_correction:]
+                elif self.chan == 6:
+                    del self.ax6.lines[-num_of_correction:]
 
-        elif self.chan == 2:
-            del self.ax2.lines[-num_of_correction:]
+                elif self.chan == 7:
+                    del self.ax7.lines[-num_of_correction:]
 
-        elif self.chan == 3:
-            del self.ax3.lines[-num_of_correction:]
+                elif self.chan == 8:
+                    del self.ax8.lines[-num_of_correction:]
 
-        elif self.chan == 4:
-            del self.ax4.lines[-num_of_correction:]
-
-        elif self.chan == 5:
-            del self.ax5.lines[-num_of_correction:]
-
-        elif self.chan == 6:
-            del self.ax6.lines[-num_of_correction:]
-
-        elif self.chan == 7:
-            del self.ax7.lines[-num_of_correction:]
-
-        elif self.chan == 8:
-            del self.ax8.lines[-num_of_correction:]
-
-        self.update_channel(int(self.chan))
-        self.gettotalcorrections()
-        self.pushButton_undo.clicked.disconnect(self.unzerotail)
-
-    #     @QtCore.pyqtSlot()
-#     def zeroingtail(self):
-#         """
-#         this module zeroes correction on selected channel
-#
-#         :return:
-#         """
-#
-#         # pyqt_set_trace()
-#
-#         self.blockSignals(True) # signals emitted by this object are blocked
-#         self.gettotalcorrections()
-#
-#
-#
-#         total_den= int(self.lineEdit_totcorr.text().split(",")[0])
-#         logger.info('applying this correction {} to zero total corrections'.format(
-#                 (total_den)))
-#         if str(self.chan).isdigit() == True:
-#             self.chan = int(self.chan)
-#             time = self.data.KG1_data.density[self.chan].time
-#             data = self.data.KG1_data.density[self.chan].data
-#             coord = self.setcoord(self.chan) # get point selected from canvas
-#         else:
-#             self.update_channel(self.chan)
-#             # self.pushButton_undo.clicked.connect(self.unzerotail)
-#             self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
-#             self.blockSignals(False)
-#             return
-#         if int(self.chan) <5:
-#             try:
-#                 self.corr_den = -int(total_den) * self.data.constants.DFR_DCN # convert fringe jump into density
-#             except ValueError: #check if self.coor_den is a number
-#                 logger.error('use numerical values')
-#                 self.lineEdit_totcorr.setText("")
-#                 self.update_channel(self.chan) #update data and canvas
-#                 logger.info('applying this correction {} '.format(
-#                     (total_den)))
-#
-#                 # self.pushButton_undo.disconnect()
-#                 self.gettotalcorrections() # compute total correction
-#                 # self.pushButton_undo.clicked.connect(self.unzerotail) # connect undo button to slot to undo single correction
-#                 self.kb.apply_pressed_signal.disconnect(self.zeroingtail) # disconnect slot
-#                 self.blockSignals(False)
-#                 return
-#         elif  int(self.chan) > 4:
-#
-#             try:
-#                 self.corr_den = -int(self.lineEdit_mancorr.text().split(",")[0])
-#                 self.corr_vib = -int(self.lineEdit_mancorr.text().split(",")[1])
-#
-#                 corrections = self.data.matrix_lat_channels.dot([self.corr_den, self.corr_vib])
-#                 self.corr_den = corrections[0]
-#                 self.corr_vib = corrections[1]
-#
-#             except IndexError:
-#                 logger.warning('no vibration correction')
-#                 self.lineEdit_totcorr.setText("")
-#                 self.update_channel(self.chan)
-#                 logger.info('applying this correction {} '.format(
-#                     (self.lineEdit_totcorr.text())))
-#
-#                 # self.pushButton_undo.disconnect()
-#                 self.gettotalcorrections()
-#                 # self.pushButton_undo.clicked.connect(self.unzerotail)
-#                 self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
-#                 self.blockSignals(False)
-#                 return
-#             except ValueError:
-#                 logger.error('use numerical values')
-#                 self.lineEdit_totcorr.setText("")
-#                 self.update_channel(self.chan)
-#                 logger.info('applying this correction {} '.format(
-#                     (self.lineEdit_totcorr.text())))
-#
-#                 # self.pushButton_undo.disconnect()
-#                 self.gettotalcorrections()
-#                 # self.pushButton_undo.clicked.connect(self.unzerotail)
-#                 self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
-#                 self.blockSignals(False)
-#                 return
-#
-#
-#
-#         index, value = find_nearest(time, coord[0][0]) # finds nearest data point to selected point on canvas
-#
-#         self.data.KG1_data.density[self.chan].correct_fj(
-#             self.corr_den , index=index) # correct data
-#
-#         if self.data.KG1_data.density[self.chan].corrections is not None:
-#
-#
-#             xc = coord[0][0]
-#             # for xc in xposition:
-#
-#             self.ax1.axvline(x=xc, color='r', linestyle='--')
-#             self.ax1.plot(xc,coord[0][1], 'ro')
-#             self.ax2.axvline(x=xc, color='r', linestyle='--')
-#             self.ax2.plot(xc,coord[0][1], 'ro')
-#             self.ax3.axvline(x=xc, color='r', linestyle='--')
-#             self.ax3.plot(xc,coord[0][1], 'ro')
-#             self.ax4.axvline(x=xc, color='r', linestyle='--')
-#             self.ax4.plot(xc,coord[0][1], 'ro')
-#             self.ax5.axvline(x=xc, color='r', linestyle='--')
-#             self.ax5.plot(xc,coord[0][1], 'ro')
-#             self.ax6.axvline(x=xc, color='r', linestyle='--')
-#             self.ax6.plot(xc,coord[0][1], 'ro')
-#             self.ax7.axvline(x=xc, color='r', linestyle='--')
-#             self.ax7.plot(xc,coord[0][1], 'ro')
-#             self.ax8.axvline(x=xc, color='r', linestyle='--')
-#             self.ax8.plot(xc,coord[0][1], 'ro')
-#
-#
-#         if int(self.chan) > 4:
-#             try:
-#                 self.data.KG1_data.vibration[self.chan].correct_fj(
-#                     self.corr_vib ,
-#                     time=value)
-#
-#
-#             except AttributeError:
-#                 logger.error('insert a correction for the mirror')
-#                 self.update_channel(self.chan)
-#                 logger.info('applying this correction {} '.format(
-#                     (self.lineEdit_totcorr.text())))
-#
-#                 # self.pushButton_undo.disconnect()
-#                 self.gettotalcorrections()
-#                 # self.pushButton_undo.clicked.connect(self.unzerotail)
-#                 self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
-#                 self.blockSignals(False)
-#                 return
-#         self.update_channel(self.chan)
-#         logger.info('applied this correction {} '.format(
-#             (self.lineEdit_totcorr.text())))
-#
-#         # self.pushButton_undo.disconnect()
-#         self.gettotalcorrections()
-#         # self.pushButton_undo.clicked.connect(self.unzerotail)
-#         self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
-#         self.blockSignals(False)
-#
-#         logger.warning(
-#             'remember to mark corrections as permanent before proceeding!')
-#         ret = qm_permanent.question(self, '',
-#                           "Mark correction/s as permanent?",
-#                                     qm_permanent.Yes | qm_permanent.No)
-#
-#         if ret == qm_permanent.Yes:
-#
-#             self.handle_makepermbutton()
-#             self.gettotalcorrections()
-#         else:
-#             pass
+                self.update_channel(int(self.chan))
+                # self.gettotalcorrections()
+                self.pushButton_undo.clicked.disconnect(self.unzeroinginterval)
 
 
-    # -------------------------------
+
+            elif int(self.chan) > 4:  # lateral channels
+                self.data.KG1_data.density[self.chan].data[
+                index_start:index_stop] = self.data.zeroingbackup_den
+                self.data.KG1_data.vibration[self.chan].data[
+                index_start:index_stop] = self.data.zeroingbackup_vib
+
+                self.data.zeroingbackup_den = []
+                self.data.zeroingbackup_vib = []
+
+                num_of_correction = 2  # removing last line
+                if self.chan == 1:
+                    del self.ax1.lines[-num_of_correction:]
+
+                elif self.chan == 2:
+                    del self.ax2.lines[-num_of_correction:]
+
+                elif self.chan == 3:
+                    del self.ax3.lines[-num_of_correction:]
+
+                elif self.chan == 4:
+                    del self.ax4.lines[-num_of_correction:]
+
+                elif self.chan == 5:
+                    del self.ax5.lines[-num_of_correction:]
+
+                elif self.chan == 6:
+                    del self.ax6.lines[-num_of_correction:]
+
+                elif self.chan == 7:
+                    del self.ax7.lines[-num_of_correction:]
+
+                elif self.chan == 8:
+                    del self.ax8.lines[-num_of_correction:]
+
+                self.update_channel(int(self.chan))
+                # self.gettotalcorrections()
+                self.pushButton_undo.clicked.disconnect(self.unzeroinginterval)
+        except:
+            logger.error('error in '.format(inspect.currentframe()))
+
+
+
     @QtCore.pyqtSlot()
     def neutralisatecorrections(self):
         """
@@ -4440,9 +4381,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-                    Minv = np.linalg.inv(self.data.matrix_lat_channels) # invert correction matrix for lateral channels
 
-                    suggest_correction = Minv.dot(np.array([diff_den, diff_vib])) # get suggested correction by solving linear problem Ax=b
+
+                    suggest_correction = self.data.Minv.dot(np.array([diff_den, diff_vib])) # get suggested correction by solving linear problem Ax=b
                     suggest_correction = np.around(suggest_correction)
                     suggested_den = int((suggest_correction[0]))
                     suggested_vib = int((suggest_correction[1]))
@@ -5407,8 +5348,8 @@ def main():
     # 1366x768 vnc viewer size
     # time.sleep(3.0)
     MainWindow.show()
-    MainWindow.resize(screenShape.width(), screenShape.height())
-    # MainWindow.resize(width, height)
+    # MainWindow.resize(screenShape.width(), screenShape.height())
+    MainWindow.resize(width, height)
     # MainWindow.showMaximized()
     app.exec_()
     pr.disable()
