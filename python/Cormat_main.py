@@ -7,7 +7,7 @@ Class that runs CORMAT_py GUI
 # ----------------------------
 __author__ = "Bruno Viola"
 __Name__ = "CORMAT_py"
-__version__ = "0.14"
+__version__ = "0.15"
 __release__ = "0"
 __maintainer__ = "Bruno Viola"
 __email__ = "bruno.viola@ukaea.uk"
@@ -3709,6 +3709,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         """
         this module zeroes correction on selected channel
 
+        Permanent corrections will be generated and take effect such that all data points in the interval t>t1 are put as close to zero as possible and the sum of corrections is 0.
+
+
+
+        if user is unsatisfied it can be called again to amend previous tail point
+
+
+        red line will appear on all 8 tabs to show starting point of zeroed data
+
+        ::todo: remove vertical lines indicating correction in the zeroed window
+        ::todo: on other channels must appear smallest t1
+
         :return:
 
         """
@@ -3857,6 +3869,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 # -------------------------------
     @QtCore.pyqtSlot()
     def unzerotail(self):
+        """
+        once user has set a point to zero tail of data. action can be undo
+
+        This module restores data before zeroing of tail was invoked
+
+        works only after a tail event
+
+
+        :return:
+        """
 
 
         if str(self.chan).isdigit() == True:
@@ -3938,7 +3960,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # -------------------------------
 
         """
-        this module zeroes correction on selected channel inside a chosen interval
+        this module zeroes data on selected channel inside a chosen interval
+
+        Permanent corrections will be generated and take effect such that all data points in the interval t2<t>t1 are put as close to zero as possible and the sum of corrections is 0.
+
+        it is possible to zero multiple interval
+
+        undo button click will undo just last action (i.e. last zeroed interval)
+
+        ::todo: remove vertical lines indicating correction in the zeroed window
+        ::todo: on other channels must appear smallest t1 and largest t2
+
 
         :return:
         """
@@ -4104,7 +4136,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
     # -------------------------------
     @QtCore.pyqtSlot()
     def unzeroinginterval(self):
+
         """
+        once user has zeroed an interval of data. action can be undo
+
+        works only after a zeroing interval event
 
         :return:
         """
