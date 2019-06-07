@@ -1087,6 +1087,21 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         logger.log(5, 'data saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
 
 
+    def load_scratch(self):
+        """
+        reloads data dumped to scratch
+
+        :return:
+        """
+        logger.debug(' loading pulse data')
+        with open('./scratch/kg1_data.pkl',
+                  'rb') as f:  # Python 3: open(..., 'rb')
+            [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
+             self.read_uid] = pickle.load(f)
+        f.close()
+        logger.info(' workspace loaded')
+
+
     # ------------------------
     def load_pickle(self):
         """
@@ -1171,7 +1186,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :param folder:
         :return:
         """
-        logger.info(' saving KG1 data to {}'.format(folder))
+        logger.debug(' saving KG1 data to {}'.format(folder))
         with open('./' + folder + '/kg1_data.pkl', 'wb') as f:
             pickle.dump(
                 [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
@@ -3786,8 +3801,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     self.ax8.axvline(x=xc, color='r', linestyle='--')
 
-                self.update_channel(self.chan)
 
+                self.remove_corrections_while_zeroing(self.chan, index_start=self.data.tail_index, index_stop=None)
+                self.update_channel(self.chan)
                 self.pushButton_undo.clicked.connect(self.unzerotail)
                 self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
                 self.blockSignals(False)
@@ -3843,8 +3859,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     self.ax8.axvline(x=xc, color='r', linestyle='--')
 
-                self.update_channel(self.chan)
 
+                self.remove_corrections_while_zeroing(self.chan, index_start=self.data.tail_index, index_stop=None)
+                self.update_channel(self.chan)
                 self.pushButton_undo.clicked.connect(self.unzerotail)
                 self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
                 self.blockSignals(False)
@@ -3945,6 +3962,170 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             return
 
 
+#--------------------------
+    @QtCore.pyqtSlot()
+    def remove_corrections_while_zeroing(self, chan, index_start, index_stop=None):
+        """
+        function that deals with removing the corrections (permanent and non) from the interval where zeroing is being applyed
+
+        data is dumped to a pickle file for easy restore in case the zeroing will be undo by user
+
+
+
+
+        :param index_start: starting index of zeroing
+        :param index_stop: ending index of zeroing (if None is end of data)
+        :return: deletes corrections inside given interval
+        """
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+        ax_name = 'ax' + str(chan)
+
+        # dump KG1 data to pickle file so I can restore data easily
+        # self.save_kg1('scratch')
+
+        # now I convert the index in a time value
+        start_time = self.data.KG1_data.density[chan].time[index_start]
+        if index_stop is None:
+            stop_time = self.data.KG1_data.density[chan].time[-1]
+        else:
+            stop_time = self.data.KG1_data.density[chan].time[index_stop]
+
+        # first looking at user corrections (not saved as permanent)
+        if self.data.KG1_data.density[
+            chan].corrections.data is None:  # if there are no manual corrections (yet) - skip
+            logger.debug('no manual corrections at all!')
+
+
+        else:
+            # now looking for the index of the correction
+            ind_corr_start, value_start = find_nearest(
+                self.data.KG1_data.density[chan].corrections.time, start_time)
+            ind_corr_stop, value_stop = find_nearest(
+                self.data.KG1_data.density[chan].corrections.time, stop_time)
+
+            # find time values and indexes of corrections within selected range
+            indexes_manual, values_manual = find_within_range(
+                self.data.KG1_data.density[chan].corrections.time,
+                start_time,
+                stop_time)  # get time data and indexes of manual corrections
+            if (
+                    not indexes_manual):  # if there are no manual correction in the selected interval skip
+
+                logger.debug(
+                    'no manual corrections inside selected zeroing interval')
+
+            else:
+                logger.debug('found manual corrections inside interval')
+
+                if int(chan) <= 4:
+                    self.data.KG1_data.density[
+                        chan].corrections.data = np.delete(
+                        self.data.KG1_data.density[chan].corrections.data,
+                        indexes_manual)
+                    self.data.KG1_data.density[
+                        chan].corrections.time = np.delete(
+                        self.data.KG1_data.density[chan].corrections.time,
+                        indexes_manual)
+                else:
+                    self.data.KG1_data.density[
+                        chan].corrections.data = np.delete(
+                        self.data.KG1_data.density[chan].corrections.data,
+                        indexes_manual)
+                    self.data.KG1_data.density[
+                        chan].corrections.time = np.delete(
+                        self.data.KG1_data.density[chan].corrections.time,
+                        indexes_manual)
+
+                    self.data.KG1_data.density[
+                        chan].corrections.data = np.delete(
+                        self.data.KG1_data.vibration[chan].corrections.data,
+                        indexes_manual)
+                    self.data.KG1_data.density[
+                        chan].corrections.time = np.delete(
+                        self.data.KG1_data.vibration[chan].corrections.time,
+                        indexes_manual)
+
+                num_of_correction = 1  # removing last line
+
+                for i, line in enumerate(vars()[ax_name].lines):
+                    for j, value in enumerate(values_manual):
+                        if line.get_xydata()[0][0] == value:
+                            del vars()[ax_name].lines[i]
+
+        # now looking at permanent correction and intershot corrections
+        # first looking at user corrections (not saved as permanent)
+        if self.data.KG1_data.fj_dcn[
+            chan].data is None:  # if there are no manual corrections (yet) - skip
+            logger.debug('no intershot corrections at all!')
+
+
+        else:
+            # now looking for the index of the correction
+            ind_corr_start, value_start = find_nearest(
+                self.data.KG1_data.fj_dcn[chan].time, start_time)
+            ind_corr_stop, value_stop = find_nearest(
+                self.data.KG1_data.fj_dcn[chan].time, stop_time)
+            # find time values and indexes of corrections within selected range
+            indexes_automatic, values_automatic = find_within_range(
+                self.data.KG1_data.fj_dcn[chan].time,
+                start_time,
+                stop_time)  # get time data and indexes of intershot corrections
+            if (
+                    not indexes_automatic):  # if there are no intershot correction in the selected interval skip
+
+                logger.debug(
+                    'no intershot corrections inside selected zeroing interval')
+
+            else:
+                logger.debug('found intershot corrections inside interval')
+                # for ind_corr in range(ind_corr_start, ind_corr_stop):
+                if int(chan) <= 4:
+                    self.data.KG1_data.fj_dcn[
+                        chan].data = np.delete(
+                        self.data.KG1_data.fj_dcn[chan].data,
+                        indexes_automatic)
+                    self.data.KG1_data.fj_dcn[
+                        chan].time = np.delete(
+                        self.data.KG1_data.fj_dcn[chan].time,
+                        indexes_automatic)
+                else:
+                    self.data.KG1_data.fj_dcn[
+                        chan].data = np.delete(
+                        self.data.KG1_data.fj_dcn[chan].data,
+                        indexes_automatic)
+                    self.data.KG1_data.fj_dcn[
+                        chan].time = np.delete(
+                        self.data.KG1_data.fj_dcn[chan].time,
+                        indexes_automatic)
+                    if chan + 4 in self.data.KG1_data.fj_dcn.keys():
+                        self.data.KG1_data.fj_dcn[
+                            chan + 4].data = np.delete(
+                            self.data.KG1_data.fj_dcn[
+                                chan + 4].data,
+                            indexes_automatic)
+                        self.data.KG1_data.fj_dcn[
+                            chan + 4].time = np.delete(
+                            self.data.KG1_data.fj_dcn[
+                                chan + 4].time,
+                            indexes_automatic)
+                tstep = np.mean(np.diff(self.data.KG1_data.density[chan].time))
+                for i, line in enumerate(vars()[ax_name].lines):
+                    logger.log(5, "evaluating line @ {}s".format(
+                        line.get_xydata()[0][0]))
+                    for j, value in enumerate(values_automatic):
+
+                        # if abs(line.get_xydata()[0][0] > value)<tstep:
+                        if ((line.get_xydata()[0][0] > start_time) & (line.get_xydata()[0][0] <= stop_time)):
+                            logger.log(5," removing line @ {}s".format(value))
+                            del vars()[ax_name].lines[i]
 
 # -------------------------------
     @QtCore.pyqtSlot()
@@ -4044,8 +4225,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.ax8.axvline(x=xc1, color='r', linestyle='--')
             # self.ax8.plot(xc,coord[0][1], 'ro')
 
-            self.update_channel(self.chan)
+
             # self.gettotalcorrections()
+            self.remove_corrections_while_zeroing(self.chan, index_start=self.data.zeroing_start, index_stop=self.data.zeroing_stop)
+            self.update_channel(self.chan)
             self.pushButton_undo.clicked.connect(self.unzeroinginterval)
             self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
             self.blockSignals(False)
@@ -4107,8 +4290,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.ax8.axvline(x=xc1, color='r', linestyle='--')
             # self.ax8.plot(xc,coord[0][1], 'ro')
 
-            self.update_channel(self.chan)
+
             # self.gettotalcorrections()
+            self.remove_corrections_while_zeroing(self.chan, index_start=self.data.zeroing_start, index_stop=self.data.zeroing_stop)
+            self.update_channel(self.chan)
             self.pushButton_undo.clicked.connect(self.unzeroinginterval)
             self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
             self.disconnnet_multiplecorrectionpointswidget()
