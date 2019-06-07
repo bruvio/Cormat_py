@@ -3638,7 +3638,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 # # -------------------------------
     @QtCore.pyqtSlot()
-    def changezerotail(self, lid, vib, index):
+    def changezerotail(self, chan,lid, vib, index):
         """
         this function enables the user to change the start time of zeroing of the
         tail of the data
@@ -3659,8 +3659,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         ax6 = self.ax6
         ax7 = self.ax7
         ax8 = self.ax8
-        if int(self.chan) < 5:  # vertical channels
-            self.data.KG1_data.density[self.chan].data[
+        if int(chan) < 5:  # vertical channels
+            self.data.KG1_data.density[chan].data[
             index:] = lid
             self.data.zeroingbackup_den = []
 
@@ -3674,18 +3674,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         del vars()[ax_name].lines[i]
 
 
-            self.data.zeroed[self.chan] = False
-            self.update_channel(int(self.chan))
+            self.data.zeroed[chan] = False
+            self.update_channel(int(chan))
 
 
 
 
 
 
-        elif int(self.chan) > 4:  # lateral channels
-            self.data.KG1_data.density[self.chan].data[
+        elif int(chan) > 4:  # lateral channels
+            self.data.KG1_data.density[chan].data[
             index:] = lid
-            self.data.KG1_data.vibration[self.chan].data[
+            self.data.KG1_data.vibration[chan].data[
             index:] = vib
             self.data.zeroingbackup_den = []
             self.data.zeroingbackup_vib = []
@@ -3698,8 +3698,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         del vars()[ax_name].lines[i]
 
 
-            self.data.zeroed[self.chan] = False
-            self.update_channel(int(self.chan))
+            self.data.zeroed[chan] = False
+            self.update_channel(int(chan))
 
 
 
@@ -3728,7 +3728,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # pyqt_set_trace()
         self.blockSignals(True) # signals emitted by this object are blocked
 
-
+        # self.data.zeroingbackup_den = []
 
 
 
@@ -3745,7 +3745,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             if self.data.zeroed[self.chan]:
                 if coord[0][0] != self.data.xzero_tail: # check if you point for zeroing if smaller than previous
-                    self.changezerotail(lid=self.data.zeroingbackup_den,vib = None,index=self.data.tail_index)
+                    self.changezerotail(self.chan,lid=self.data.zeroingbackup_den,vib = None,index=self.data.tail_index)
             self.data.tail_index = index  # index of the point where zeroing is applied
             self.data.xzero_tail = coord[0][0]
 
@@ -3880,6 +3880,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :return:
         """
 
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
 
         if str(self.chan).isdigit() == True:
             chan = int(self.chan)
@@ -3902,8 +3910,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             if int(self.chan) < 5:  # vertical channels
                 self.data.KG1_data.density[self.chan].data[
-                index:] = self.data.zeroingbackup_den
+                self.data.tail_index:] = self.data.zeroingbackup_den
                 self.data.zeroingbackup_den = []
+
 
 
 
@@ -3919,31 +3928,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.zeroingbackup_vib = []
 
             num_of_correction = 1  # removing last line
-            if self.chan == 1:
-                del self.ax1.lines[-num_of_correction:]
+            for chan in self.data.KG1_data.density.keys():
+                ax_name = 'ax' + str(chan)
+                for i, line in enumerate(vars()[ax_name].lines):
+                    if line.get_xydata()[0][0] == self.data.xzero_tail:
+                        del vars()[ax_name].lines[i]
 
-            elif self.chan == 2:
-                del self.ax2.lines[-num_of_correction:]
 
-            elif self.chan == 3:
-                del self.ax3.lines[-num_of_correction:]
-
-            elif self.chan == 4:
-                del self.ax4.lines[-num_of_correction:]
-
-            elif self.chan == 5:
-                del self.ax5.lines[-num_of_correction:]
-
-            elif self.chan == 6:
-                del self.ax6.lines[-num_of_correction:]
-
-            elif self.chan == 7:
-                del self.ax7.lines[-num_of_correction:]
-
-            elif self.chan == 8:
-                del self.ax8.lines[-num_of_correction:]
-
-            self.data.zeroed[self.chan] = True
+            self.data.zeroed[self.chan] = False
             self.update_channel(int(self.chan))
             self.gettotalcorrections()
             self.pushButton_undo.clicked.disconnect(self.unzerotail)
@@ -4172,29 +4164,29 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.zeroingbackup_den = []
 
                 num_of_correction = 2  # removing last line
-                if self.chan == 1:
-                    del self.ax1.lines[-num_of_correction:]
 
-                elif self.chan == 2:
-                    del self.ax2.lines[-num_of_correction:]
+                del self.ax1.lines[-num_of_correction:]
 
-                elif self.chan == 3:
-                    del self.ax3.lines[-num_of_correction:]
 
-                elif self.chan == 4:
-                    del self.ax4.lines[-num_of_correction:]
+                del self.ax2.lines[-num_of_correction:]
 
-                elif self.chan == 5:
-                    del self.ax5.lines[-num_of_correction:]
 
-                elif self.chan == 6:
-                    del self.ax6.lines[-num_of_correction:]
+                del self.ax3.lines[-num_of_correction:]
 
-                elif self.chan == 7:
-                    del self.ax7.lines[-num_of_correction:]
 
-                elif self.chan == 8:
-                    del self.ax8.lines[-num_of_correction:]
+                del self.ax4.lines[-num_of_correction:]
+
+
+                del self.ax5.lines[-num_of_correction:]
+
+
+                del self.ax6.lines[-num_of_correction:]
+
+
+                del self.ax7.lines[-num_of_correction:]
+
+
+                del self.ax8.lines[-num_of_correction:]
 
                 self.update_channel(int(self.chan))
                 self.setcoord(self.chan, reset=True)
