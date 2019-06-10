@@ -1103,61 +1103,71 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
     # ------------------------
-    def load_pickle(self):
+    def load_pickle(self,kg1only=False):
         """
         loads last saved data from non saved operations
         data are saved in pickle format (binary)
 
         also to be used when reloading a pulse
         """
-        logger.info(' loading pulse data from workspace')
-        # Python 3: open(..., 'rb')
-        with open('./saved/data.pkl',
-                  'rb') as f:
-            [self.data.pulse, self.data.KG1_data,
-             self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
-             self.data.ELM_data, self.data.HRTS_data,
-             self.data.NBI_data, self.data.is_dis, self.data.dis_time,
-             self.data.LIDAR_data] = pickle.load(f)
-        f.close()
-        with open('./scratch/kg1_data.pkl',
-                  'rb') as f:  # Python 3: open(..., 'rb')
-            [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
-             self.read_uid] = pickle.load(f)
-        f.close()
-        logger.info(' workspace loaded')
-        logger.info(
-            ' workspace data comes from userid {}'.format(self.read_uid))
-        logger.info(
-            '{} has the following SF {}'.format(str(self.data.pulse), self.data.SF_list))
-        if self.data.KG1_data.mode != "Automatic Corrections":
-            self.data.KG1_data.correctedby = self.data.KG1_data.mode.split(" ")[2]
-            logger.info('{} last validated seq is {} by {}'.format(str(self.data.pulse),
-                                                                    str(self.data.val_seq),self.data.KG1_data.correctedby))
+        if kg1only is False:
 
-        [self.data.SF_ch1,
-         self.data.SF_ch2,
-         self.data.SF_ch3,
-         self.data.SF_ch4,
-         self.data.SF_ch5,
-         self.data.SF_ch6,
-         self.data.SF_ch7,
-         self.data.SF_ch8] = self.data.SF_list
+            logger.info(' loading pulse data from workspace')
+            # Python 3: open(..., 'rb')
+            with open('./saved/data.pkl',
+                      'rb') as f:
+                [self.data.pulse, self.data.KG1_data,
+                 self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
+                 self.data.ELM_data, self.data.HRTS_data,
+                 self.data.NBI_data, self.data.is_dis, self.data.dis_time,
+                 self.data.LIDAR_data] = pickle.load(f)
+            f.close()
+            with open('./scratch/kg1_data.pkl',
+                      'rb') as f:  # Python 3: open(..., 'rb')
+                [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
+                 self.read_uid] = pickle.load(f)
+            f.close()
+            logger.info(' workspace loaded')
+            logger.info(
+                ' workspace data comes from userid {}'.format(self.read_uid))
+            logger.info(
+                '{} has the following SF {}'.format(str(self.data.pulse), self.data.SF_list))
+            if self.data.KG1_data.mode != "Automatic Corrections":
+                self.data.KG1_data.correctedby = self.data.KG1_data.mode.split(" ")[2]
+                logger.info('{} last validated seq is {} by {}'.format(str(self.data.pulse),
+                                                                        str(self.data.val_seq),self.data.KG1_data.correctedby))
 
-        self.data.SF_old1 = self.data.SF_ch1
-        self.data.SF_old2 = self.data.SF_ch2
-        self.data.SF_old3 = self.data.SF_ch3
-        self.data.SF_old4 = self.data.SF_ch4
-        self.data.SF_old5 = self.data.SF_ch5
-        self.data.SF_old6 = self.data.SF_ch6
-        self.data.SF_old7 = self.data.SF_ch7
-        self.data.SF_old8 = self.data.SF_ch8
+            [self.data.SF_ch1,
+             self.data.SF_ch2,
+             self.data.SF_ch3,
+             self.data.SF_ch4,
+             self.data.SF_ch5,
+             self.data.SF_ch6,
+             self.data.SF_ch7,
+             self.data.SF_ch8] = self.data.SF_list
 
-        # set saved status to False
-        self.data.saved = False
-        self.data.data_changed = False
-        self.data.statusflag_changed = False
-        logger.log(5, "load_pickle - saved is {} - data changed is {} - status flags changed is {}".format(self.data.saved,self.data.data_changed, self.data.statusflag_changed))
+            self.data.SF_old1 = self.data.SF_ch1
+            self.data.SF_old2 = self.data.SF_ch2
+            self.data.SF_old3 = self.data.SF_ch3
+            self.data.SF_old4 = self.data.SF_ch4
+            self.data.SF_old5 = self.data.SF_ch5
+            self.data.SF_old6 = self.data.SF_ch6
+            self.data.SF_old7 = self.data.SF_ch7
+            self.data.SF_old8 = self.data.SF_ch8
+
+            # set saved status to False
+            self.data.saved = False
+            self.data.data_changed = False
+            self.data.statusflag_changed = False
+            logger.log(5, "load_pickle - saved is {} - data changed is {} - status flags changed is {}".format(self.data.saved,self.data.data_changed, self.data.statusflag_changed))
+        else:
+            logger.log(5,'recovering KG1 data only')
+            with open('./scratch/kg1_data.pkl',
+                      'rb') as f:  # Python 3: open(..., 'rb')
+                [dummy, _, _, _,
+                 _] = pickle.load(f)
+            self.data.KG1_data.fj_dcn = dummy.fj_dcn
+            f.close()
 
 
 
@@ -3733,12 +3743,24 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         red line will appear on all 8 tabs to show starting point of zeroed data
 
-        ::todo: remove vertical lines indicating correction in the zeroed window
+
         ::todo: on other channels must appear smallest t1
 
         :return:
 
         """
+        # dump KG1 data to pickle file so I can restore data easily
+        self.save_kg1('scratch')
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+        ax_name = 'ax' + str(self.chan)
 
         # pyqt_set_trace()
         self.blockSignals(True) # signals emitted by this object are blocked
@@ -3779,7 +3801,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.data.KG1_data.density[self.chan].data[idx] = \
                     self.data.KG1_data.density[self.chan].data[
                         idx] - zeroing_correction * self.data.constants.DFR_DCN
-                        
+
+                self.remove_corrections_while_zeroing(self.chan,
+                                                      index_start=self.data.tail_index,
+                                                      index_stop=None)
+
                 if coord[0][0] <= self.data.xzero_tail:
                     self.data.xzero_tail = coord[0][0]
                     xc = self.data.xzero_tail
@@ -3802,7 +3828,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.ax8.axvline(x=xc, color='r', linestyle='--')
 
 
-                self.remove_corrections_while_zeroing(self.chan, index_start=self.data.tail_index, index_stop=None)
+
                 self.update_channel(self.chan)
                 self.pushButton_undo.clicked.connect(self.unzerotail)
                 self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
@@ -3839,6 +3865,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.data.KG1_data.vibration[self.chan].data[idx] - \
                     M.dot([zeroing_den, zeroing_vib])[1]
 
+                self.remove_corrections_while_zeroing(self.chan,
+                                                      index_start=self.data.tail_index,
+                                                      index_stop=None)
+
                 if coord[0][0] <= self.data.xzero_tail:
                     self.data.xzero_tail = coord[0][0]
                     xc = self.data.xzero_tail
@@ -3860,7 +3890,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.ax8.axvline(x=xc, color='r', linestyle='--')
 
 
-                self.remove_corrections_while_zeroing(self.chan, index_start=self.data.tail_index, index_stop=None)
+
                 self.update_channel(self.chan)
                 self.pushButton_undo.clicked.connect(self.unzerotail)
                 self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
@@ -3906,6 +3936,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         ax7 = self.ax7
         ax8 = self.ax8
 
+
         if str(self.chan).isdigit() == True:
             chan = int(self.chan)
             time = self.data.KG1_data.density[chan].time
@@ -3944,13 +3975,23 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.zeroingbackup_den = []
                 self.data.zeroingbackup_vib = []
 
-            num_of_correction = 1  # removing last line
+            #removing zeroing red line
+
             for chan in self.data.KG1_data.density.keys():
                 ax_name = 'ax' + str(chan)
                 for i, line in enumerate(vars()[ax_name].lines):
                     if line.get_xydata()[0][0] == self.data.xzero_tail:
                         del vars()[ax_name].lines[i]
 
+
+            #restoring intershot correction markers
+            self.load_pickle(kg1only=True)
+            ax_name = 'ax' + str(self.chan)
+
+
+            for i, xc in enumerate(self.data.KG1_data.fj_dcn[self.chan].time):
+                if xc >= self.data.xzero_tail:
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
             self.data.zeroed[self.chan] = False
             self.update_channel(int(self.chan))
@@ -3988,8 +4029,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         ax_name = 'ax' + str(chan)
 
-        # dump KG1 data to pickle file so I can restore data easily
-        # self.save_kg1('scratch')
+        tstep = np.mean(
+            np.diff(self.data.KG1_data.density[chan].time))
+
 
         # now I convert the index in a time value
         start_time = self.data.KG1_data.density[chan].time[index_start]
@@ -4005,6 +4047,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
         else:
+            linestoberemoved = []
             # now looking for the index of the correction
             ind_corr_start, value_start = find_nearest(
                 self.data.KG1_data.density[chan].corrections.time, start_time)
@@ -4054,20 +4097,50 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         indexes_manual)
 
                 num_of_correction = 1  # removing last line
+                for j, value in enumerate(values_manual):
+                    for i, line in enumerate(vars()[ax_name].lines):
+                            logger.log(5, "evaluating line @ {}s".format(
+                            line.get_xydata()[0][0]))
 
-                for i, line in enumerate(vars()[ax_name].lines):
-                    for j, value in enumerate(values_manual):
-                        if line.get_xydata()[0][0] == value:
-                            del vars()[ax_name].lines[i]
+
+                        # if abs(line.get_xydata()[i][0] > value)<tstep:
+                            if ((line.get_xydata()[0][0] > start_time) & (line.get_xydata()[0][0] <= stop_time)):
+                                logger.log(5," removing line @ {}s".format(value))
+                                # del vars()[ax_name].lines[i]
+                                #
+                                # if abs(line.get_xydata()[0][0] - value) < tstep:
+                                #     logger.log(5,
+                                #                " removing line @ {}s".format(value))
+                                linestoberemoved.append(i)
+                dummy=set(linestoberemoved)
+                linestoberemoved = list(dummy)
+                for x in reversed(linestoberemoved):
+                        del vars()[ax_name].lines[x]
+                # for i, line in enumerate(vars()[ax_name].lines):
+                #     for j, value in enumerate(values_manual):
+                #         if line.get_xydata()[0][0] == value:
+                #             del vars()[ax_name].lines[i]
+
+
+                # for i, line in enumerate(vars()[ax_name].lines):
+                #     logger.log(5, "evaluating line @ {}s".format(
+                #         line.get_xydata()[0][0]))
+                #     for j, value in enumerate(values_manual):
+                #
+                #         # if abs(line.get_xydata()[i][0] > value)<tstep:
+                #         if ((line.get_xydata()[0][0] > start_time) & (line.get_xydata()[0][0] <= stop_time)):
+                #             logger.log(5," removing line @ {}s".format(value))
+                #             del vars()[ax_name].lines[i]
 
         # now looking at permanent correction and intershot corrections
         # first looking at user corrections (not saved as permanent)
-        if self.data.KG1_data.fj_dcn[
-            chan].data is None:  # if there are no manual corrections (yet) - skip
-            logger.debug('no intershot corrections at all!')
+        # if self.data.KG1_data.fj_dcn[chan].data is None:  # if there are no manual corrections (yet) - skip
+        if chan not in self.data.KG1_data.fj_dcn.keys() :
+                logger.debug('no intershot corrections at all!')
 
 
         else:
+            linestoberemoved = []
             # now looking for the index of the correction
             ind_corr_start, value_start = find_nearest(
                 self.data.KG1_data.fj_dcn[chan].time, start_time)
@@ -4116,18 +4189,27 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                             self.data.KG1_data.fj_dcn[
                                 chan + 4].time,
                             indexes_automatic)
-                tstep = np.mean(np.diff(self.data.KG1_data.density[chan].time))
-                for i, line in enumerate(vars()[ax_name].lines):
-                    logger.log(5, "evaluating line @ {}s".format(
-                        line.get_xydata()[0][0]))
-                    for j, value in enumerate(values_automatic):
 
-                        # if abs(line.get_xydata()[0][0] > value)<tstep:
-                        if ((line.get_xydata()[0][0] > start_time) & (line.get_xydata()[0][0] <= stop_time)):
-                            logger.log(5," removing line @ {}s".format(value))
-                            del vars()[ax_name].lines[i]
+                for j, value in enumerate(values_automatic):
+                    for i, line in enumerate(vars()[ax_name].lines):
+                            logger.log(5, "evaluating line @ {}s".format(
+                            line.get_xydata()[0][0]))
 
-# -------------------------------
+
+                        # if abs(line.get_xydata()[i][0] > value)<tstep:
+                            if ((line.get_xydata()[0][0] > start_time) & (line.get_xydata()[0][0] <= stop_time)):
+                                logger.log(5," removing line @ {}s".format(value))
+                                # del vars()[ax_name].lines[i]
+                                #
+                                # if abs(line.get_xydata()[0][0] - value) < tstep:
+                                #     logger.log(5,
+                                #                " removing line @ {}s".format(value))
+                                linestoberemoved.append(i)
+                dummy=set(linestoberemoved)
+                linestoberemoved = list(dummy)
+                for x in reversed(linestoberemoved):
+                        del vars()[ax_name].lines[x]
+    # -------------------------------
     @QtCore.pyqtSlot()
     def zeroinginterval(self):
         # -------------------------------
@@ -4141,7 +4223,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         undo button click will undo just last action (i.e. last zeroed interval)
 
-        ::todo: remove vertical lines indicating correction in the zeroed window
+
         ::todo: on other channels must appear smallest t1 and largest t2
 
 
@@ -4187,6 +4269,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.data.zeroing_start = index_start
         self.data.zeroing_stop = index_stop
 
+
         if int(self.chan) <5: # vertical channels
             for idx in range(index_start,index_stop):
 
@@ -4195,6 +4278,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # logger.log(5,'zeroing correction is {}'.format(zeroing_correction))
                 self.data.zeroingbackup_den.append(self.data.KG1_data.density[self.chan].data[idx])
                 self.data.KG1_data.density[self.chan].data[idx] = self.data.KG1_data.density[self.chan].data[idx] - zeroing_correction*self.data.constants.DFR_DCN
+            self.remove_corrections_while_zeroing(self.chan,
+                                                  index_start=self.data.zeroing_start,
+                                                  index_stop=self.data.zeroing_stop)
 
             xc = min_coord[0]
             xc1 = max_coord[0]
@@ -4227,7 +4313,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
             # self.gettotalcorrections()
-            self.remove_corrections_while_zeroing(self.chan, index_start=self.data.zeroing_start, index_stop=self.data.zeroing_stop)
+
             self.update_channel(self.chan)
             self.pushButton_undo.clicked.connect(self.unzeroinginterval)
             self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
@@ -4261,6 +4347,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 self.data.KG1_data.vibration[self.chan].data[idx] = self.data.KG1_data.vibration[self.chan].data[idx] - M.dot([zeroing_den,zeroing_vib])[1]
 
+            self.remove_corrections_while_zeroing(self.chan,
+                                                  index_start=self.data.zeroing_start,
+                                                  index_stop=self.data.zeroing_stop)
+
             xc = min_coord[0]
             xc1 = max_coord[0]
             # for xc in xposition:
@@ -4292,7 +4382,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
             # self.gettotalcorrections()
-            self.remove_corrections_while_zeroing(self.chan, index_start=self.data.zeroing_start, index_stop=self.data.zeroing_stop)
+
             self.update_channel(self.chan)
             self.pushButton_undo.clicked.connect(self.unzeroinginterval)
             self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
@@ -4322,6 +4412,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :return:
         """
 
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+
+
 
         self.blockSignals(True)
         if str(self.chan).isdigit() == True:
@@ -4340,85 +4441,88 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         min_coord = min(coord)
         max_coord = max(coord)
-
+        tstep = np.mean(
+            np.diff(self.data.KG1_data.density[self.chan].time))
         index_start, value_start = find_nearest(time, min_coord[0])  # get nearest point close to selected point in the time array
         index_stop, value_stop = find_nearest(time, max_coord[0]) #get nearest point close to selected point in the time array
-        try:
-            if int(self.chan) < 5:  # vertical channels
-                self.data.KG1_data.density[self.chan].data[self.data.zeroing_start:self.data.zeroing_stop] = self.data.zeroingbackup_den
-                self.data.zeroingbackup_den = []
-
-                num_of_correction = 2  # removing last line
-
-                del self.ax1.lines[-num_of_correction:]
+        # try:
+        if int(self.chan) < 5:  # vertical channels
+            self.data.KG1_data.density[self.chan].data[self.data.zeroing_start:self.data.zeroing_stop] = self.data.zeroingbackup_den
+            self.data.zeroingbackup_den = []
 
 
-                del self.ax2.lines[-num_of_correction:]
+            # removing zeroing red line
+            linestoberemoved = []
+            ax_name = 'ax' + str(self.chan)
+            for chan in self.data.KG1_data.density.keys():
+                logger.log(5,'removing red lines from channel {}'.format(chan))
+                ax_name = 'ax' + str(chan)
+                for i, line in enumerate(vars()[ax_name].lines):
+
+                    if abs(line.get_xydata()[0][0] - value_start) < tstep:
+                        linestoberemoved.append(i)
+                    elif abs(line.get_xydata()[0][0] - value_stop) < tstep :
+                        linestoberemoved.append(i)
+                for x in reversed(linestoberemoved):
+                    del vars()[ax_name].lines[x]
+                linestoberemoved = []
 
 
-                del self.ax3.lines[-num_of_correction:]
+            self.load_pickle(kg1only=True)
+
+            ax_name = 'ax' + str(self.chan)
+            for i, xc in enumerate(
+                    self.data.KG1_data.fj_dcn[self.chan].time):
+                if ((xc >= value_start) &  (xc<=value_stop)):
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
 
-                del self.ax4.lines[-num_of_correction:]
 
-
-                del self.ax5.lines[-num_of_correction:]
-
-
-                del self.ax6.lines[-num_of_correction:]
-
-
-                del self.ax7.lines[-num_of_correction:]
-
-
-                del self.ax8.lines[-num_of_correction:]
-
-                self.update_channel(int(self.chan))
-                self.setcoord(self.chan, reset=True)
-                self.pushButton_undo.clicked.disconnect(self.unzeroinginterval)
-                self.blockSignals(False)
-
-
-            elif int(self.chan) > 4:  # lateral channels
-                self.data.KG1_data.density[self.chan].data[self.data.zeroing_start:self.data.zeroing_stop] = self.data.zeroingbackup_den
-                self.data.KG1_data.vibration[self.chan].data[self.data.zeroing_start:self.data.zeroing_stop] = self.data.zeroingbackup_vib
-
-                self.data.zeroingbackup_den = []
-                self.data.zeroingbackup_vib = []
-
-                num_of_correction = 2  # removing last line
-                if self.chan == 1:
-                    del self.ax1.lines[-num_of_correction:]
-
-                elif self.chan == 2:
-                    del self.ax2.lines[-num_of_correction:]
-
-                elif self.chan == 3:
-                    del self.ax3.lines[-num_of_correction:]
-
-                elif self.chan == 4:
-                    del self.ax4.lines[-num_of_correction:]
-
-                elif self.chan == 5:
-                    del self.ax5.lines[-num_of_correction:]
-
-                elif self.chan == 6:
-                    del self.ax6.lines[-num_of_correction:]
-
-                elif self.chan == 7:
-                    del self.ax7.lines[-num_of_correction:]
-
-                elif self.chan == 8:
-                    del self.ax8.lines[-num_of_correction:]
-
-                self.update_channel(int(self.chan))
-                self.setcoord(self.chan, reset=True)
-                self.pushButton_undo.clicked.disconnect(self.unzeroinginterval)
-                self.blockSignals(False)
-        except:
-            # logger.error('error in '.format(inspect.currentframe()))
-            logger.error('error in '.format(sys._getframe(1)))
+            self.update_channel(int(self.chan))
+            self.setcoord(self.chan, reset=True)
+            self.pushButton_undo.clicked.disconnect(self.unzeroinginterval)
             self.blockSignals(False)
+
+
+        elif int(self.chan) > 4:  # lateral channels
+            self.data.KG1_data.density[self.chan].data[self.data.zeroing_start:self.data.zeroing_stop] = self.data.zeroingbackup_den
+            self.data.KG1_data.vibration[self.chan].data[self.data.zeroing_start:self.data.zeroing_stop] = self.data.zeroingbackup_vib
+
+            self.data.zeroingbackup_den = []
+            self.data.zeroingbackup_vib = []
+
+
+            # removing zeroing red line
+            linestoberemoved = []
+            ax_name = 'ax' + str(self.chan)
+            for chan in self.data.KG1_data.density.keys():
+                ax_name = 'ax' + str(chan)
+                for i, line in enumerate(vars()[ax_name].lines):
+
+                    if abs(line.get_xydata()[0][0] - value_start) < tstep:
+                        linestoberemoved.append(i)
+                    elif abs(line.get_xydata()[0][0] - value_stop) < tstep:
+                        linestoberemoved.append(i)
+                for x in reversed(linestoberemoved):
+                    del vars()[ax_name].lines[x]
+                linestoberemoved = []
+
+            self.load_pickle(kg1only=True)
+
+            ax_name = 'ax' + str(self.chan)
+            for i, xc in enumerate(
+                    self.data.KG1_data.fj_dcn[self.chan].time):
+                if ((xc >= value_start) &  (xc<=value_stop)):
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+
+            self.update_channel(int(self.chan))
+            self.setcoord(self.chan, reset=True)
+            self.pushButton_undo.clicked.disconnect(self.unzeroinginterval)
+            self.blockSignals(False)
+        # except:
+        #     # logger.error('error in '.format(inspect.currentframe()))
+        #     logger.error('error in '.format(sys._getframe(1)))
+        #     self.blockSignals(False)
 
 
 
@@ -5293,6 +5397,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         before it is permanently applied
         :return:
         """
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+        ax_name = 'ax' + str(self.chan)
 
         if str(self.chan).isdigit() == True:
             chan = int(self.chan)
@@ -5325,30 +5439,46 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             vibration.uncorrect_fj(
                 self.corr_vib , index=index)
-        num_of_correction = 2 # this number is always 2 for single correction mode!
-        if self.chan == 1:
-            del self.ax1.lines[-num_of_correction:]
 
-        elif self.chan == 2:
-            del self.ax2.lines[-num_of_correction:]
 
-        elif self.chan == 3:
-            del self.ax3.lines[-num_of_correction:]
+        tstep = np.mean(np.diff(self.data.KG1_data.density[chan].time))
+        linestoberemoved=[]
 
-        elif self.chan == 4:
-            del self.ax4.lines[-num_of_correction:]
+        for i, line in enumerate(vars()[ax_name].lines):
+            logger.log(5, "checking line {} @ {}".format(i,line.get_xydata()[0][0]))
+            if abs(line.get_xydata()[0][0] - value)<tstep:
+                    logger.log(5, " removing line @ {}s".format(value))
+                    linestoberemoved.append(i)
+        for x in reversed(linestoberemoved):
+            del vars()[ax_name].lines[x]
 
-        elif self.chan == 5:
-            del self.ax5.lines[-num_of_correction:]
 
-        elif self.chan == 6:
-            del self.ax6.lines[-num_of_correction:]
 
-        elif self.chan == 7:
-            del self.ax7.lines[-num_of_correction:]
 
-        elif self.chan == 8:
-            del self.ax8.lines[-num_of_correction:]
+
+        # if self.chan == 1:
+        #     del self.ax1.lines[-num_of_correction:]
+        #
+        # elif self.chan == 2:
+        #     del self.ax2.lines[-num_of_correction:]
+        #
+        # elif self.chan == 3:
+        #     del self.ax3.lines[-num_of_correction:]
+        #
+        # elif self.chan == 4:
+        #     del self.ax4.lines[-num_of_correction:]
+        #
+        # elif self.chan == 5:
+        #     del self.ax5.lines[-num_of_correction:]
+        #
+        # elif self.chan == 6:
+        #     del self.ax6.lines[-num_of_correction:]
+        #
+        # elif self.chan == 7:
+        #     del self.ax7.lines[-num_of_correction:]
+        #
+        # elif self.chan == 8:
+        #     del self.ax8.lines[-num_of_correction:]
 
         self.update_channel(int(self.chan))
         self.gettotalcorrections()
@@ -5484,6 +5614,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         :return:
         """
+
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+        ax_name = 'ax' + str(self.chan)
+
         if str(self.chan).isdigit() == True:
             chan = int(self.chan)
             time = self.data.KG1_data.density[chan].time
@@ -5515,30 +5657,42 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 vibration.uncorrect_fj(
                     self.corr_vib , index=index)
-        num_of_correction = 2*len(coord)  # this number is always 2 for single correction mode!
-        if self.chan == 1:
-            del self.ax1.lines[-num_of_correction:]
+        # num_of_correction = 2*len(coord)  # this number is always 2 for single correction mode!
+        # if self.chan == 1:
+        #     del self.ax1.lines[-num_of_correction:]
+        #
+        # elif self.chan == 2:
+        #     del self.ax2.lines[-num_of_correction:]
+        #
+        # elif self.chan == 3:
+        #     del self.ax3.lines[-num_of_correction:]
+        #
+        # elif self.chan == 4:
+        #     del self.ax4.lines[-num_of_correction:]
+        #
+        # elif self.chan == 5:
+        #     del self.ax5.lines[-num_of_correction:]
+        #
+        # elif self.chan == 6:
+        #     del self.ax6.lines[-num_of_correction:]
+        #
+        # elif self.chan == 7:
+        #     del self.ax7.lines[-num_of_correction:]
+        #
+        # elif self.chan == 8:
+        #     del self.ax8.lines[-num_of_correction:]
+        #
+        tstep = np.mean(np.diff(self.data.KG1_data.density[chan].time))
+        linestoberemoved=[]
+        for j, value in enumerate(coord):
+            for i, line in enumerate(vars()[ax_name].lines):
+                logger.log(5, "checking line {} @ {}".format(i,line.get_xydata()[0][0]))
+                if abs(line.get_xydata()[0][0] - value[0])<tstep:
+                        logger.log(5, " removing line @ {}s".format(value))
+                        linestoberemoved.append(i)
+        for x in reversed(linestoberemoved):
+            del vars()[ax_name].lines[x]
 
-        elif self.chan == 2:
-            del self.ax2.lines[-num_of_correction:]
-
-        elif self.chan == 3:
-            del self.ax3.lines[-num_of_correction:]
-
-        elif self.chan == 4:
-            del self.ax4.lines[-num_of_correction:]
-
-        elif self.chan == 5:
-            del self.ax5.lines[-num_of_correction:]
-
-        elif self.chan == 6:
-            del self.ax6.lines[-num_of_correction:]
-
-        elif self.chan == 7:
-            del self.ax7.lines[-num_of_correction:]
-
-        elif self.chan == 8:
-            del self.ax8.lines[-num_of_correction:]
 
         self.update_channel(int(self.chan))
         self.gettotalcorrections()
