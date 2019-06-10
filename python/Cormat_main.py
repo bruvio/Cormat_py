@@ -169,7 +169,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.tail_index = []
 
             #
-            self.data.zeroing_start = []
+            self.data.zeroing_start = [] 
             self.data.zeroing_stop = []
             #
             self.data.zeroed = np.zeros(8, dtype=bool) # array that stores info is channel has been tail zeroed
@@ -3988,10 +3988,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.load_pickle(kg1only=True)
             ax_name = 'ax' + str(self.chan)
 
-
-            for i, xc in enumerate(self.data.KG1_data.fj_dcn[self.chan].time):
-                if xc >= self.data.xzero_tail:
-                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            if self.chan in self.data.KG1_data.fj_dcn:
+                for i, xc in enumerate(self.data.KG1_data.fj_dcn[self.chan].time):
+                    if xc >= self.data.xzero_tail:
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
             self.data.zeroed[self.chan] = False
             self.update_channel(int(self.chan))
@@ -4471,10 +4471,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.load_pickle(kg1only=True)
 
             ax_name = 'ax' + str(self.chan)
-            for i, xc in enumerate(
-                    self.data.KG1_data.fj_dcn[self.chan].time):
-                if ((xc >= value_start) &  (xc<=value_stop)):
-                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            if self.chan in self.data.KG1_data.fj_dcn:
+                for i, xc in enumerate(
+                        self.data.KG1_data.fj_dcn[self.chan].time):
+                    if ((xc >= value_start) &  (xc<=value_stop)):
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
 
 
@@ -4510,10 +4511,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.load_pickle(kg1only=True)
 
             ax_name = 'ax' + str(self.chan)
-            for i, xc in enumerate(
-                    self.data.KG1_data.fj_dcn[self.chan].time):
-                if ((xc >= value_start) &  (xc<=value_stop)):
-                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            if self.chan in self.data.KG1_data.fj_dcn:
+                for i, xc in enumerate(
+                        self.data.KG1_data.fj_dcn[self.chan].time):
+                    if ((xc >= value_start) &  (xc<=value_stop)):
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
             self.update_channel(int(self.chan))
             self.setcoord(self.chan, reset=True)
