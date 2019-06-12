@@ -344,7 +344,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # list of the second trace signal use to be compared with KG1
             # -------------------------------
             othersignallist = ['None', 'HRTS', 'Lidar', 'BremS', 'Far', 'CM',
-                               'KG1_RT']
+                               'KG1_RT','LID1','LID2','LID3','LID4','LID5','LID6','LID7','LID8']
+
             self.comboBox_2ndtrace.addItems(othersignallist)
             self.comboBox_2ndtrace.activated[str].connect(self.plot_2nd_trace)
             # -------------------------------
@@ -1974,6 +1975,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # self.data.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
         self.blockSignals(True)
         self.comboBox_markers.setCurrentIndex(0)
+
+
+
+
+
         self.data.secondtrace_original = {}
         self.data.secondtrace_norm = {}
 
@@ -2254,7 +2260,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         # self.data.secondtrace_norm[chan].data = norm(
                         #     self.data.KG1_data.kg1rt[chan].data)
                         self.data.secondtrace_norm[chan].data = normalise(
-                            self.data.KG1_data.kg1rt[chan], self.data.HRTS_data.density[chan],
+                            self.data.KG1_data.kg1rt[chan], self.data.KG1_data.density[chan],
                             self.data.dis_time)
 
                         vars()[ax_name].plot(self.data.KG1_data.kg1rt[chan].time,
@@ -2263,8 +2269,42 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         vars()[ax_name].legend()
 
 
+        elif self.data.s2ndtrace[0:3] == 'LID':
+            chan = int(self.data.s2ndtrace[-1])
+            name = 'Lid ch.' + str(chan)
+            for channel in self.data.KG1_data.density.keys():
 
-        if self.data.s2ndtrace == 'BremS':
+                ax_name = 'ax' + str(channel)
+
+
+                self.data.secondtrace_original[channel] = SignalBase(
+                    self.data.constants)
+                self.data.secondtrace_norm[channel] = SignalBase(self.data.constants)
+
+                self.data.secondtrace_original[channel].time = \
+                self.data.KG1_data.density[
+                    chan].time
+                self.data.secondtrace_original[channel].data = \
+                self.data.KG1_data.density[
+                    chan].data
+                # self.data.secondtrace_norm[chan].data = norm(
+                #     self.data.KG1_data.kg1rt[chan].data)
+                self.data.secondtrace_norm[channel].data = normalise(
+                    self.data.KG1_data.density[chan],
+                    self.data.KG1_data.density[channel],
+                    self.data.dis_time)
+
+                vars()[ax_name].plot(self.data.KG1_data.density[chan].time,
+                                     self.data.KG1_data.density[chan].data,
+                                     label=name, marker='o', color='cyan')
+                vars()[ax_name].legend()
+
+                vars()[ax_name].autoscale(enable=True,axis='y',tight=False)
+
+
+
+
+        elif self.data.s2ndtrace == 'BremS':
             logging.error('not implemented yet')
 
 
@@ -3142,6 +3182,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 color = 'brown'
             if self.data.s2ndtrace == 'BremS':
                 color = 'grey'
+            if self.data.s2ndtrace[0:3] == 'LID':
+                color = 'cyan'
+
 
             # for every channel in KG1 (8 channels)
 
@@ -3155,13 +3198,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                      linestyle='None')
                 vars()[ax_name].legend()
 
-                name = self.data.s2ndtrace + ' ch.' + str(chan)
+                if self.data.s2ndtrace[0:3] == 'LID':
+                    name = self.data.s2ndtrace
+                else:
+                    name = self.data.s2ndtrace + ' ch.' + str(chan)
                 vars()[ax_name].plot(self.data.secondtrace_original[chan].time,
                                      self.data.secondtrace_norm[chan].data,
                                      label=name, marker='o',
                                      color=color)
                 vars()[ax_name].legend()
-                # self.widget_LID1.draw()
+
 
                 if chan > 4:
                     # channels 5-8 have mirror movement
