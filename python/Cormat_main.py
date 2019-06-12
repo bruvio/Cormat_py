@@ -3761,9 +3761,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # self.data.xzero_tail = coord[0][0]
 
 
-            for chan in self.data.KG1_data.density.keys():
+            for ch in self.data.KG1_data.density.keys():
                 ax_name = 'ax' + str(self.chan)
-                if chan == self.chan:
+                if ch == self.chan:
                     for i, line in enumerate(vars()[ax_name].lines):
                         if line.get_xydata()[0][0] == self.data.xzero_tail:
                             del vars()[ax_name].lines[i]
@@ -3901,7 +3901,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     if chan == self.chan:
                         vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
                     else:
-                        vars()[ax_name].axvline(x=xc, color='r', linestyle='--',linewidth=0.25)
+                        # vars()[ax_name].axvline(x=xc, color='r', linestyle='--',linewidth=0.25)
                         xc= self.data.KG1_data.density[self.chan].time[self.data.zeroing_start_min]
                         vars()[ax_name].axvline(x=xc, color='r',
                                                   linestyle='--',linewidth=0.25)
@@ -4221,6 +4221,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if chan not in self.data.KG1_data.fj_dcn.keys() :
                 logger.debug('no intershot corrections at all!')
 
+        elif self.data.KG1_data.fj_dcn[chan].time.size ==0:
+            logger.debug('no intershot corrections at all!')
 
         else:
             linestoberemoved = []
