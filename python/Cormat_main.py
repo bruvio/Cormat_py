@@ -2581,11 +2581,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     for vert in [self.data.MAG_data.start_ip, self.data.MAG_data.end_ip]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
-                                                linewidth=2, color="red")
+                                                linewidth=2, color="red",label='Ip')
                     for vert in [self.data.MAG_data.start_flattop,
                                  self.data.MAG_data.end_flattop]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
-                                                linewidth=2, color="green")
+                                                linewidth=2, color="green",label='flat-top')
+
+                    vars()[ax_name].axvline(x= self.data.dis_time, ymin=0, ymax=1,
+                                                linewidth=2, color="brown",label='disruption time')
             else:
                 logger.info('No MAGNETICs marker')
 
@@ -3572,7 +3575,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 self.blockSignals(False)
                 return
-            if suggested_den != self.corr_den:
+            if int(suggested_den) != int(self.corr_den):
                 logger.warning('suggested correction is different, do you wish to use it?')
                 # qm.setDetailedText("suggested correction is "+str(suggested_den))
                 ret = qm.question(self, '',
@@ -3628,7 +3631,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 self.blockSignals(False)
                 return
-            if (suggested_den != self.corr_den) & suggested_vib != self.corr_vib:
+            if (int(suggested_den) != int(self.corr_den)) & (int(suggested_vib) != int(self.corr_vib)):
                 logger.warning('suggested correction is different, do you wish to use it?')
                 ret = qm.question(self, '',
                                   "suggested correction is different: " + str(
@@ -4122,7 +4125,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if self.data.KG1_data.density[
             chan].corrections.data is None:  # if there are no manual corrections (yet) - skip
             logger.debug('no manual corrections at all!')
-
+        elif self.data.KG1_data.density[
+            chan].corrections.data.size==0:
+            logger.debug('no manual corrections at all!')
 
         else:
             linestoberemoved = []
@@ -5086,6 +5091,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 #temporary (not marked as permanent) corrections set by user during validation
                 if self.data.KG1_data.density[chan].corrections.data is None:
                     total = 0
+                elif self.data.KG1_data.density[chan].corrections.data.size==0:
+                    total = 0
+
                     # self.totalcorrections_den[chan]= total
                 else:
                     total = int(round(np.sum(self.data.KG1_data.density[chan].corrections.data)))
@@ -5093,6 +5101,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 if chan in self.data.KG1_data.fj_dcn.keys():
                     if self.data.KG1_data.fj_dcn[chan].data is None:
+                        total_dcn = 0
+                    elif self.data.KG1_data.fj_dcn[chan].data.size==0:
                         total_dcn = 0
                         # self.totalcorrections_den_dcn[chan]= total_dcn
                     else:
@@ -5111,11 +5121,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             if chan > 4:
                 if self.data.KG1_data.density[chan].corrections.data is None:
                     total1 = 0
+                elif self.data.KG1_data.density[chan].corrections.data.size==0:
+                    total1 = 0
                     # self.totalcorrections_den_dcn[chan] = total1
                 else:
                     total1 = int(round(np.sum(self.data.KG1_data.density[chan].corrections.data)))
                     # self.totalcorrections_den_dcn[chan] = total1
                 if self.data.KG1_data.vibration[chan].corrections.data is None:
+                    total2 = 0
+                elif self.data.KG1_data.vibration[chan].corrections.data.size==0:
                     total2 = 0
                     # self.totalcorrections_vib_dcn[chan] = total2
                 else:
@@ -5209,7 +5223,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.kb.apply_pressed_signal.disconnect(self.singlecorrection) # disconnect slot
                 self.blockSignals(False)
                 return
-            if suggested_den != self.corr_den:
+            if (int(suggested_den) != int(self.corr_den)):
                 logger.warning('suggested correction is different, do you wish to use it?')
                 ret = qm.question(self,'', "suggested correction is different: " +str(suggested_den)+"\n  Do you wish to use it?", qm.Yes | qm.No)
                 # x  = input('y/n?')
@@ -5254,7 +5268,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
                 self.blockSignals(False)
                 return
-            if (suggested_den != self.corr_den) & suggested_vib != self.corr_vib:
+            if ((int(suggested_den) != int(self.corr_den))) & (int(suggested_vib) != int(self.corr_vib)):
                 logger.warning('suggested correction is different, do you wish to use it?')
                 ret = qm.question(self,'', "suggested correction is different: " +str(suggested_den)+', '+ str(suggested_vib) +"\n  Do you wish to use it?", qm.Yes | qm.No)
 
