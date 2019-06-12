@@ -166,13 +166,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             #setting zeroed vertical line to 100s
             self.data.xzero_tail = 100
-            self.data.tail_index = []
+            self.data.tail_index = 1e6 # index of starting of zeroing when zeroing tail data
 
             #
-            self.data.zeroing_start = [] 
-            self.data.zeroing_stop = []
+            self.data.zeroing_start = 1e6 #index of start of zeroing interval
+            self.data.zeroing_stop = 0 # index of end of zeroing interval
             #
             self.data.zeroed = np.zeros(8, dtype=bool) # array that stores info is channel has been tail zeroed
+
+            #
+            self.data.zeroing_start_min = 1e6 # minimum index of zeroing interval (to be shown in other channels)
+            self.data.zeroing_stop_max = 0# maximum index of zeroing interval (to be shown in other channels)
         #
 
 
@@ -546,19 +550,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.comboBox_2ndtrace.setCurrentIndex(0)
         self.comboBox_markers.setCurrentIndex(0)
 
-        #
-        # self.tabWidget.setTabEnabled(0, True)
-        # self.tabWidget.setTabEnabled(1, True)
-        # self.tabWidget.setTabEnabled(2, True)
-        # self.tabWidget.setTabEnabled(3, True)
-        # self.tabWidget.setTabEnabled(4, True)
-        # self.tabWidget.setTabEnabled(5, True)
-        # self.tabWidget.setTabEnabled(6, True)
-        # self.tabWidget.setTabEnabled(7, True)
-        # self.tabWidget.setTabEnabled(8, True)
-        # self.tabWidget.setTabEnabled(9, True)
-        # self.tabWidget.setTabEnabled(10, True)
-        # self.tabWidget.setTabEnabled(11, True)
+
 
         self.widget_LID1.figure.clear()
         self.widget_LID1.draw()
@@ -596,6 +588,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.widget_MIR.figure.clear()
         self.widget_MIR.draw()
 
+        #setting zeroed vertical line to 100s
+        self.data.xzero_tail = 100
+        self.data.tail_index = 1e6 # index of starting of zeroing when zeroing tail data
+
+        #
+        self.data.zeroing_start = 1e6 #index of start of zeroing interval
+        self.data.zeroing_stop = 0 # index of end of zeroing interval
+        #
+        self.data.zeroed = np.zeros(8, dtype=bool) # array that stores info is channel has been tail zeroed
+
+        #
+        self.data.zeroing_start_min = 1e6 # minimum index of zeroing interval (to be shown in other channels)
+        self.data.zeroing_stop_max = 0# maximum index of zeroing interval (to be shown in other channels)
+    #
 
 
         # -------------------------------
@@ -1956,7 +1962,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 # ------------------------
-    @QtCore.pyqtSlot()
+
     def plot_2nd_trace(self):
         """
         function that plots a second trace in the tabs(each canvas)
@@ -1966,7 +1972,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :return:
         """
         # self.data.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
-
+        self.blockSignals(True)
         self.comboBox_markers.setCurrentIndex(0)
         self.data.secondtrace_original = {}
         self.data.secondtrace_norm = {}
@@ -2298,6 +2304,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # only now activate button "normalize" and "restore"
         self.button_normalize.setEnabled(True)
         self.button_restore.setEnabled(True)
+        self.blockSignals(True)
 
     # ------------------------
     # noinspection PyUnusedLocal,PyUnusedLocal
@@ -2347,8 +2354,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # self.widget_LID_ALL.figure.clear()
         # self.widget_LID_ALL.draw()
 
-        self.widget_MIR.figure.clear()
-        self.widget_MIR.draw()
+        # self.widget_MIR.figure.clear()
+        # self.widget_MIR.draw()
 
         # ax_all = self.widget_LID_ALL.figure.add_subplot(111)
 
@@ -2367,32 +2374,40 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         gs1 = gridspec.GridSpec(ncols=1, nrows=3, height_ratios=heights1)
 
         ax1 = self.widget_LID1.figure.add_subplot(gs[0]); self.ax1=ax1
-        ax1_marker = self.widget_LID1.figure.add_subplot(gs[1], sharex=ax1); self.ax1_marker=ax1_marker
+        ax1_marker = self.widget_LID1.figure.add_subplot(gs[1], sharex=ax1)
+        self.ax1_marker=ax1_marker
 
         ax2 = self.widget_LID2.figure.add_subplot(gs[0]); self.ax2=ax2
-        ax2_marker = self.widget_LID2.figure.add_subplot(gs[1], sharex=ax2); self.ax2_marker=ax2_marker
+        ax2_marker = self.widget_LID2.figure.add_subplot(gs[1], sharex=ax2)
+        self.ax2_marker=ax2_marker
 
         ax3 = self.widget_LID3.figure.add_subplot(gs[0]); self.ax3=ax3
-        ax3_marker = self.widget_LID3.figure.add_subplot(gs[1], sharex=ax3); self.ax3_marker=ax3_marker
+        ax3_marker = self.widget_LID3.figure.add_subplot(gs[1], sharex=ax3)
+        self.ax3_marker=ax3_marker
 
         ax4 = self.widget_LID4.figure.add_subplot(gs[0]); self.ax4=ax4
-        ax4_marker = self.widget_LID4.figure.add_subplot(gs[1], sharex=ax4); self.ax4_marker=ax4_marker
+        ax4_marker = self.widget_LID4.figure.add_subplot(gs[1], sharex=ax4)
+        self.ax4_marker=ax4_marker
 
         ax5 = self.widget_LID5.figure.add_subplot(gs1[0]); self.ax5=ax5
         ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5); self.ax51=ax51
-        ax5_marker = self.widget_LID5.figure.add_subplot(gs1[2], sharex=ax5); self.ax5_marker=ax5_marker
+        ax5_marker = self.widget_LID5.figure.add_subplot(gs1[2], sharex=ax5)
+        self.ax5_marker=ax5_marker
 
         ax6 = self.widget_LID6.figure.add_subplot(gs1[0]); self.ax6=ax6
         ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6); self.ax61=ax61
-        ax6_marker = self.widget_LID6.figure.add_subplot(gs1[2], sharex=ax6); self.ax6_marker=ax6_marker
+        ax6_marker = self.widget_LID6.figure.add_subplot(gs1[2], sharex=ax6)
+        self.ax6_marker=ax6_marker
 
         ax7 = self.widget_LID7.figure.add_subplot(gs1[0]); self.ax7=ax7
         ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7); self.ax71=ax71
-        ax7_marker = self.widget_LID7.figure.add_subplot(gs1[2], sharex=ax7); self.ax7_marker=ax7_marker
+        ax7_marker = self.widget_LID7.figure.add_subplot(gs1[2], sharex=ax7)
+        self.ax7_marker=ax7_marker
 
         ax8 = self.widget_LID8.figure.add_subplot(gs1[0]); self.ax8=ax8
         ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8); self.ax81=ax81
-        ax8_marker = self.widget_LID8.figure.add_subplot(gs1[2], sharex=ax8); self.ax8_marker=ax8_marker
+        ax8_marker = self.widget_LID8.figure.add_subplot(gs1[2], sharex=ax8)
+        self.ax8_marker=ax8_marker
 
         #
         # ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
@@ -2458,9 +2473,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             for xc in xposition:
                 vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
-        if self.data.marker is not None:
-            logger.info('plotting marker {}'.format(self.data.marker))
-        elif self.data.marker == 'None':
+        # if self.data.marker is not None:
+        #     logger.info('plotting marker {}'.format(self.data.marker))
+        if self.data.marker == 'None':
             logger.info('no marker selected')
 
             # if no marker hide axis showing markers
@@ -2488,6 +2503,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             ax81.set_position(gs21[1].get_position(self.widget_LID5.figure))
 
         elif self.data.marker == 'ELMs':
+            logger.info('plotting marker {}'.format(self.data.marker))
             if self.data.ELM_data.elm_times is not None:
                 for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
@@ -2517,6 +2533,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 #         marker='o', color='orange')
 
         elif self.data.marker == 'MAGNETICs':
+            logger.info('plotting marker {}'.format(self.data.marker))
             if (self.data.MAG_data.start_ip) > 0:
                 for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
@@ -2533,6 +2550,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.info('No MAGNETICs marker')
 
         elif self.data.marker == 'NBI':
+            logger.info('plotting marker {}'.format(self.data.marker))
             if (self.data.NBI_data.start_nbi) > 0.0:
                 for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
@@ -2546,6 +2564,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.info('No NBI marker')
 
         elif self.data.marker == 'PELLETs':
+            logger.info('plotting marker {}'.format(self.data.marker))
             if self.data.PELLETS_data.time_pellets is not None:
                 for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
@@ -3684,19 +3703,28 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         ax6 = self.ax6
         ax7 = self.ax7
         ax8 = self.ax8
+
         if int(chan) < 5:  # vertical channels
             self.data.KG1_data.density[chan].data[
             index:] = lid
             self.data.zeroingbackup_den = []
 
-            num_of_correction = 1  # removing last line
+            # self.data.xzero_tail = coord[0][0]
 
 
             for chan in self.data.KG1_data.density.keys():
-                ax_name = 'ax' + str(chan)
-                for i, line in enumerate(vars()[ax_name].lines):
-                    if line.get_xydata()[0][0] == self.data.xzero_tail:
-                        del vars()[ax_name].lines[i]
+                ax_name = 'ax' + str(self.chan)
+                if chan == self.chan:
+                    for i, line in enumerate(vars()[ax_name].lines):
+                        if line.get_xydata()[0][0] == self.data.xzero_tail:
+                            del vars()[ax_name].lines[i]
+                    # vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                else:
+                    for i, line in enumerate(vars()[ax_name].lines):
+                        if line.get_xydata()[0][0] == self.data.KG1_data.density[self.chan].time[self.data.zeroing_start_min]:
+                            del vars()[ax_name].lines[i]
+
+
 
 
             self.data.zeroed[chan] = False
@@ -3715,12 +3743,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.zeroingbackup_den = []
             self.data.zeroingbackup_vib = []
 
-            num_of_correction = 1  # removing last line
             for chan in self.data.KG1_data.density.keys():
-                ax_name = 'ax' + str(chan)
-                for i, line in enumerate(vars()[ax_name].lines):
-                    if line.get_xydata()[0][0] == self.data.xzero_tail:
-                        del vars()[ax_name].lines[i]
+                ax_name = 'ax' + str(self.chan)
+                if chan == self.chan:
+                    for i, line in enumerate(vars()[ax_name].lines):
+                        if line.get_xydata()[0][0] == self.data.xzero_tail:
+                            del vars()[ax_name].lines[i]
+                    # vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                else:
+                    for i, line in enumerate(vars()[ax_name].lines):
+                        if line.get_xydata()[0][0] == self.data.KG1_data.density[self.chan].time[self.data.zeroing_start_min]:
+                            del vars()[ax_name].lines[i]
 
 
             self.data.zeroed[chan] = False
@@ -3786,6 +3819,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.tail_index = index  # index of the point where zeroing is applied
             self.data.xzero_tail = coord[0][0]
 
+            if  self.data.zeroing_start_min > self.data.tail_index:
+                self.data.zeroing_start_min = self.data.tail_index
+
 
             if int(self.chan) < 5:  # vertical channels
                 for idx in range(index,
@@ -3806,27 +3842,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                       index_start=self.data.tail_index,
                                                       index_stop=None)
 
-                if coord[0][0] <= self.data.xzero_tail:
-                    self.data.xzero_tail = coord[0][0]
-                    xc = self.data.xzero_tail
-                    self.data.zeroed[self.chan]=True
 
-                    self.ax1.axvline(x=xc, color='r', linestyle='--')
+                # self.data.xzero_tail = coord[0][0]
 
-                    self.ax2.axvline(x=xc, color='r', linestyle='--')
-
-                    self.ax3.axvline(x=xc, color='r', linestyle='--')
-
-                    self.ax4.axvline(x=xc, color='r', linestyle='--')
-
-                    self.ax5.axvline(x=xc, color='r', linestyle='--')
-
-                    self.ax6.axvline(x=xc, color='r', linestyle='--')
-
-                    self.ax7.axvline(x=xc, color='r', linestyle='--')
-
-                    self.ax8.axvline(x=xc, color='r', linestyle='--')
-
+                xc = self.data.xzero_tail
+                self.data.zeroed[self.chan]=True
+                for chan in self.data.KG1_data.density.keys():
+                    ax_name = 'ax' + str(chan)
+                    if chan == self.chan:
+                        vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                    else:
+                        vars()[ax_name].axvline(x=xc, color='r', linestyle='--',linewidth=0.25)
+                        xc= self.data.KG1_data.density[self.chan].time[self.data.zeroing_start_min]
+                        vars()[ax_name].axvline(x=xc, color='r',
+                                                  linestyle='--',linewidth=0.25)
 
 
                 self.update_channel(self.chan)
@@ -3869,26 +3898,21 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                       index_start=self.data.tail_index,
                                                       index_stop=None)
 
-                if coord[0][0] <= self.data.xzero_tail:
-                    self.data.xzero_tail = coord[0][0]
-                    xc = self.data.xzero_tail
 
-                    self.ax1.axvline(x=xc, color='r', linestyle='--')
 
-                    self.ax2.axvline(x=xc, color='r', linestyle='--')
+                # self.data.xzero_tail = coord[0][0]
 
-                    self.ax3.axvline(x=xc, color='r', linestyle='--')
-
-                    self.ax4.axvline(x=xc, color='r', linestyle='--')
-
-                    self.ax5.axvline(x=xc, color='r', linestyle='--')
-
-                    self.ax6.axvline(x=xc, color='r', linestyle='--')
-
-                    self.ax7.axvline(x=xc, color='r', linestyle='--')
-
-                    self.ax8.axvline(x=xc, color='r', linestyle='--')
-
+                xc = self.data.xzero_tail
+                self.data.zeroed[self.chan]=True
+                for chan in self.data.KG1_data.density.keys():
+                    ax_name = 'ax' + str(self.chan)
+                    if chan == self.chan:
+                        vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                    else:
+                        vars()[ax_name].axvline(x=xc, color='r', linestyle='--',linewidth=0.25)
+                        xc= self.data.KG1_data.density[self.chan].time[self.data.zeroing_start_min]
+                        vars()[ax_name].axvline(x=xc, color='r',
+                                                  linestyle='--',linewidth=0.25)
 
 
                 self.update_channel(self.chan)
@@ -3976,12 +4000,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.zeroingbackup_vib = []
 
             #removing zeroing red line
-
+            tstep = np.mean(
+                np.diff(self.data.KG1_data.density[chan].time))
             for chan in self.data.KG1_data.density.keys():
                 ax_name = 'ax' + str(chan)
                 for i, line in enumerate(vars()[ax_name].lines):
-                    if line.get_xydata()[0][0] == self.data.xzero_tail:
-                        del vars()[ax_name].lines[i]
+                    if chan ==self.chan:
+                        if line.get_xydata()[0][0] == self.data.xzero_tail:
+                            del vars()[ax_name].lines[i]
+                    else:
+                        if abs(line.get_xydata()[0][0] -self.data.KG1_data.density[self.chan].time[self.data.zeroing_start_min])<tstep:
+                            del vars()[ax_name].lines[i]
+                        elif abs(line.get_xydata()[0][0] - self.data.xzero_tail)<tstep:
+                            del vars()[ax_name].lines[i]
 
 
             #restoring intershot correction markers
@@ -3989,6 +4020,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             ax_name = 'ax' + str(self.chan)
 
             if self.chan in self.data.KG1_data.fj_dcn:
+                ax_name = 'ax' + str(self.chan)
                 for i, xc in enumerate(self.data.KG1_data.fj_dcn[self.chan].time):
                     if xc >= self.data.xzero_tail:
                         vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
@@ -5085,6 +5117,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         # pyqt_set_trace()
 
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+        ax_name = 'ax' + str(self.chan)
+
         self.blockSignals(True) # signals emitted by this object are blocked
         self.correction_to_be_applied = self.lineEdit_mancorr.text() # reads correction from gui
         if str(self.chan).isdigit() == True:
@@ -5189,30 +5232,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             xc = self.data.KG1_data.density[self.chan].corrections.time
             # for xc in xposition:
-            if self.chan == 1:
-                self.ax1.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax1.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 2:
-                self.ax2.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax2.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 3:
-                self.ax3.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax3.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 4:
-                self.ax4.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax4.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 5:
-                self.ax5.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax5.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 6:
-                self.ax6.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax6.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 7:
-                self.ax7.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax7.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 8:
-                self.ax8.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax8.plot(coord[0][0],coord[0][1], 'mo')
+
+
+            vars()[ax_name].axvline(x=time[index], color='m', linestyle='--')
+            vars()[ax_name].plot(time[index],data[index], 'mo')
 
 
         if int(self.chan) > 4:
@@ -5257,6 +5280,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.gettotalcorrections()
         else:
             pass
+
 
 
     # -------------------------------.
