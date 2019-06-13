@@ -1282,6 +1282,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.GUI_refresh()
             self.setWindowTitle("CORMAT_py - {}".format(self.data.pulse))
             self.data.old_pulse = self.data.pulse
+            self.data.zeroed = np.zeros(8,
+                                        dtype=bool)  # array that stores info is channel has been tail zeroed
+            self.data.zeroing_start = np.full(8, 1e6, dtype=int)
+            self.data.zeroing_stop = np.full(8, 0, dtype=int)  #
 
             # now set
             logger.log(5, " {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
@@ -3775,7 +3779,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-            self.data.zeroed[chan] = False
+            self.data.zeroed[chan-1] = False
             self.update_channel(int(chan))
 
 
