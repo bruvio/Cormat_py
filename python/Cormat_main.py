@@ -165,18 +165,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.zeroingbackup_vib = []
 
             #setting zeroed vertical line to 100s
-            self.data.xzero_tail = 100
-            self.data.tail_index = 1e6 # index of starting of zeroing when zeroing tail data
+            # self.data.xzero_tail = 100
+            # self.data.zeroing_start[self.chan] = 1e6 # index of starting of zeroing when zeroing tail data
 
             #
-            self.data.zeroing_start = 1e6 #index of start of zeroing interval
-            self.data.zeroing_stop = 0 # index of end of zeroing interval
+            # self.data.z = 1e6 #index of start of zeroing interval
+            # self.data.zeroing_stop = 0 # index of end of zeroing interval
             #
             self.data.zeroed = np.zeros(8, dtype=bool) # array that stores info is channel has been tail zeroed
-
+            self.data.zeroing_start =np.full(8,1e6, dtype=int)
+            self.data.zeroing_stop = np.full(8,0, dtype=int)
             #
-            self.data.zeroing_start_min = 1e6 # minimum index of zeroing interval (to be shown in other channels)
-            self.data.zeroing_stop_max = 0# maximum index of zeroing interval (to be shown in other channels)
+            # self.data.zeroing_start_min = 1e6 # minimum index of zeroing interval (to be shown in other channels)
+            # self.data.zeroing_stop_max = 0# maximum index of zeroing interval (to be shown in other channels)
         #
 
 
@@ -589,20 +590,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.widget_MIR.figure.clear()
         self.widget_MIR.draw()
 
-        #setting zeroed vertical line to 100s
-        self.data.xzero_tail = 100
-        self.data.tail_index = 1e6 # index of starting of zeroing when zeroing tail data
-
         #
-        self.data.zeroing_start = 1e6 #index of start of zeroing interval
-        self.data.zeroing_stop = 0 # index of end of zeroing interval
         #
-        self.data.zeroed = np.zeros(8, dtype=bool) # array that stores info is channel has been tail zeroed
-
-        #
-        self.data.zeroing_start_min = 1e6 # minimum index of zeroing interval (to be shown in other channels)
-        self.data.zeroing_stop_max = 0# maximum index of zeroing interval (to be shown in other channels)
-    #
 
 
         # -------------------------------
@@ -636,6 +625,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     # -------------------------------
                     # READ self.data.
                     # -------------------------------
+                    self.data.zeroed = np.zeros(8,
+                                                dtype=bool)  # array that stores info is channel has been tail zeroed
+                    self.data.zeroing_start = np.full(8, 1e6, dtype=int)
+                    self.data.zeroing_stop = np.full(8, 0, dtype=int)  #
+
                     self.read_uid = str(self.comboBox_readuid.currentText())
                     logger.info("Reading data for pulse {}".format(str(self.data.pulse)))
                     logger.info('reading data with uid -  {}'.format((str(self.read_uid))))
@@ -1127,7 +1121,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
                  self.data.ELM_data, self.data.HRTS_data,
                  self.data.NBI_data, self.data.is_dis, self.data.dis_time,
-                 self.data.LIDAR_data] = pickle.load(f)
+                 self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,self.data.zeroed] = pickle.load(f)
             f.close()
             with open('./scratch/kg1_data.pkl',
                       'rb') as f:  # Python 3: open(..., 'rb')
@@ -1192,7 +1186,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
                  self.data.ELM_data, self.data.HRTS_data,
                  self.data.NBI_data, self.data.is_dis, self.data.dis_time,
-                 self.data.LIDAR_data], f)
+                 self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,self.data.zeroed], f)
         f.close()
         logger.info(' data saved to {}'.format(folder))
 
@@ -3753,6 +3747,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         ax7 = self.ax7
         ax8 = self.ax8
 
+
+        zeroing_time = self.data.KG1_data.density[self.chan].time[int(self.data.zeroing_start[self.chan-1])]
+        logger.log(5, 'old zeroing time t= {}s '.format(zeroing_time))
+        tstep = np.mean(
+            np.diff(self.data.KG1_data.density[chan].time))
         if int(chan) < 5:  # vertical channels
             self.data.KG1_data.density[chan].data[
             index:] = lid
@@ -3765,12 +3764,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 ax_name = 'ax' + str(self.chan)
                 if ch == self.chan:
                     for i, line in enumerate(vars()[ax_name].lines):
-                        if line.get_xydata()[0][0] == self.data.xzero_tail:
+                        if abs(line.get_xydata()[0][0]-zeroing_time)<tstep:
                             del vars()[ax_name].lines[i]
                     # vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
                 else:
                     for i, line in enumerate(vars()[ax_name].lines):
-                        if line.get_xydata()[0][0] == self.data.KG1_data.density[self.chan].time[self.data.zeroing_start_min]:
+                        if abs(line.get_xydata()[0][0]-zeroing_time)<tstep:
                             del vars()[ax_name].lines[i]
 
 
@@ -3792,16 +3791,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.zeroingbackup_den = []
             self.data.zeroingbackup_vib = []
 
-            for chan in self.data.KG1_data.density.keys():
+            for ch in self.data.KG1_data.density.keys():
                 ax_name = 'ax' + str(self.chan)
-                if chan == self.chan:
+                if ch == self.chan:
                     for i, line in enumerate(vars()[ax_name].lines):
-                        if line.get_xydata()[0][0] == self.data.xzero_tail:
+                        if abs(line.get_xydata()[0][0]-zeroing_time)<tstep:
                             del vars()[ax_name].lines[i]
                     # vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
                 else:
                     for i, line in enumerate(vars()[ax_name].lines):
-                        if line.get_xydata()[0][0] == self.data.KG1_data.density[self.chan].time[self.data.zeroing_start_min]:
+                        if abs(line.get_xydata()[0][0]-zeroing_time)<tstep:
                             del vars()[ax_name].lines[i]
 
 
@@ -3859,18 +3858,24 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             M = self.data.matrix_lat_channels
             index, value = find_nearest(time, coord[0][0])  # get nearest point close to selected point in the time array
 
+            zeroing_time = value
+            logger.log(5, 'zeroing @t={} s'.format(zeroing_time))
+            # zeroing_time = coord[0][0]
+            if self.data.zeroed[self.chan-1]:
+                if coord[0][0] != zeroing_time: # check if you point for zeroing if smaller than previous
+                    logger.log(5,
+                               ' tail zeroing already applied, changing time')
+                    self.changezerotail(self.chan,lid=self.data.zeroingbackup_den,vib = None,index=int(self.data.zeroing_start[self.chan-1]))
 
 
 
-            if self.data.zeroed[self.chan]:
-                if coord[0][0] != self.data.xzero_tail: # check if you point for zeroing if smaller than previous
-                    self.changezerotail(self.chan,lid=self.data.zeroingbackup_den,vib = None,index=self.data.tail_index)
-            self.data.tail_index = index  # index of the point where zeroing is applied
-            self.data.xzero_tail = coord[0][0]
 
-            if  self.data.zeroing_start_min > self.data.tail_index:
-                self.data.zeroing_start_min = self.data.tail_index
 
+            if  index != self.data.zeroing_start[self.chan-1]:
+                self.data.zeroing_start[
+                    self.chan-1] = index
+                # index of the point where zeroing is applied
+                # logger.log(5,'zeroing time is t={}s'.format())
 
             if int(self.chan) < 5:  # vertical channels
                 for idx in range(index,
@@ -3880,7 +3885,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         idx]  # difference between two consecutive points
                     zeroing_correction = int(round((
                                                                diff / self.data.constants.DFR_DCN)))  # check if diff is a fringe jump
-                    logger.log(5,'zeroing correction is {}'.format(zeroing_correction))
+                    # logger.log(5,'zeroing correction is {}'.format(zeroing_correction))
                     self.data.zeroingbackup_den.append(
                         self.data.KG1_data.density[self.chan].data[idx])
                     self.data.KG1_data.density[self.chan].data[idx] = \
@@ -3888,22 +3893,27 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         idx] - zeroing_correction * self.data.constants.DFR_DCN
 
                 self.remove_corrections_while_zeroing(self.chan,
-                                                      index_start=self.data.tail_index,
+                                                      index_start=int(self.data.zeroing_start[self.chan-1]),
                                                       index_stop=None)
 
 
-                # self.data.xzero_tail = coord[0][0]
 
-                xc = self.data.xzero_tail
-                self.data.zeroed[self.chan]=True
+
+                xc = zeroing_time
+                index_min = int(min(self.data.zeroing_start))
+                xc_min = self.data.KG1_data.density[self.chan].time[index_min]
+                self.data.zeroed[self.chan-1]=True
                 for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan)
                     if chan == self.chan:
                         vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                        vars()[ax_name].axvline(x=xc_min, color='r',
+                                                linestyle='--', linewidth=0.25)
+
                     else:
                         # vars()[ax_name].axvline(x=xc, color='r', linestyle='--',linewidth=0.25)
-                        xc= self.data.KG1_data.density[self.chan].time[self.data.zeroing_start_min]
-                        vars()[ax_name].axvline(x=xc, color='r',
+
+                        vars()[ax_name].axvline(x=xc_min, color='r',
                                                   linestyle='--',linewidth=0.25)
 
 
@@ -3927,8 +3937,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     zeroing_correction = np.around(zeroing_correction)
                     zeroing_den = int((zeroing_correction[0]))
                     zeroing_vib = int((zeroing_correction[1]))
-                    logger.log(5, 'zeroing correction is {} ,{}'.format(
-                        zeroing_den,zeroing_vib))
+                    # logger.log(5, 'zeroing correction is {} ,{}'.format(
+                    #     zeroing_den,zeroing_vib))
                     self.data.zeroingbackup_den.append(
                         self.data.KG1_data.density[self.chan].data[idx])
 
@@ -3944,23 +3954,29 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     M.dot([zeroing_den, zeroing_vib])[1]
 
                 self.remove_corrections_while_zeroing(self.chan,
-                                                      index_start=self.data.tail_index,
+                                                      index_start=int(self.data.zeroing_start[self.chan-1]),
                                                       index_stop=None)
 
 
 
-                # self.data.xzero_tail = coord[0][0]
+                # zeroing_time = coord[0][0]
 
-                xc = self.data.xzero_tail
-                self.data.zeroed[self.chan]=True
+                xc = zeroing_time
+                index_min = int(min(self.data.zeroing_start))
+                xc_min = self.data.KG1_data.density[self.chan].time[index_min]
+
+
+                self.data.zeroed[self.chan-1]=True
                 for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(self.chan)
                     if chan == self.chan:
                         vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                        vars()[ax_name].axvline(x=xc_min, color='r',
+                                                linestyle='--', linewidth=0.25)
                     else:
-                        vars()[ax_name].axvline(x=xc, color='r', linestyle='--',linewidth=0.25)
-                        xc= self.data.KG1_data.density[self.chan].time[self.data.zeroing_start_min]
-                        vars()[ax_name].axvline(x=xc, color='r',
+
+
+                        vars()[ax_name].axvline(x=xc_min, color='r',
                                                   linestyle='--',linewidth=0.25)
 
 
@@ -4024,14 +4040,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             else:
 
                 self.setcoord(self.chan,reset=True)
-
+            zeroing_time = self.data.KG1_data.density[self.chan].time[
+                int(self.data.zeroing_start[self.chan-1])]
             M = self.data.matrix_lat_channels
             index, value = find_nearest(time, coord[0][
                 0])  # get nearest point close to selected point in the time array
 
             if int(self.chan) < 5:  # vertical channels
                 self.data.KG1_data.density[self.chan].data[
-                self.data.tail_index:] = self.data.zeroingbackup_den
+                int(self.data.zeroing_start[self.chan-1]):] = self.data.zeroingbackup_den
                 self.data.zeroingbackup_den = []
 
 
@@ -4042,9 +4059,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             elif int(self.chan) > 4:  # lateral channels
                 self.data.KG1_data.density[self.chan].data[
-                index:] = self.data.zeroingbackup_den
+                int(self.data.zeroing_start[self.chan-1]):] = self.data.zeroingbackup_den
                 self.data.KG1_data.vibration[self.chan].data[
-                index:] = self.data.zeroingbackup_vib
+                int(self.data.zeroing_start[self.chan-1]):] = self.data.zeroingbackup_vib
                 self.data.zeroingbackup_den = []
                 self.data.zeroingbackup_vib = []
 
@@ -4053,16 +4070,23 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 np.diff(self.data.KG1_data.density[chan].time))
             for chan in self.data.KG1_data.density.keys():
                 ax_name = 'ax' + str(chan)
-                for i, line in enumerate(vars()[ax_name].lines):
-                    if chan ==self.chan:
-                        if line.get_xydata()[0][0] == self.data.xzero_tail:
-                            del vars()[ax_name].lines[i]
-                    else:
-                        if abs(line.get_xydata()[0][0] -self.data.KG1_data.density[self.chan].time[self.data.zeroing_start_min])<tstep:
-                            del vars()[ax_name].lines[i]
-                        elif abs(line.get_xydata()[0][0] - self.data.xzero_tail)<tstep:
-                            del vars()[ax_name].lines[i]
-
+                # for i, line in enumerate(vars()[ax_name].lines):
+                #     if chan ==self.chan:
+                #         if line.get_xydata()[0][0] == zeroing_time:
+                #             del vars()[ax_name].lines[i]
+                #     else:
+                #         if abs(line.get_xydata()[0][0] -self.data.KG1_data.density[self.chan].time[int(self.data.zeroing_start[self.chan-1])])<tstep:
+                #             del vars()[ax_name].lines[i]
+                #         elif abs(line.get_xydata()[0][0] - zeroing_time)<tstep:
+                #             del vars()[ax_name].lines[i]
+                if chan == self.chan:
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time) < tstep]
+                else:
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time) < tstep]
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time) < tstep]
 
             #restoring intershot correction markers
             self.load_pickle(kg1only=True)
@@ -4071,10 +4095,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             if self.chan in self.data.KG1_data.fj_dcn:
                 ax_name = 'ax' + str(self.chan)
                 for i, xc in enumerate(self.data.KG1_data.fj_dcn[self.chan].time):
-                    if xc >= self.data.xzero_tail:
+                    if xc >= zeroing_time:
                         vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
-            self.data.zeroed[self.chan] = False
+            self.data.zeroed[self.chan-1] = False
             self.update_channel(int(self.chan))
             self.gettotalcorrections()
             self.pushButton_undo.clicked.disconnect(self.unzerotail)
@@ -4314,6 +4338,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         :return:
         """
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+
 
         self.data.zeroingbackup_den = []
         self.data.zeroingbackup_vib = []
@@ -4351,8 +4385,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         index_stop, value_stop = find_nearest(time, max_coord[0]) #get nearest point close to selected point in the time array
 
         logger.info('zeroing chan. {} between t1= {}s and t2= {}s'.format(self.chan,value_start,value_stop))
-        self.data.zeroing_start = index_start
-        self.data.zeroing_stop = index_stop
+        self.data.zeroing_start[self.chan-1] = index_start
+        self.data.zeroing_stop[self.chan-1] = index_stop
+
+        xc = min_coord[0]
+        xc1 = max_coord[0]
+
+        min_zeroing = time[int(min(self.data.zeroing_start))] #minimum zeroing point across channels
+        max_zeroing = time[int(max(self.data.zeroing_start))] #maximum zeroing point across channels
+
+
+
+
 
 
         if int(self.chan) <5: # vertical channels
@@ -4364,37 +4408,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.zeroingbackup_den.append(self.data.KG1_data.density[self.chan].data[idx])
                 self.data.KG1_data.density[self.chan].data[idx] = self.data.KG1_data.density[self.chan].data[idx] - zeroing_correction*self.data.constants.DFR_DCN
             self.remove_corrections_while_zeroing(self.chan,
-                                                  index_start=self.data.zeroing_start,
-                                                  index_stop=self.data.zeroing_stop)
+                                                  index_start=int(self.data.zeroing_start[self.chan-1]),
+                                                  index_stop=int(self.data.zeroing_stop[self.chan-1]))
 
-            xc = min_coord[0]
-            xc1 = max_coord[0]
+
+
                 # for xc in xposition:
+            for chan in self.data.KG1_data.density.keys():
+                ax_name = 'ax' + str(self.chan)
+                if chan == self.chan:
+                    vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                    vars()[ax_name].axvline(x=xc1, color='r', linestyle='--')
+                    vars()[ax_name].axvline(x=min_zeroing, color='r',
+                                            linestyle='--',linewidth=0.25)
+                    vars()[ax_name].axvline(x=max_zeroing, color='r',
+                                            linestyle='--', linewidth=0.25)
 
-            self.ax1.axvline(x=xc, color='r', linestyle='--')
-            self.ax1.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax1.plot(xc,coord[0][1], 'ro')
-            self.ax2.axvline(x=xc, color='r', linestyle='--')
-            self.ax2.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax2.plot(xc,coord[0][1], 'ro')
-            self.ax3.axvline(x=xc, color='r', linestyle='--')
-            self.ax3.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax3.plot(xc,coord[0][1], 'ro')
-            self.ax4.axvline(x=xc, color='r', linestyle='--')
-            self.ax4.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax4.plot(xc,coord[0][1], 'ro')
-            self.ax5.axvline(x=xc, color='r', linestyle='--')
-            self.ax5.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax5.plot(xc,coord[0][1], 'ro')
-            self.ax6.axvline(x=xc, color='r', linestyle='--')
-            self.ax6.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax6.plot(xc,coord[0][1], 'ro')
-            self.ax7.axvline(x=xc, color='r', linestyle='--')
-            self.ax7.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax7.plot(xc,coord[0][1], 'ro')
-            self.ax8.axvline(x=xc, color='r', linestyle='--')
-            self.ax8.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax8.plot(xc,coord[0][1], 'ro')
+                else:
+                    vars()[ax_name].axvline(x=min_zeroing, color='r', linestyle='--',linewidth=0.25)
+                    vars()[ax_name].axvline(x=max_zeroing, color='r', linestyle='--',linewidth=0.25)
 
 
             # self.gettotalcorrections()
@@ -4433,38 +4465,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.KG1_data.vibration[self.chan].data[idx] = self.data.KG1_data.vibration[self.chan].data[idx] - M.dot([zeroing_den,zeroing_vib])[1]
 
             self.remove_corrections_while_zeroing(self.chan,
-                                                  index_start=self.data.zeroing_start,
-                                                  index_stop=self.data.zeroing_stop)
+                                                  index_start=int(self.data.zeroing_start[self.chan-1]),
+                                                  index_stop=int(self.data.zeroing_stop[self.chan-1]))
 
-            xc = min_coord[0]
-            xc1 = max_coord[0]
             # for xc in xposition:
+            for chan in self.data.KG1_data.density.keys():
+                ax_name = 'ax' + str(self.chan)
+                if chan == self.chan:
+                    vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                    vars()[ax_name].axvline(x=xc1, color='r', linestyle='--')
+                    vars()[ax_name].axvline(x=min_zeroing, color='r',
+                                            linestyle='--',linewidth=0.25)
+                    vars()[ax_name].axvline(x=max_zeroing, color='r',
+                                            linestyle='--', linewidth=0.25)
 
-            self.ax1.axvline(x=xc, color='r', linestyle='--')
-            self.ax1.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax1.plot(xc,coord[0][1], 'ro')
-            self.ax2.axvline(x=xc, color='r', linestyle='--')
-            self.ax2.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax2.plot(xc,coord[0][1], 'ro')
-            self.ax3.axvline(x=xc, color='r', linestyle='--')
-            self.ax3.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax3.plot(xc,coord[0][1], 'ro')
-            self.ax4.axvline(x=xc, color='r', linestyle='--')
-            self.ax4.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax4.plot(xc,coord[0][1], 'ro')
-            self.ax5.axvline(x=xc, color='r', linestyle='--')
-            self.ax5.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax5.plot(xc,coord[0][1], 'ro')
-            self.ax6.axvline(x=xc, color='r', linestyle='--')
-            self.ax6.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax6.plot(xc,coord[0][1], 'ro')
-            self.ax7.axvline(x=xc, color='r', linestyle='--')
-            self.ax7.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax7.plot(xc,coord[0][1], 'ro')
-            self.ax8.axvline(x=xc, color='r', linestyle='--')
-            self.ax8.axvline(x=xc1, color='r', linestyle='--')
-            # self.ax8.plot(xc,coord[0][1], 'ro')
-
+                else:
+                    vars()[ax_name].axvline(x=min_zeroing, color='r',
+                                            linestyle='--',linewidth=0.25)
+                    vars()[ax_name].axvline(x=max_zeroing, color='r',
+                                            linestyle='--', linewidth=0.25)
 
             # self.gettotalcorrections()
 
@@ -4532,7 +4551,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         index_stop, value_stop = find_nearest(time, max_coord[0]) #get nearest point close to selected point in the time array
         # try:
         if int(self.chan) < 5:  # vertical channels
-            self.data.KG1_data.density[self.chan].data[self.data.zeroing_start:self.data.zeroing_stop] = self.data.zeroingbackup_den
+            self.data.KG1_data.density[self.chan].data[int(self.data.zeroing_start[self.chan-1]):int(self.data.zeroing_stop[self.chan-1])] = self.data.zeroingbackup_den
             self.data.zeroingbackup_den = []
 
 
@@ -4571,8 +4590,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
         elif int(self.chan) > 4:  # lateral channels
-            self.data.KG1_data.density[self.chan].data[self.data.zeroing_start:self.data.zeroing_stop] = self.data.zeroingbackup_den
-            self.data.KG1_data.vibration[self.chan].data[self.data.zeroing_start:self.data.zeroing_stop] = self.data.zeroingbackup_vib
+            self.data.KG1_data.density[self.chan].data[int(self.data.zeroing_start[self.chan-1]):int(self.data.zeroing_stop[self.chan-1])] = self.data.zeroingbackup_den
+            self.data.KG1_data.vibration[self.chan].data[int(self.data.zeroing_start[self.chan-1]):int(self.data.zeroing_stop[self.chan-1])] = self.data.zeroingbackup_vib
 
             self.data.zeroingbackup_den = []
             self.data.zeroingbackup_vib = []
