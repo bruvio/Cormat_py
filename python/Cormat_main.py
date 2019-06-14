@@ -125,6 +125,30 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data = SimpleNamespace() # dictionary object that contains all data
 
             # -------------------------------
+            # check if kg1 is stored in workspace
+            # -------------------------------
+            exists = os.path.isfile('./scratch/kg1_data.pkl')
+
+            if exists :
+                        logging.getLogger().disabled = True
+
+                        self.load_pickle()
+
+                        # logging.disable(logging.NOTSET)
+                        logging.getLogger().disabled = False
+                        logger.log(5,'checking pulse data in workspace')
+                        list_attr=['self.data.KG1_data','self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data','self.data.ELM_data', 'self.data.HRTS_data','self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time','self.data.LIDAR_data']
+                        for attr in list_attr:
+                            # pyqt_set_trace()
+                            if hasattr(self, attr):
+                                delattr(self,attr)
+                        self.setWindowTitle("CORMAT_py - {}".format(self.data.pulse))
+                        self.lineEdit_jpn.setText(str(self.data.pulse))
+
+
+                        del  self.data.pulse
+
+            # -------------------------------
             # backup for kg1 data
             self.data.kg1_original = {}
             # -------------------------------
@@ -466,29 +490,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-            # -------------------------------
-            # check if kg1 is stored in workspace
-            # -------------------------------
-            exists = os.path.isfile('./scratch/kg1_data.pkl')
 
-            if exists :
-                        logging.getLogger().disabled = True
-
-                        self.load_pickle()
-
-                        # logging.disable(logging.NOTSET)
-                        logging.getLogger().disabled = False
-                        logger.log(5,'checking pulse data in workspace')
-                        list_attr=['self.data.KG1_data','self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data','self.data.ELM_data', 'self.data.HRTS_data','self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time','self.data.LIDAR_data']
-                        for attr in list_attr:
-                            # pyqt_set_trace()
-                            if hasattr(self, attr):
-                                delattr(self,attr)
-                        self.setWindowTitle("CORMAT_py - {}".format(self.data.pulse))
-                        self.lineEdit_jpn.setText(str(self.data.pulse))
-
-
-                        del  self.data.pulse
 
 
 
@@ -691,12 +693,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     logger.log(5, '{} is NOT  checked'.format(self.checkBox_newpulse.objectName()))
                     # pyqt_set_trace()
                     # logging.disable(logger.info)
-                    logging.getLogger().disabled = True
+                    # logging.getLogger().disabled = True
 
                     self.load_pickle()
 
                     # logging.disable(logging.NOTSET)
-                    logging.getLogger().disabled = False
+                    # logging.getLogger().disabled = False
                     logger.log(5,'checking pulse data in workspace')
                     # pyqt_set_trace()
 
@@ -1011,42 +1013,42 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.SF_ch8 = SF
 
 
-        if (int(self.data.SF_old1) != int(self.data.SF_ch1)):
+        if (self.current_tab == 'LID_1') & (int(self.data.SF_old1) != int(self.data.SF_ch1)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID1 changed by user")
 
-        elif (int(self.data.SF_old2) != int(self.data.SF_ch2)):
+        elif (self.current_tab == 'LID_2') & (int(self.data.SF_old2) != int(self.data.SF_ch2)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID2 changed by user")
 
-        elif (int(self.data.SF_old3) != int(self.data.SF_ch3)):
+        elif (self.current_tab == 'LID_3') &  (int(self.data.SF_old3) != int(self.data.SF_ch3)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID3 changed by user")
 
-        elif (int(self.data.SF_old4) != int(self.data.SF_ch4)):
+        elif (self.current_tab == 'LID_4') & (int(self.data.SF_old4) != int(self.data.SF_ch4)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID4 changed by user")
 
-        elif (int(self.data.SF_old5) != int(self.data.SF_ch5)):
+        elif (self.current_tab == 'LID_5') & (int(self.data.SF_old5) != int(self.data.SF_ch5)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID5 changed by user")
 
-        elif (int(self.data.SF_old6) != int(self.data.SF_ch6)):
+        elif (self.current_tab == 'LID_6') & (int(self.data.SF_old6) != int(self.data.SF_ch6)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID6 changed by user")
 
-        elif (int(self.data.SF_old7) != int(self.data.SF_ch7)):
+        elif (self.current_tab == 'LID_7') & (int(self.data.SF_old7) != int(self.data.SF_ch7)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID7 changed by user")
 
-        elif (int(self.data.SF_old8) != int(self.data.SF_ch8)):
+        elif (self.current_tab == 'LID_8') & (int(self.data.SF_old8) != int(self.data.SF_ch8)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID8 changed by user")
@@ -1133,7 +1135,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             with open('./scratch/kg1_data.pkl',
                       'rb') as f:  # Python 3: open(..., 'rb')
                 [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
-                 self.read_uid] = pickle.load(f)
+                 self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib] = pickle.load(f)
             f.close()
             logger.info(' workspace loaded')
             logger.info(
@@ -1208,7 +1210,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         with open('./' + folder + '/kg1_data.pkl', 'wb') as f:
             pickle.dump(
                 [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
-                 self.read_uid,], f)
+                 self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib], f)
         f.close()
         logger.info(' KG1 data saved to {}'.format(folder))
 
@@ -2804,11 +2806,24 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         dda = "KG1V"
         return_code = 0
 
+
+
+
+
         for chan in self.data.KG1_data.density.keys():
             # status = np.empty(
             #     len(self.data.KG1_data.density[chan].time))
             # status.fill(self.data.SF_list[
             #                 chan - 1])
+
+            # Write signal type
+            dtype_type = "TYP{}".format(chan)
+            comment = "SIG TYPE: {} CH.{}".format(self.data.KG1_data.type[chan], chan)
+            write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_type, np.array([1]),
+                                                 time=np.array([0]), comment=comment, unitd=" ", unitt=" ", itref=-1,
+                                                 nt=1, status=None)
+
+
             dtype_lid = "LID{}".format(chan)
             comment = "DATA FROM KG1 CHANNEL {}".format(chan)
             write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_lid,
@@ -2831,8 +2846,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     "Failed to write {}/{}. Errorcode {}".format(dda, dtype_lid,
                                                                  write_err))
                 break
+            if self.data.KG1_data.fj_dcn is not None:
+                if chan in self.data.KG1_data.fj_dcn.keys():
+                    if self.data.KG1_data.fj_dcn[chan].data.size == 0:
+                        del self.data.KG1_data.fj_dcn[chan]
+
             # Corrected FJs for vertical channels
             if chan <= 4 and chan in self.data.KG1_data.fj_dcn.keys():
+
+
 
                 # DCN fringes
                 if self.data.KG1_data.fj_dcn is not None:
@@ -2915,7 +2937,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                                          dtype_jxb,
                                                                          write_err))
                         return write_err
+            if self.data.KG1_data.fj_met is not None:
+                if chan in self.data.KG1_data.fj_met.keys():
+                    if self.data.KG1_data.fj_met[chan].data.size == 0:
+                        del self.data.KG1_data.fj_met[chan]
+
             elif chan > 4 and chan in self.data.KG1_data.fj_met.keys():
+
+
                 # MET fringes
                 if self.data.KG1_data.fj_met is not None:
                     dtype_fc = "MC{} ".format(chan)
@@ -3025,8 +3054,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if write_err != 0:
             logger.error('failed to write ppf')
             return 67
-        logger.info("Close PPF.")
-        err = close_ppf(self.data.pulse, self.write_uid, self.data.constants.code_version)
+        else:
+            logger.info("Close PPF.")
+            err = close_ppf(self.data.pulse, self.write_uid, self.data.constants.code_version)
 
         if err != 0:
             logger.error('failed to close ppf')
@@ -3955,12 +3985,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                                 except IndexError:
                                     pass
-                        self.update_channel(chan)
+                        # self.update_channel(chan)
 
                 self.update_channel(self.chan)
 
                 self.pushButton_undo.clicked.connect(self.unzerotail)
                 self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
+                # if self.data.KG1_data.fj_dcn[self.chan].data.size == 0:
+                #      del self.data.KG1_data.fj_dcn[self.chan]
                 self.blockSignals(False)
 
                 return
@@ -4047,6 +4079,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.update_channel(self.chan)
                 self.pushButton_undo.clicked.connect(self.unzerotail)
                 self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
+                # if self.data.KG1_data.fj_dcn[self.chan].data.size == 0:
+                #      del self.data.KG1_data.fj_dcn[self.chan]
                 self.blockSignals(False)
 
                 return
@@ -4650,6 +4684,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             self.update_channel(int(self.chan))
             self.setcoord(self.chan, reset=True)
+            # if self.data.KG1_data.fj_dcn[self.chan].data.size == 0:
+            #     del self.data.KG1_data.fj_dcn[self.chan]
             self.pushButton_undo.clicked.disconnect(self.unzeroinginterval)
             self.blockSignals(False)
 
@@ -4689,6 +4725,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.update_channel(int(self.chan))
             self.setcoord(self.chan, reset=True)
             self.pushButton_undo.clicked.disconnect(self.unzeroinginterval)
+            # if self.data.KG1_data.fj_dcn[self.chan].data.size == 0:
+            #     del self.data.KG1_data.fj_dcn[self.chan]
             self.blockSignals(False)
         # except:
         #     # logger.error('error in '.format(inspect.currentframe()))
@@ -4834,6 +4872,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.update_channel(self.chan)
 
                 self.gettotalcorrections()
+
 
 
 
@@ -5829,30 +5868,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 vibration.uncorrect_fj(
                     self.corr_vib , index=index)
-        # num_of_correction = 2*len(coord)  # this number is always 2 for single correction mode!
-        # if self.chan == 1:
-        #     del self.ax1.lines[-num_of_correction:]
-        #
-        # elif self.chan == 2:
-        #     del self.ax2.lines[-num_of_correction:]
-        #
-        # elif self.chan == 3:
-        #     del self.ax3.lines[-num_of_correction:]
-        #
-        # elif self.chan == 4:
-        #     del self.ax4.lines[-num_of_correction:]
-        #
-        # elif self.chan == 5:
-        #     del self.ax5.lines[-num_of_correction:]
-        #
-        # elif self.chan == 6:
-        #     del self.ax6.lines[-num_of_correction:]
-        #
-        # elif self.chan == 7:
-        #     del self.ax7.lines[-num_of_correction:]
-        #
-        # elif self.chan == 8:
-        #     del self.ax8.lines[-num_of_correction:]
         #
         tstep = np.mean(np.diff(self.data.KG1_data.density[chan].time))
         linestoberemoved=[]
