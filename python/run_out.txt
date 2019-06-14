@@ -20,3 +20,5 @@ shot: 93915 user: JETPPF date: 2019-06-13 seq: 68 written by: bviola
 shot: 93870 user: bviola date: 2019-06-14 seq: 65 written by: bviola
 shot: 93870 user: bviola date: 2019-06-14 seq: 67 written by: bviola
 shot: 93870 user: JETPPF date: 2019-06-14 seq: 72 written by: bviola
+shot: 93879 user: JETPPF date: 2019-06-14 seq: 73 written by: bviola
+shot: 93875 user: JETPPF date: 2019-06-14 seq: 72 written by: bviola
