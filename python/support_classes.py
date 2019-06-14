@@ -67,8 +67,8 @@ class KeyBoard(QWidget):
         self.setWindowTitle("CHOOSE CORRECTION")
         self.receiver = receiver
         self.layout = QHBoxLayout()
-        self.keys = ['-',',','0','1','2','3','4','5','APPLY']
-        self.dict_keys ={'-':Qt.Key_Minus,',':Qt.Key_Comma,'0':Qt.Key_0,'1':Qt.Key_1,'2':Qt.Key_2,'3':Qt.Key_3,'4':Qt.Key_4,'5':Qt.Key_5,'APPLY':Qt.Key_Enter}
+        self.keys = ['-',',','0','1','2','3','4','5','6','7','8','9','APPLY']
+        self.dict_keys ={'-':Qt.Key_Minus,',':Qt.Key_Comma,'0':Qt.Key_0,'1':Qt.Key_1,'2':Qt.Key_2,'3':Qt.Key_3,'4':Qt.Key_4,'5':Qt.Key_5,'6':Qt.Key_6,'7':Qt.Key_7,'8':Qt.Key_8,'9':Qt.Key_9,'APPLY':Qt.Key_Enter}
         for key in self.keys:
             key_keyboard = Key(key,self.dict_keys[key],receiver)
             if key == 'APPLY':

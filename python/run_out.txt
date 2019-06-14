@@ -14,3 +14,11 @@ shot: 92504 user: bviola date: 2019-05-20 seq: -1 written by: bviola
 shot: 92504 user: bviola date: 2019-05-20 seq: -1 written by: bviola
 shot: 92504 user: bviola date: 2019-05-20 seq: 6444 written by: bviola
 shot: 92504 user: bviola date: 2019-05-20 seq: 6448 written by: bviola
+shot: 93870 user: bviola date: 2019-06-11 seq: 64 written by: bviola
+shot: 93915 user: bviola date: 2019-06-13 seq: 58 written by: bviola
+shot: 93915 user: JETPPF date: 2019-06-13 seq: 68 written by: bviola
+shot: 93870 user: bviola date: 2019-06-14 seq: 65 written by: bviola
+shot: 93870 user: bviola date: 2019-06-14 seq: 67 written by: bviola
+shot: 93870 user: JETPPF date: 2019-06-14 seq: 72 written by: bviola
+shot: 93879 user: JETPPF date: 2019-06-14 seq: 73 written by: bviola
+shot: 93875 user: JETPPF date: 2019-06-14 seq: 72 written by: bviola

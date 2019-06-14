@@ -7,7 +7,7 @@ Class that runs CORMAT_py GUI
 # ----------------------------
 __author__ = "Bruno Viola"
 __Name__ = "CORMAT_py"
-__version__ = "0.13"
+__version__ = "0.15"
 __release__ = "0"
 __maintainer__ = "Bruno Viola"
 __email__ = "bruno.viola@ukaea.uk"
@@ -62,6 +62,9 @@ import fileinput
 import cProfile, pstats, io
 from pycallgraph import PyCallGraph
 from pycallgraph.output import GraphvizOutput
+import inspect
+
+
 
 qm = QtGui.QMessageBox
 qm_permanent = QtGui.QMessageBox
@@ -85,12 +88,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
          - initialises every tab (widget)
          - add layout
          - add navigation toolbar and position it at the bottom of the tab
-        :param widget:
+        :param widget: tab to initialise
         :return:
         """
 
-        # widget.figure.clear()
-        # widget.draw()
+
 
         widget.setLayout(QtGui.QVBoxLayout())
         widget.layout().setContentsMargins(0, 710, 50,
@@ -108,368 +110,401 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         Initialise widgets and canvas.
         Define defaults
+        
+        Moreover it checks if there is data in workspace and load it if pulse number is correct.
+        
+        
 
 
         """
-
-        import os
-        super(CORMAT_GUI, self).__init__(parent)
-        self.setupUi(self)
-
-        self.data = SimpleNamespace() # dictionary object that contains all data
-
-        # -------------------------------
-        # backup for kg1 data
-        self.data.kg1_original = {}
-        # -------------------------------
-        # store normalised kg1?
-        self.data.kg1_norm = {}
-        # ----------------------
-        # initialise data
-        self.data.KG1_data = {}
-        self.data.KG4_data = {}
-        self.data.MAG_data = {}
-        self.data.PELLETS_data = {}
-        self.data.ELM_data = {}
-        self.data.HRTS_data = {}
-        self.data.NBI_data = {}
-        self.data.is_dis = {}
-        self.data.dis_time = {}
-        self.data.LIDAR_data = {}
-        self.data.coord_ch1 = []
-        self.data.coord_ch2 = []
-        self.data.coord_ch3 = []
-        self.data.coord_ch4 = []
-        self.data.coord_ch5 = []
-        self.data.coord_ch6 = []
-        self.data.coord_ch7 = []
-        self.data.coord_ch8 = []
-
-
-
-
-        ####
-        self.totalcorrections_den =np.empty([7])
-        self.totalcorrections_vib =np.empty([7])
-
-
-
-        # -------------------------------
-        #old pulse contains information on the last pulse analysed
-        self.data.old_pulse = None
-        #pulse is the current pulse
-        self.data.pulse = None
-        # -------------------------------
-        # initialisation of control variables
-        # -------------------------------
-        # set saved status to False
-
-        self.data.saved = False
-        self.data.data_changed = False
-        self.data.statusflag_changed = False
-
-        logger.log(5,
-                   "{} - saved is {} - data changed is {} - status flags changed is {}".format(
-                       myself(), self.data.saved, self.data.data_changed,
-                       self.data.statusflag_changed))
-
-        # -------------------------------
-        ###setting up the logger to write inside a Text box in the GUI
-        # -------------------------------
-        logTextBox = QPlainTextEditLogger(self)
-        # You can format what is printed to text box
-        #logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-
-        #logTextBox.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
-        logTextBox.setFormatter(HTMLFormatter())
-        logging.getLogger().addHandler(logTextBox)
-        # You can control the logging level
-        # logging.getLogger().setLevel(logger.info)
-
-        # -------------------------------
-        # initialising new pulse checkbox to false
-        # -------------------------------
-        self.checkBox_newpulse.setChecked(False)
-
-
-
-
-        # -------------------------------
-        # initialising tabs
-        # -------------------------------
-        self._initialize_widget(self.widget_LID1)
-        self._initialize_widget(self.widget_LID2)
-        self._initialize_widget(self.widget_LID3)
-        self._initialize_widget(self.widget_LID4)
-        self._initialize_widget(self.widget_LID5)
-        self._initialize_widget(self.widget_LID6)
-        self._initialize_widget(self.widget_LID7)
-        self._initialize_widget(self.widget_LID8)
-        self._initialize_widget(self.widget_LID_14)
-        self._initialize_widget(self.widget_LID_58)
-        self._initialize_widget(self.widget_LID_ALL)
-        self._initialize_widget(self.widget_MIR)
-
-        # set tabwidget index to 0 - lid1 is the tab shown at startup
-        # self.tabWidget.setCurrentWidget(self.tabWidget.findChild(tabWidget, 'tab_LID1'))
-        self.tabWidget.setCurrentIndex(0)
-        # -------------------------------
-        # initialising folders
-        # -------------------------------
-        logger.info('\tStart CORMATpy')
-        logger.info('\t {}'.format(datetime.datetime.today().strftime('%Y-%m-%d')))
-        cwd = os.getcwd()
-        self.workfold = cwd
-        self.home = cwd
-        parent = Path(self.home)
-        if "USR" in os.environ:
-            logger.log(5, 'USR in env')
-            # self.owner = os.getenv('USR')
-            self.owner = os.getlogin()
-        else:
-            logger.log(5, 'using getuser to authenticate')
-            import getpass
-            self.owner = getpass.getuser()
-        logger.log(5, 'this is your username {}'.format(self.owner))
-        self.homefold = os.path.join(os.sep, 'u', self.owner)
-        logger.log(5, 'this is your homefold {}'.format(self.homefold))
-        home = str(Path.home())
-        self.chain1 = '/common/chain1/kg1/'
-        extract_history(
-            self.workfold + '/run_out.txt',
-            self.chain1 + 'cormat_out.txt')
-        logger.info('copying to local user profile')
-        logger.log(5, 'we are in %s', cwd)
-
-        # -------------------------------
-        # Read  config self.data.
-        # -------------------------------
-        logger.info(" Reading in constants.")
-        # test_logger()
-        # raise SystemExit
-
-
         try:
-            self.data.constants = Consts("consts.ini", __version__)
-            # constants = Kg1Consts("kg1_consts.ini", __version__)
-        except KeyError:
-            logger.error(" Could not read in configuration file consts.ini")
-            sys.exit(65)
 
-        self.data.poss_ne_corr = np.array([self.data.constants.CORR_NE]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_NE)).transpose()
-        self.data.poss_vib_corr = np.array([self.data.constants.CORR_VIB]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_VIB)).transpose()
-        self.data.poss_dcn_corr = np.array([self.data.constants.FJ_DCN]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_DCN)).transpose()
-        self.data.poss_met_corr = np.array([self.data.constants.FJ_MET]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_MET)).transpose()
+            super(CORMAT_GUI, self).__init__(parent)
+            self.setupUi(self)
 
-        # matrix for converting DCN & MET signals into density & mirror movement
-        self.data.matrix_lat_channels = np.array([[self.data.constants.MAT11 , self.data.constants.MAT12 ],[self.data.constants.MAT21 , self.data.constants.MAT22 ]])
+            self.data = SimpleNamespace() # dictionary object that contains all data
+
+            # -------------------------------
+            # check if kg1 is stored in workspace
+            # -------------------------------
+            exists = os.path.isfile('./scratch/kg1_data.pkl')
+
+            if exists :
+                        logging.getLogger().disabled = True
+
+                        self.load_pickle()
+
+                        # logging.disable(logging.NOTSET)
+                        logging.getLogger().disabled = False
+                        logger.log(5,'checking pulse data in workspace')
+                        list_attr=['self.data.KG1_data','self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data','self.data.ELM_data', 'self.data.HRTS_data','self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time','self.data.LIDAR_data']
+                        for attr in list_attr:
+                            # pyqt_set_trace()
+                            if hasattr(self, attr):
+                                delattr(self,attr)
+                        self.setWindowTitle("CORMAT_py - {}".format(self.data.pulse))
+                        self.lineEdit_jpn.setText(str(self.data.pulse))
 
 
-        self.data.sign_vib_corr = np.array(np.zeros(self.data.poss_vib_corr.shape) + 1)
-        self.data.sign_vib_corr[np.where(self.data.poss_vib_corr < 0.0)] = -1
+                        del  self.data.pulse
 
-        # -------------------------------
-        # list of authorized user to write KG1 ppfs
-        # -------------------------------
-        read_uis = []
-        for user in self.data.constants.readusers.keys():
-            user_name = self.data.constants.readusers[user]
-            read_uis.append(user_name)
-        self.exit_button.clicked.connect(self.handle_exit_button)
-        self.PathTranfile = None
-        self.PathCatalog = '/home'
-        # -------------------------------
-        # list of option to write ppf for current user
-        # -------------------------------
-        write_uis = []
-        # -------------------------------
-        # check if owner is in list of authorised users
-        # -------------------------------
-        if self.owner in read_uis:
-            logger.info(
-                'user {} authorised to write public PPF'.format(self.owner))
-            write_uis.insert(0, 'JETPPF')  # jetppf first in the combobox list
-            write_uis.append(self.owner)
-            # users.append('chain1')
-        else:
-            logger.info(
-                'user {} NOT authorised to write public PPF'.format(self.owner))
-            write_uis.append(self.owner)
-        # -------------------------------
-        # initialise combobox
-        self.comboBox_readuid.addItems(read_uis)
-        self.comboBox_writeuid.addItems(write_uis)
-        # -------------------------------
-        # set combobox index to 1 so that the default write_uid is owner
-        if len(write_uis) == 2:
-            self.comboBox_writeuid.setCurrentIndex(1)
-        else:
-            self.comboBox_writeuid.setCurrentIndex(0)
+            # -------------------------------
+            # backup for kg1 data
+            self.data.kg1_original = {}
+            # -------------------------------
+            # store normalised kg1?
+            self.data.kg1_norm = {}
+            # ----------------------
+            # initialise data
+            self.data.KG1_data = {}
+            self.data.KG4_data = {}
+            self.data.MAG_data = {}
+            self.data.PELLETS_data = {}
+            self.data.ELM_data = {}
+            self.data.HRTS_data = {}
+            self.data.NBI_data = {}
+            self.data.is_dis = {}
+            self.data.dis_time = {}
+            self.data.LIDAR_data = {}
 
-        # -------------------------------
-        # set default pulse
-        # initpulse = pdmsht()
-        #initpulse = 92121
-        #self.lineEdit_jpn.setText(str(initpulse))
-        # -------------------------------
-        # -------------------------------
-        # list of the second trace signal use to be compared with KG1
-        # -------------------------------
-        othersignallist = ['None', 'HRTS', 'Lidar', 'BremS', 'Far', 'CM',
-                           'KG1_RT']
-        self.comboBox_2ndtrace.addItems(othersignallist)
-        self.comboBox_2ndtrace.activated[str].connect(self.plot_2nd_trace)
-        # -------------------------------
-        # list of markers
-        # -------------------------------
-        markers = ['None', 'ELMs', 'NBI', 'PELLETs', 'MAGNETICs']
-        self.comboBox_markers.addItems(markers)
-        self.comboBox_markers.activated[str].connect(self.plot_markers)
-        # -------------------------------
-        # disabling marker and second trace combo boxes
-        # -------------------------------
-        self.comboBox_markers.setEnabled(False)
-        self.comboBox_2ndtrace.setEnabled(False)
-        # -------------------------------
-        # connecting functions to buttons
-        # -------------------------------
-        self.button_read_pulse.clicked.connect(self.handle_readbutton_master)
-        # self.button_read_pulse.clicked.connect(self.handle_readbutton)
-        self.button_saveppf.clicked.connect(self.handle_saveppfbutton)
-        self.button_save.clicked.connect(self.dump_kg1)
-        self.button_normalize.clicked.connect(self.handle_normalizebutton)
-        self.button_restore.clicked.connect(self.handle_button_restore)
-        # self.pushButton_apply.clicked.connect(self.handle_applybutton)
-        self.pushButton_makeperm.clicked.connect(self.handle_makepermbutton)
-        # self.pushButton_undo.clicked.connect(self.handle_undobutton)
-        self.checkSFbutton.clicked.connect(self.checkStatuFlags)
-        self.actionHelp.triggered.connect(self.handle_help_menu)
-        self.actionOpen_PDF_guide.triggered.connect(self.handle_pdf_open)
-        # -------------------------------
-        # initialising code folders
-        # -------------------------------
-        try:
-            # figure folder
-            pathlib.Path(cwd + os.sep + 'figures').mkdir(parents=True,
-                                                         exist_ok=True)
-            # scratch folder - where you keep unsaved unfinished data
-            pathlib.Path(cwd + os.sep + 'scratch').mkdir(parents=True,
-                                                         exist_ok=True)
-            # save foldere - where you keep saved pulse data
-            pathlib.Path(cwd + os.sep + 'saved').mkdir(parents=True,
-                                                       exist_ok=True)
-        except SystemExit:
-            raise SystemExit('failed to initialise folders')
-        # -------------------------------
-        # disable many button to avoid conflicts at startup
-        # -------------------------------
-        self.button_saveppf.setEnabled(False)
-        self.button_save.setEnabled(False)
-        self.checkSFbutton.setEnabled(False)
-        self.button_normalize.setEnabled(False)
-        # self.pushButton_apply.setEnabled(False)
-        self.pushButton_makeperm.setEnabled(False)
-        self.pushButton_undo.setEnabled(False)
-        self.button_restore.setEnabled(False)
-        # -------------------------------
-        # run code by default
-        # self.button_read_pulse.click()
-        # -------------------------------
-        # -------------------------------
-        # initialize to zero status flag radio buttons
-        # -------------------------------
-        self.radioButton_statusflag_0.setChecked(False)
-        self.radioButton_statusflag_1.setChecked(False)
-        self.radioButton_statusflag_2.setChecked(False)
-        self.radioButton_statusflag_3.setChecked(False)
-        self.radioButton_statusflag_4.setChecked(False)
-        # -------------------------------
-        # set status flag radio buttons to false
-        self.groupBox_statusflag.setEnabled(False)
-        # -------------------------------
-        # -------------------------------
-        # set read uid combo box to disabled
-        self.comboBox_readuid.setEnabled(False)
-        # -------------------------------
-        # to disable a tab use
-        # self.tabWidget.setTabEnabled(3, False)
-        # -------------------------------
-        # setup automatic check on status flag
-        # -------------------------------
-        self.checkBox_newpulse.toggled.connect(
-            lambda: self.handle_check_status(self.checkBox_newpulse))
-        # -------------------------------
-        # #disable tab as there is nothing plotted
-        self.tabWidget.setTabEnabled(0, False)
-        self.tabWidget.setTabEnabled(1, False)
-        self.tabWidget.setTabEnabled(2, False)
-        self.tabWidget.setTabEnabled(3, False)
-        self.tabWidget.setTabEnabled(4, False)
-        self.tabWidget.setTabEnabled(5, False)
-        self.tabWidget.setTabEnabled(6, False)
-        self.tabWidget.setTabEnabled(7, False)
-        self.tabWidget.setTabEnabled(8, False)
-        self.tabWidget.setTabEnabled(9, False)
-        self.tabWidget.setTabEnabled(10, False)
-        self.tabWidget.setTabEnabled(11, False)
-        # -------------------------------
-        # making documentation
-        # -------------------------------
-        if (args.documentation).lower() == 'yes':
-            logger.info('creating documentation')
-            os.chdir('../docs')
-            import subprocess
-            subprocess.check_output('make html', shell=True)
-            subprocess.check_output('make latex', shell=True)
-            os.chdir(self.home)
-
-        #adding personalized object LineEdit to widget in GUI
-        self.lineEdit_mancorr = LineEdit()
-        self.kb = KeyBoard(self.lineEdit_mancorr)
-        self.gridLayout_21.addWidget(self.lineEdit_mancorr, 3, 0, 1, 2)
+            #list where storing data point selected by user clicking on canvas
+            self.data.coord_ch1 = []
+            self.data.coord_ch2 = []
+            self.data.coord_ch3 = []
+            self.data.coord_ch4 = []
+            self.data.coord_ch5 = []
+            self.data.coord_ch6 = []
+            self.data.coord_ch7 = []
+            self.data.coord_ch8 = []
 
 
 
 
-        # -------------------------------
+            ####
+            self.totalcorrections_den =np.empty([7])
+            self.totalcorrections_vib =np.empty([7])
+
+            # storing backup of data when zeroing
+            self.data.zeroingbackup_den = [ [],[],[],[],[],[],[],[]]
+            self.data.zeroingbackup_vib = [ [],[],[],[],[],[],[],[]]
+            # self.data.zeroingbackup_vib = []
+
+            #setting zeroed vertical line to 100s
+            # self.data.xzero_tail = 100
+            # self.data.zeroing_start[self.chan] = 1e6 # index of starting of zeroing when zeroing tail data
+
+            #
+            # self.data.z = 1e6 #index of start of zeroing interval
+            # self.data.zeroing_stop = 0 # index of end of zeroing interval
+            #
+            self.data.zeroed = np.zeros(8, dtype=bool) # array that stores info is channel has been tail zeroed
+            self.data.zeroing_start =np.full(8,1e6, dtype=int)
+            self.data.zeroing_stop = np.full(8,0, dtype=int)
+            #
+            # self.data.zeroing_start_min = 1e6 # minimum index of zeroing interval (to be shown in other channels)
+            # self.data.zeroing_stop_max = 0# maximum index of zeroing interval (to be shown in other channels)
+        #
 
 
 
-        # -------------------------------
-        # check if kg1 is stored in workspace
-        # -------------------------------
-        exists = os.path.isfile('./scratch/kg1_data.pkl')
+            # -------------------------------
+            #old pulse contains information on the last pulse analysed
+            self.data.old_pulse = None
+            #pulse is the current pulse
+            self.data.pulse = None
+            # -------------------------------
+            # initialisation of control variables
+            # -------------------------------
+            # set saved status to False
 
-        if exists :
-                    logging.getLogger().disabled = True
+            self.data.saved = False
+            self.data.data_changed = False
+            self.data.statusflag_changed = False
 
-                    self.load_pickle()
+            logger.log(5,
+                       "{} - saved is {} - data changed is {} - status flags changed is {}".format(
+                           myself(), self.data.saved, self.data.data_changed,
+                           self.data.statusflag_changed))
 
-                    # logging.disable(logging.NOTSET)
-                    logging.getLogger().disabled = False
-                    logger.log(5,'checking pulse data in workspace')
-                    list_attr=['self.data.KG1_data','self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data','self.data.ELM_data', 'self.data.HRTS_data','self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time','self.data.LIDAR_data']
-                    for attr in list_attr:
-                        # pyqt_set_trace()
-                        if hasattr(self, attr):
-                            delattr(self,attr)
-                    self.setWindowTitle("CORMAT_py - {}".format(self.data.pulse))
-                    self.lineEdit_jpn.setText(str(self.data.pulse))
+            # -------------------------------
+            ###setting up the logger to write inside a Text box in the GUI
+            # -------------------------------
+            logTextBox = QPlainTextEditLogger(self)
+            # You can format what is printed to text box
+            #logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
 
+            #logTextBox.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
+            logTextBox.setFormatter(HTMLFormatter())
+            logging.getLogger().addHandler(logTextBox)
+            # You can control the logging level
+            # logging.getLogger().setLevel(logger.info)
 
-                    del  self.data.pulse
-
-
-
-
-
-        logger.info('INIT DONE')
-        #auto click read button
-        # self.button_read_pulse.click()
-
+            # -------------------------------
+            # initialising new pulse checkbox to false
+            # -------------------------------
+            self.checkBox_newpulse.setChecked(False)
 
 
-#-------------------------------
+
+
+            # -------------------------------
+            # initialising tabs
+            # -------------------------------
+            self._initialize_widget(self.widget_LID1)
+            self._initialize_widget(self.widget_LID2)
+            self._initialize_widget(self.widget_LID3)
+            self._initialize_widget(self.widget_LID4)
+            self._initialize_widget(self.widget_LID5)
+            self._initialize_widget(self.widget_LID6)
+            self._initialize_widget(self.widget_LID7)
+            self._initialize_widget(self.widget_LID8)
+            self._initialize_widget(self.widget_LID_14)
+            self._initialize_widget(self.widget_LID_58)
+            self._initialize_widget(self.widget_LID_ALL)
+            self._initialize_widget(self.widget_MIR)
+
+            # set tabwidget index to 0 - lid1 is the tab shown at startup
+            # self.tabWidget.setCurrentWidget(self.tabWidget.findChild(tabWidget, 'tab_LID1'))
+            self.tabWidget.setCurrentIndex(0)
+            # -------------------------------
+            # initialising folders
+            # -------------------------------
+            logger.info('\tStart CORMATpy')
+            logger.info('\t {}'.format(datetime.datetime.today().strftime('%Y-%m-%d')))
+            cwd = os.getcwd()
+            self.workfold = cwd
+            self.home = cwd
+            parent = Path(self.home)
+            if "USR" in os.environ:
+                logger.log(5, 'USR in env')
+                # self.owner = os.getenv('USR')
+                self.owner = os.getlogin()
+            else:
+                logger.log(5, 'using getuser to authenticate')
+                import getpass
+                self.owner = getpass.getuser()
+            logger.log(5, 'this is your username {}'.format(self.owner))
+            self.homefold = os.path.join(os.sep, 'u', self.owner)
+            logger.log(5, 'this is your homefold {}'.format(self.homefold))
+            home = str(Path.home())
+            self.chain1 = '/common/chain1/kg1/'
+            extract_history(
+                self.workfold + '/run_out.txt',
+                self.chain1 + 'cormat_out.txt')
+            logger.info('copying to local user profile')
+            logger.log(5, 'we are in %s', cwd)
+
+            # -------------------------------
+            # Read  config self.data.
+            # -------------------------------
+            logger.info(" Reading in constants.")
+            # test_logger()
+            # raise SystemExit
+
+
+            try:
+                self.data.constants = Consts("consts.ini", __version__)
+                # constants = Kg1Consts("kg1_consts.ini", __version__)
+            except KeyError:
+                logger.error(" Could not read in configuration file consts.ini")
+                sys.exit(65)
+
+            self.data.poss_ne_corr = np.array([self.data.constants.CORR_NE]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_NE)).transpose()
+            self.data.poss_vib_corr = np.array([self.data.constants.CORR_VIB]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_VIB)).transpose()
+            self.data.poss_dcn_corr = np.array([self.data.constants.FJ_DCN]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_DCN)).transpose()
+            self.data.poss_met_corr = np.array([self.data.constants.FJ_MET]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_MET)).transpose()
+
+            # matrix for converting DCN & MET signals into density & mirror movement
+            self.data.matrix_lat_channels = np.array([[self.data.constants.MAT11 , self.data.constants.MAT12 ],[self.data.constants.MAT21 , self.data.constants.MAT22 ]])
+            self.data.Minv= np.linalg.inv(self.data.matrix_lat_channels)  # invert correction matrix for lateral channels
+
+
+            self.data.sign_vib_corr = np.array(np.zeros(self.data.poss_vib_corr.shape) + 1)
+            self.data.sign_vib_corr[np.where(self.data.poss_vib_corr < 0.0)] = -1
+
+            # -------------------------------
+            # list of authorized user to write KG1 ppfs
+            # -------------------------------
+            read_uis = []
+            for user in self.data.constants.readusers.keys():
+                user_name = self.data.constants.readusers[user]
+                read_uis.append(user_name)
+            self.exit_button.clicked.connect(self.handle_exit_button)
+            self.PathTranfile = None
+            self.PathCatalog = '/home'
+            # -------------------------------
+            # list of option to write ppf for current user
+            # -------------------------------
+            write_uis = []
+            # -------------------------------
+            # check if owner is in list of authorised users
+            # -------------------------------
+            if self.owner in read_uis:
+                logger.info(
+                    'user {} authorised to write public PPF'.format(self.owner))
+                write_uis.insert(0, 'JETPPF')  # jetppf first in the combobox list
+                write_uis.append(self.owner)
+                # users.append('chain1')
+            else:
+                logger.info(
+                    'user {} NOT authorised to write public PPF'.format(self.owner))
+                write_uis.append(self.owner)
+            # -------------------------------
+            # initialise combobox
+            self.comboBox_readuid.addItems(read_uis)
+            self.comboBox_writeuid.addItems(write_uis)
+            # -------------------------------
+            # set combobox index to 1 so that the default write_uid is owner
+            if len(write_uis) == 2:
+                self.comboBox_writeuid.setCurrentIndex(1)
+            else:
+                self.comboBox_writeuid.setCurrentIndex(0)
+
+            # -------------------------------
+            # set default pulse
+            # initpulse = pdmsht()
+            #initpulse = 92121
+            #self.lineEdit_jpn.setText(str(initpulse))
+            # -------------------------------
+            # -------------------------------
+            # list of the second trace signal use to be compared with KG1
+            # -------------------------------
+            othersignallist = ['None', 'HRTS', 'Lidar', 'BremS', 'Far', 'CM',
+                               'KG1_RT','LID1','LID2','LID3','LID4','LID5','LID6','LID7','LID8']
+
+            self.comboBox_2ndtrace.addItems(othersignallist)
+            self.comboBox_2ndtrace.activated[str].connect(self.plot_2nd_trace)
+            # -------------------------------
+            # list of markers
+            # -------------------------------
+            markers = ['None', 'ELMs', 'NBI', 'PELLETs', 'MAGNETICs']
+            self.comboBox_markers.addItems(markers)
+            self.comboBox_markers.activated[str].connect(self.plot_markers)
+            # -------------------------------
+            # disabling marker and second trace combo boxes
+            # -------------------------------
+            self.comboBox_markers.setEnabled(False)
+            self.comboBox_2ndtrace.setEnabled(False)
+            # -------------------------------
+            # connecting functions to buttons
+            # -------------------------------
+            self.button_read_pulse.clicked.connect(self.handle_readbutton_master)
+            # self.button_read_pulse.clicked.connect(self.handle_readbutton)
+            self.button_saveppf.clicked.connect(self.handle_saveppfbutton)
+            self.button_save.clicked.connect(self.dump_kg1)
+            self.button_normalize.clicked.connect(self.handle_normalizebutton)
+            self.button_restore.clicked.connect(self.handle_button_restore)
+            # self.pushButton_apply.clicked.connect(self.handle_applybutton)
+            self.pushButton_makeperm.clicked.connect(self.handle_makepermbutton)
+            # self.pushButton_undo.clicked.connect(self.handle_undobutton)
+            self.checkSFbutton.clicked.connect(self.checkStatuFlags)
+            self.actionHelp.triggered.connect(self.handle_help_menu)
+            self.actionOpen_PDF_guide.triggered.connect(self.handle_pdf_open)
+            # -------------------------------
+            # initialising code folders
+            # -------------------------------
+            try:
+                # figure folder
+                pathlib.Path(cwd + os.sep + 'figures').mkdir(parents=True,
+                                                             exist_ok=True)
+                # scratch folder - where you keep unsaved unfinished data
+                pathlib.Path(cwd + os.sep + 'scratch').mkdir(parents=True,
+                                                             exist_ok=True)
+                # save foldere - where you keep saved pulse data
+                pathlib.Path(cwd + os.sep + 'saved').mkdir(parents=True,
+                                                           exist_ok=True)
+            except SystemExit:
+                raise SystemExit('failed to initialise folders')
+            # -------------------------------
+            # disable many button to avoid conflicts at startup
+            # -------------------------------
+            self.button_saveppf.setEnabled(False)
+            self.button_save.setEnabled(False)
+            self.checkSFbutton.setEnabled(False)
+            self.button_normalize.setEnabled(False)
+            # self.pushButton_apply.setEnabled(False)
+            self.pushButton_makeperm.setEnabled(False)
+            self.pushButton_undo.setEnabled(False)
+            self.button_restore.setEnabled(False)
+            # -------------------------------
+            # run code by default
+            # self.button_read_pulse.click()
+            # -------------------------------
+            # -------------------------------
+            # initialize to zero status flag radio buttons
+            # -------------------------------
+            self.radioButton_statusflag_0.setChecked(False)
+            self.radioButton_statusflag_1.setChecked(False)
+            self.radioButton_statusflag_2.setChecked(False)
+            self.radioButton_statusflag_3.setChecked(False)
+            self.radioButton_statusflag_4.setChecked(False)
+            # -------------------------------
+            # set status flag radio buttons to false
+            self.groupBox_statusflag.setEnabled(False)
+            # -------------------------------
+            # -------------------------------
+            # set read uid combo box to disabled
+            self.comboBox_readuid.setEnabled(False)
+            # -------------------------------
+            # to disable a tab use
+            # self.tabWidget.setTabEnabled(3, False)
+            # -------------------------------
+            # setup automatic check on status flag
+            # -------------------------------
+            self.checkBox_newpulse.toggled.connect(
+                lambda: self.handle_check_status(self.checkBox_newpulse))
+            # -------------------------------
+            # #disable tab as there is nothing plotted
+            self.tabWidget.setTabEnabled(0, False)
+            self.tabWidget.setTabEnabled(1, False)
+            self.tabWidget.setTabEnabled(2, False)
+            self.tabWidget.setTabEnabled(3, False)
+            self.tabWidget.setTabEnabled(4, False)
+            self.tabWidget.setTabEnabled(5, False)
+            self.tabWidget.setTabEnabled(6, False)
+            self.tabWidget.setTabEnabled(7, False)
+            self.tabWidget.setTabEnabled(8, False)
+            self.tabWidget.setTabEnabled(9, False)
+            self.tabWidget.setTabEnabled(10, False)
+            self.tabWidget.setTabEnabled(11, False)
+            # -------------------------------
+            # making documentation
+            # -------------------------------
+            if (args.documentation).lower() == 'yes':
+                logger.info('creating documentation')
+                os.chdir('../docs')
+                import subprocess
+                subprocess.check_output('make html', shell=True)
+                subprocess.check_output('make latex', shell=True)
+                os.chdir(self.home)
+
+            #adding personalized object LineEdit to widget in GUI
+            self.lineEdit_mancorr = LineEdit()
+            self.kb = KeyBoard(self.lineEdit_mancorr)
+            self.gridLayout_21.addWidget(self.lineEdit_mancorr, 3, 0, 1, 2)
+
+
+
+
+            # -------------------------------
+
+
+
+
+
+
+
+
+            
+            logger.info('INIT DONE')
+            #auto click read button
+            # self.button_read_pulse.click()
+        except:
+            logger.error('Error!')
+
+
+
+    #-------------------------------
     @QtCore.pyqtSlot()
     def handle_readbutton_master(self):
         """
@@ -520,19 +555,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.comboBox_2ndtrace.setCurrentIndex(0)
         self.comboBox_markers.setCurrentIndex(0)
 
-        #
-        # self.tabWidget.setTabEnabled(0, True)
-        # self.tabWidget.setTabEnabled(1, True)
-        # self.tabWidget.setTabEnabled(2, True)
-        # self.tabWidget.setTabEnabled(3, True)
-        # self.tabWidget.setTabEnabled(4, True)
-        # self.tabWidget.setTabEnabled(5, True)
-        # self.tabWidget.setTabEnabled(6, True)
-        # self.tabWidget.setTabEnabled(7, True)
-        # self.tabWidget.setTabEnabled(8, True)
-        # self.tabWidget.setTabEnabled(9, True)
-        # self.tabWidget.setTabEnabled(10, True)
-        # self.tabWidget.setTabEnabled(11, True)
+
 
         self.widget_LID1.figure.clear()
         self.widget_LID1.draw()
@@ -570,6 +593,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.widget_MIR.figure.clear()
         self.widget_MIR.draw()
 
+        #
+        #
 
 
         # -------------------------------
@@ -603,6 +628,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     # -------------------------------
                     # READ self.data.
                     # -------------------------------
+                    self.data.zeroed = np.zeros(8,
+                                                dtype=bool)  # array that stores info is channel has been tail zeroed
+                    self.data.zeroing_start = np.full(8, 1e6, dtype=int)
+                    self.data.zeroing_stop = np.full(8, 0, dtype=int)  #
+                    self.data.zeroingbackup_den = [[], [], [], [], [], [], [],
+                                                   []]
+                    self.data.zeroingbackup_vib = [[], [], [], [], [], [], [],
+                                                   []]
+
+
                     self.read_uid = str(self.comboBox_readuid.currentText())
                     logger.info("Reading data for pulse {}".format(str(self.data.pulse)))
                     logger.info('reading data with uid -  {}'.format((str(self.read_uid))))
@@ -658,12 +693,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     logger.log(5, '{} is NOT  checked'.format(self.checkBox_newpulse.objectName()))
                     # pyqt_set_trace()
                     # logging.disable(logger.info)
-                    logging.getLogger().disabled = True
+                    # logging.getLogger().disabled = True
 
                     self.load_pickle()
 
                     # logging.disable(logging.NOTSET)
-                    logging.getLogger().disabled = False
+                    # logging.getLogger().disabled = False
                     logger.log(5,'checking pulse data in workspace')
                     # pyqt_set_trace()
 
@@ -872,23 +907,39 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         """
         if reset is False:
             if str(chan) == '1':
+                logger.log(5, 'no reset, coord_ch1 '.format(self.data.coord_ch1))
                 return self.data.coord_ch1
             elif str(self.chan) == '2':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch2))
                 return self.data.coord_ch2
             elif str(self.chan) == '3':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch3))
                 return self.data.coord_ch3
             elif str(self.chan) == '4':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch4))
                 return self.data.coord_ch4
             elif str(self.chan) == '5':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch5))
                 return self.data.coord_ch5
             elif str(self.chan) == '6':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch6))
                 return self.data.coord_ch6
             elif str(self.chan) == '7':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch7))
                 return self.data.coord_ch7
             elif str(self.chan) == '8':
+                logger.log(5,
+                           'no reset, coord_ch1 '.format(self.data.coord_ch8))
                 return self.data.coord_ch8
         elif reset is True and chan =='all':
             #reset all channels
+            logger.log(5, 'reset all ')
             self.data.coord_ch1 = []
             self.data.coord_ch2 = []
             self.data.coord_ch3 = []
@@ -902,21 +953,30 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         elif reset is True:
             #reset single channel
             if str(chan) == '1':
+                logger.log(5, ' reset coord_ch1 ')
                 self.data.coord_ch1 = []
             elif str(chan) == '2':
+                logger.log(5, ' reset coord_ch2 ')
                 self.data.coord_ch2 = []
             elif str(chan) == '3':
+                logger.log(5, ' reset coord_ch3 ')
                 self.data.coord_ch3 = []
             elif str(chan) == '4':
+                logger.log(5, ' reset coord_ch4 ')
                 self.data.coord_ch4 = []
             elif str(chan) == '5':
+                logger.log(5, ' reset coord_ch5 ')
                 self.data.coord_ch5 = []
             elif str(chan) == '6':
+                logger.log(5, ' reset coord_ch6 ')
                 self.data.coord_ch6 = []
             elif str(chan) == '7':
+                logger.log(5, ' reset coord_ch7 ')
                 self.data.coord_ch7 = []
             elif str(chan) == '8':
+                logger.log(5, ' reset coord_ch8 ')
                 self.data.coord_ch8 = []
+
 
 
 # -------------------------
@@ -953,42 +1013,42 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.data.SF_ch8 = SF
 
 
-        if (int(self.data.SF_old1) != int(self.data.SF_ch1)):
+        if (self.current_tab == 'LID_1') & (int(self.data.SF_old1) != int(self.data.SF_ch1)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID1 changed by user")
 
-        elif (int(self.data.SF_old2) != int(self.data.SF_ch2)):
+        elif (self.current_tab == 'LID_2') & (int(self.data.SF_old2) != int(self.data.SF_ch2)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID2 changed by user")
 
-        elif (int(self.data.SF_old3) != int(self.data.SF_ch3)):
+        elif (self.current_tab == 'LID_3') &  (int(self.data.SF_old3) != int(self.data.SF_ch3)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID3 changed by user")
 
-        elif (int(self.data.SF_old4) != int(self.data.SF_ch4)):
+        elif (self.current_tab == 'LID_4') & (int(self.data.SF_old4) != int(self.data.SF_ch4)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID4 changed by user")
 
-        elif (int(self.data.SF_old5) != int(self.data.SF_ch5)):
+        elif (self.current_tab == 'LID_5') & (int(self.data.SF_old5) != int(self.data.SF_ch5)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID5 changed by user")
 
-        elif (int(self.data.SF_old6) != int(self.data.SF_ch6)):
+        elif (self.current_tab == 'LID_6') & (int(self.data.SF_old6) != int(self.data.SF_ch6)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID6 changed by user")
 
-        elif (int(self.data.SF_old7) != int(self.data.SF_ch7)):
+        elif (self.current_tab == 'LID_7') & (int(self.data.SF_old7) != int(self.data.SF_ch7)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID7 changed by user")
 
-        elif (int(self.data.SF_old8) != int(self.data.SF_ch8)):
+        elif (self.current_tab == 'LID_8') & (int(self.data.SF_old8) != int(self.data.SF_ch8)):
 
             self.data.statusflag_changed = True
             logger.log(5, "status flag LID8 changed by user")
@@ -1036,62 +1096,88 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         logger.log(5, 'data saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
 
 
-    # ------------------------
-    def load_pickle(self):
+    def load_scratch(self):
         """
-        loads last saved data from non saved operations
-        data are saved in pickle format (binary)
+        reloads data dumped to scratch
 
-        also to be used when reloading a pulse
+        :return:
         """
-        logger.info(' loading pulse data from workspace')
-        # Python 3: open(..., 'rb')
-        with open('./saved/data.pkl',
-                  'rb') as f:
-            [self.data.pulse, self.data.KG1_data,
-             self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
-             self.data.ELM_data, self.data.HRTS_data,
-             self.data.NBI_data, self.data.is_dis, self.data.dis_time,
-             self.data.LIDAR_data] = pickle.load(f)
-        f.close()
+        logger.debug(' loading pulse data')
         with open('./scratch/kg1_data.pkl',
                   'rb') as f:  # Python 3: open(..., 'rb')
             [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
              self.read_uid] = pickle.load(f)
         f.close()
         logger.info(' workspace loaded')
-        logger.info(
-            ' workspace data comes from userid {}'.format(self.read_uid))
-        logger.info(
-            '{} has the following SF {}'.format(str(self.data.pulse), self.data.SF_list))
-        if self.data.KG1_data.mode != "Automatic Corrections":
-            self.data.KG1_data.correctedby = self.data.KG1_data.mode.split(" ")[2]
-            logger.info('{} last validated seq is {} by {}'.format(str(self.data.pulse),
-                                                                    str(self.data.val_seq),self.data.KG1_data.correctedby))
 
-        [self.data.SF_ch1,
-         self.data.SF_ch2,
-         self.data.SF_ch3,
-         self.data.SF_ch4,
-         self.data.SF_ch5,
-         self.data.SF_ch6,
-         self.data.SF_ch7,
-         self.data.SF_ch8] = self.data.SF_list
 
-        self.data.SF_old1 = self.data.SF_ch1
-        self.data.SF_old2 = self.data.SF_ch2
-        self.data.SF_old3 = self.data.SF_ch3
-        self.data.SF_old4 = self.data.SF_ch4
-        self.data.SF_old5 = self.data.SF_ch5
-        self.data.SF_old6 = self.data.SF_ch6
-        self.data.SF_old7 = self.data.SF_ch7
-        self.data.SF_old8 = self.data.SF_ch8
+    # ------------------------
+    def load_pickle(self,kg1only=False):
+        """
+        loads last saved data from non saved operations
+        data are saved in pickle format (binary)
 
-        # set saved status to False
-        self.data.saved = False
-        self.data.data_changed = False
-        self.data.statusflag_changed = False
-        logger.log(5, "load_pickle - saved is {} - data changed is {} - status flags changed is {}".format(self.data.saved,self.data.data_changed, self.data.statusflag_changed))
+        also to be used when reloading a pulse
+        """
+        if kg1only is False:
+
+            logger.info(' loading pulse data from workspace')
+            # Python 3: open(..., 'rb')
+            with open('./saved/data.pkl',
+                      'rb') as f:
+                [self.data.pulse, self.data.KG1_data,
+                 self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
+                 self.data.ELM_data, self.data.HRTS_data,
+                 self.data.NBI_data, self.data.is_dis, self.data.dis_time,
+                 self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,self.data.zeroed, self.data.zeroingbackup_den,
+                self.data.zeroingbackup_vib] = pickle.load(f)
+            f.close()
+            with open('./scratch/kg1_data.pkl',
+                      'rb') as f:  # Python 3: open(..., 'rb')
+                [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
+                 self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib] = pickle.load(f)
+            f.close()
+            logger.info(' workspace loaded')
+            logger.info(
+                ' workspace data comes from userid {}'.format(self.read_uid))
+            logger.info(
+                '{} has the following SF {}'.format(str(self.data.pulse), self.data.SF_list))
+            if self.data.KG1_data.mode != "Automatic Corrections":
+                self.data.KG1_data.correctedby = self.data.KG1_data.mode.split(" ")[2]
+                logger.info('{} last validated seq is {} by {}'.format(str(self.data.pulse),
+                                                                        str(self.data.val_seq),self.data.KG1_data.correctedby))
+
+            [self.data.SF_ch1,
+             self.data.SF_ch2,
+             self.data.SF_ch3,
+             self.data.SF_ch4,
+             self.data.SF_ch5,
+             self.data.SF_ch6,
+             self.data.SF_ch7,
+             self.data.SF_ch8] = self.data.SF_list
+
+            self.data.SF_old1 = self.data.SF_ch1
+            self.data.SF_old2 = self.data.SF_ch2
+            self.data.SF_old3 = self.data.SF_ch3
+            self.data.SF_old4 = self.data.SF_ch4
+            self.data.SF_old5 = self.data.SF_ch5
+            self.data.SF_old6 = self.data.SF_ch6
+            self.data.SF_old7 = self.data.SF_ch7
+            self.data.SF_old8 = self.data.SF_ch8
+
+            # set saved status to False
+            self.data.saved = False
+            self.data.data_changed = False
+            self.data.statusflag_changed = False
+            logger.log(5, "load_pickle - saved is {} - data changed is {} - status flags changed is {}".format(self.data.saved,self.data.data_changed, self.data.statusflag_changed))
+        else:
+            logger.log(5,'recovering KG1 data only')
+            with open('./scratch/kg1_data.pkl',
+                      'rb') as f:  # Python 3: open(..., 'rb')
+                [dummy, _, _, _,
+                 _,_,_,_,_] = pickle.load(f)
+            self.data.KG1_data.fj_dcn = dummy.fj_dcn
+            f.close()
 
 
 
@@ -1109,7 +1195,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
                  self.data.ELM_data, self.data.HRTS_data,
                  self.data.NBI_data, self.data.is_dis, self.data.dis_time,
-                 self.data.LIDAR_data], f)
+                 self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,self.data.zeroed,self.data.zeroingbackup_den,self.data.zeroingbackup_vib], f)
         f.close()
         logger.info(' data saved to {}'.format(folder))
 
@@ -1120,11 +1206,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :param folder:
         :return:
         """
-        logger.info(' saving KG1 data to {}'.format(folder))
+        logger.debug(' saving KG1 data to {}'.format(folder))
         with open('./' + folder + '/kg1_data.pkl', 'wb') as f:
             pickle.dump(
                 [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
-                 self.read_uid,], f)
+                 self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib], f)
         f.close()
         logger.info(' KG1 data saved to {}'.format(folder))
 
@@ -1205,6 +1291,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.GUI_refresh()
             self.setWindowTitle("CORMAT_py - {}".format(self.data.pulse))
             self.data.old_pulse = self.data.pulse
+            self.data.zeroed = np.zeros(8,
+                                        dtype=bool)  # array that stores info is channel has been tail zeroed
+            self.data.zeroing_start = np.full(8, 1e6, dtype=int)
+            self.data.zeroing_stop = np.full(8, 0, dtype=int)  #
+
+            self.data.zeroingbackup_den = [[], [], [], [], [], [], [], []]
+            self.data.zeroingbackup_vib = [[], [], [], [], [], [], [], []]
+
 
             # now set
             logger.log(5, " {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
@@ -1880,7 +1974,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 # ------------------------
-    @QtCore.pyqtSlot()
+
     def plot_2nd_trace(self):
         """
         function that plots a second trace in the tabs(each canvas)
@@ -1890,8 +1984,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :return:
         """
         # self.data.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
-
+        self.blockSignals(True)
         self.comboBox_markers.setCurrentIndex(0)
+
+
+
+
+
         self.data.secondtrace_original = {}
         self.data.secondtrace_norm = {}
 
@@ -2172,7 +2271,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         # self.data.secondtrace_norm[chan].data = norm(
                         #     self.data.KG1_data.kg1rt[chan].data)
                         self.data.secondtrace_norm[chan].data = normalise(
-                            self.data.KG1_data.kg1rt[chan], self.data.HRTS_data.density[chan],
+                            self.data.KG1_data.kg1rt[chan], self.data.KG1_data.density[chan],
                             self.data.dis_time)
 
                         vars()[ax_name].plot(self.data.KG1_data.kg1rt[chan].time,
@@ -2181,8 +2280,42 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         vars()[ax_name].legend()
 
 
+        elif self.data.s2ndtrace[0:3] == 'LID':
+            chan = int(self.data.s2ndtrace[-1])
+            name = 'Lid ch.' + str(chan)
+            for channel in self.data.KG1_data.density.keys():
 
-        if self.data.s2ndtrace == 'BremS':
+                ax_name = 'ax' + str(channel)
+
+
+                self.data.secondtrace_original[channel] = SignalBase(
+                    self.data.constants)
+                self.data.secondtrace_norm[channel] = SignalBase(self.data.constants)
+
+                self.data.secondtrace_original[channel].time = \
+                self.data.KG1_data.density[
+                    chan].time
+                self.data.secondtrace_original[channel].data = \
+                self.data.KG1_data.density[
+                    chan].data
+                # self.data.secondtrace_norm[chan].data = norm(
+                #     self.data.KG1_data.kg1rt[chan].data)
+                self.data.secondtrace_norm[channel].data = normalise(
+                    self.data.KG1_data.density[chan],
+                    self.data.KG1_data.density[channel],
+                    self.data.dis_time)
+
+                vars()[ax_name].plot(self.data.KG1_data.density[chan].time,
+                                     self.data.KG1_data.density[chan].data,
+                                     label=name, marker='o', color='cyan')
+                vars()[ax_name].legend()
+
+                vars()[ax_name].autoscale(enable=True,axis='y',tight=False)
+
+
+
+
+        elif self.data.s2ndtrace == 'BremS':
             logging.error('not implemented yet')
 
 
@@ -2222,6 +2355,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # only now activate button "normalize" and "restore"
         self.button_normalize.setEnabled(True)
         self.button_restore.setEnabled(True)
+        self.blockSignals(True)
 
     # ------------------------
     # noinspection PyUnusedLocal,PyUnusedLocal
@@ -2271,8 +2405,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # self.widget_LID_ALL.figure.clear()
         # self.widget_LID_ALL.draw()
 
-        self.widget_MIR.figure.clear()
-        self.widget_MIR.draw()
+        # self.widget_MIR.figure.clear()
+        # self.widget_MIR.draw()
 
         # ax_all = self.widget_LID_ALL.figure.add_subplot(111)
 
@@ -2291,32 +2425,40 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         gs1 = gridspec.GridSpec(ncols=1, nrows=3, height_ratios=heights1)
 
         ax1 = self.widget_LID1.figure.add_subplot(gs[0]); self.ax1=ax1
-        ax1_marker = self.widget_LID1.figure.add_subplot(gs[1], sharex=ax1); self.ax1_marker=ax1_marker
+        ax1_marker = self.widget_LID1.figure.add_subplot(gs[1], sharex=ax1)
+        self.ax1_marker=ax1_marker
 
         ax2 = self.widget_LID2.figure.add_subplot(gs[0]); self.ax2=ax2
-        ax2_marker = self.widget_LID2.figure.add_subplot(gs[1], sharex=ax2); self.ax2_marker=ax2_marker
+        ax2_marker = self.widget_LID2.figure.add_subplot(gs[1], sharex=ax2)
+        self.ax2_marker=ax2_marker
 
         ax3 = self.widget_LID3.figure.add_subplot(gs[0]); self.ax3=ax3
-        ax3_marker = self.widget_LID3.figure.add_subplot(gs[1], sharex=ax3); self.ax3_marker=ax3_marker
+        ax3_marker = self.widget_LID3.figure.add_subplot(gs[1], sharex=ax3)
+        self.ax3_marker=ax3_marker
 
         ax4 = self.widget_LID4.figure.add_subplot(gs[0]); self.ax4=ax4
-        ax4_marker = self.widget_LID4.figure.add_subplot(gs[1], sharex=ax4); self.ax4_marker=ax4_marker
+        ax4_marker = self.widget_LID4.figure.add_subplot(gs[1], sharex=ax4)
+        self.ax4_marker=ax4_marker
 
         ax5 = self.widget_LID5.figure.add_subplot(gs1[0]); self.ax5=ax5
         ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5); self.ax51=ax51
-        ax5_marker = self.widget_LID5.figure.add_subplot(gs1[2], sharex=ax5); self.ax5_marker=ax5_marker
+        ax5_marker = self.widget_LID5.figure.add_subplot(gs1[2], sharex=ax5)
+        self.ax5_marker=ax5_marker
 
         ax6 = self.widget_LID6.figure.add_subplot(gs1[0]); self.ax6=ax6
         ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6); self.ax61=ax61
-        ax6_marker = self.widget_LID6.figure.add_subplot(gs1[2], sharex=ax6); self.ax6_marker=ax6_marker
+        ax6_marker = self.widget_LID6.figure.add_subplot(gs1[2], sharex=ax6)
+        self.ax6_marker=ax6_marker
 
         ax7 = self.widget_LID7.figure.add_subplot(gs1[0]); self.ax7=ax7
         ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7); self.ax71=ax71
-        ax7_marker = self.widget_LID7.figure.add_subplot(gs1[2], sharex=ax7); self.ax7_marker=ax7_marker
+        ax7_marker = self.widget_LID7.figure.add_subplot(gs1[2], sharex=ax7)
+        self.ax7_marker=ax7_marker
 
         ax8 = self.widget_LID8.figure.add_subplot(gs1[0]); self.ax8=ax8
         ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8); self.ax81=ax81
-        ax8_marker = self.widget_LID8.figure.add_subplot(gs1[2], sharex=ax8); self.ax8_marker=ax8_marker
+        ax8_marker = self.widget_LID8.figure.add_subplot(gs1[2], sharex=ax8)
+        self.ax8_marker=ax8_marker
 
         #
         # ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
@@ -2382,9 +2524,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             for xc in xposition:
                 vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
-        if self.data.marker is not None:
-            logger.info('plotting marker {}'.format(self.data.marker))
-        elif self.data.marker == 'None':
+        # if self.data.marker is not None:
+        #     logger.info('plotting marker {}'.format(self.data.marker))
+        if self.data.marker == 'None':
             logger.info('no marker selected')
 
             # if no marker hide axis showing markers
@@ -2412,6 +2554,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             ax81.set_position(gs21[1].get_position(self.widget_LID5.figure))
 
         elif self.data.marker == 'ELMs':
+            logger.info('plotting marker {}'.format(self.data.marker))
             if self.data.ELM_data.elm_times is not None:
                 for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
@@ -2441,6 +2584,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 #         marker='o', color='orange')
 
         elif self.data.marker == 'MAGNETICs':
+            logger.info('plotting marker {}'.format(self.data.marker))
             if (self.data.MAG_data.start_ip) > 0:
                 for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
@@ -2448,15 +2592,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     for vert in [self.data.MAG_data.start_ip, self.data.MAG_data.end_ip]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
-                                                linewidth=2, color="red")
+                                                linewidth=2, color="red",label='Ip')
                     for vert in [self.data.MAG_data.start_flattop,
                                  self.data.MAG_data.end_flattop]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
-                                                linewidth=2, color="green")
+                                                linewidth=2, color="green",label='flat-top')
+
+                    vars()[ax_name].axvline(x= self.data.dis_time, ymin=0, ymax=1,
+                                                linewidth=2, color="brown",label='disruption time')
             else:
                 logger.info('No MAGNETICs marker')
 
         elif self.data.marker == 'NBI':
+            logger.info('plotting marker {}'.format(self.data.marker))
             if (self.data.NBI_data.start_nbi) > 0.0:
                 for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
@@ -2470,6 +2618,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.info('No NBI marker')
 
         elif self.data.marker == 'PELLETs':
+            logger.info('plotting marker {}'.format(self.data.marker))
             if self.data.PELLETS_data.time_pellets is not None:
                 for chan in self.data.KG1_data.density.keys():
                     ax_name = 'ax' + str(chan) + '_marker'
@@ -2553,6 +2702,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         if user selects in GUI to save ppf a new PPF sequence will be written for dda='KG1V'
         if user selects in GUI to save SF only the SF will be written in the last sequence (no new sequence)
+        
+        
+        is data is has not been modified it automatically switches to save status flags only
+        
+        as from May 2019 there is a bug in ppfssr so a new ppf will written in either cases.
+        
+
 
         """
 
@@ -2636,7 +2792,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 0 otherwise (success)
         """
 
-        # logger.info("            Saving KG1 workspace to pickle")
+
 
         self.checkStatuFlags()
 
@@ -2650,11 +2806,24 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         dda = "KG1V"
         return_code = 0
 
+
+
+
+
         for chan in self.data.KG1_data.density.keys():
             # status = np.empty(
             #     len(self.data.KG1_data.density[chan].time))
             # status.fill(self.data.SF_list[
             #                 chan - 1])
+
+            # Write signal type
+            dtype_type = "TYP{}".format(chan)
+            comment = "SIG TYPE: {} CH.{}".format(self.data.KG1_data.type[chan], chan)
+            write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_type, np.array([1]),
+                                                 time=np.array([0]), comment=comment, unitd=" ", unitt=" ", itref=-1,
+                                                 nt=1, status=None)
+
+
             dtype_lid = "LID{}".format(chan)
             comment = "DATA FROM KG1 CHANNEL {}".format(chan)
             write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_lid,
@@ -2677,8 +2846,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     "Failed to write {}/{}. Errorcode {}".format(dda, dtype_lid,
                                                                  write_err))
                 break
+            if self.data.KG1_data.fj_dcn is not None:
+                if chan in self.data.KG1_data.fj_dcn.keys():
+                    if self.data.KG1_data.fj_dcn[chan].data.size == 0:
+                        del self.data.KG1_data.fj_dcn[chan]
+
             # Corrected FJs for vertical channels
             if chan <= 4 and chan in self.data.KG1_data.fj_dcn.keys():
+
+
 
                 # DCN fringes
                 if self.data.KG1_data.fj_dcn is not None:
@@ -2761,7 +2937,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                                          dtype_jxb,
                                                                          write_err))
                         return write_err
+            if self.data.KG1_data.fj_met is not None:
+                if chan in self.data.KG1_data.fj_met.keys():
+                    if self.data.KG1_data.fj_met[chan].data.size == 0:
+                        del self.data.KG1_data.fj_met[chan]
+
             elif chan > 4 and chan in self.data.KG1_data.fj_met.keys():
+
+
                 # MET fringes
                 if self.data.KG1_data.fj_met is not None:
                     dtype_fc = "MC{} ".format(chan)
@@ -2871,8 +3054,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if write_err != 0:
             logger.error('failed to write ppf')
             return 67
-        logger.info("Close PPF.")
-        err = close_ppf(self.data.pulse, self.write_uid, self.data.constants.code_version)
+        else:
+            logger.info("Close PPF.")
+            err = close_ppf(self.data.pulse, self.write_uid, self.data.constants.code_version)
 
         if err != 0:
             logger.error('failed to close ppf')
@@ -3040,6 +3224,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 color = 'brown'
             if self.data.s2ndtrace == 'BremS':
                 color = 'grey'
+            if self.data.s2ndtrace[0:3] == 'LID':
+                color = 'cyan'
+
 
             # for every channel in KG1 (8 channels)
 
@@ -3053,13 +3240,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                      linestyle='None')
                 vars()[ax_name].legend()
 
-                name = self.data.s2ndtrace + ' ch.' + str(chan)
+                if self.data.s2ndtrace[0:3] == 'LID':
+                    name = self.data.s2ndtrace
+                else:
+                    name = self.data.s2ndtrace + ' ch.' + str(chan)
                 vars()[ax_name].plot(self.data.secondtrace_original[chan].time,
                                      self.data.secondtrace_norm[chan].data,
                                      label=name, marker='o',
                                      color=color)
                 vars()[ax_name].legend()
-                # self.widget_LID1.draw()
+
 
                 if chan > 4:
                     # channels 5-8 have mirror movement
@@ -3292,8 +3482,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         ax, widget = self.which_tab()
         if event.key() == Qt.Key_Period:
-            widget.blockSignals(False)
-            logger.log(5, "{} has been pressed".format(event.text()))
+            widget.blockSignals(False) # is intended for suppressing QObjects
+            # and their subclasses from emitting signals, thus preventing any
+            # other objects from receiving them in slots. prevent one object
+            # from emitting signals in response to changes that I am making
+
+            #i.e. this is needed to get the event working!
+
+            logger.debug( "{} has been pressed".format(event.text()))
             logger.info('single correction mode')
             self.lineEdit_mancorr.setText("")
             self.getcorrectionpointwidget()
@@ -3301,7 +3497,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         elif event.key() == Qt.Key_M:
             widget.blockSignals(False)
-            logger.log(5, "{} has been pressed".format(event.text()))
+            logger.debug( "{} has been pressed".format(event.text()))
             logger.info('multi correction mode')
             self.lineEdit_mancorr.setText("")
             self.getmultiplecorrectionpointswidget()
@@ -3309,22 +3505,26 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         elif event.key() == Qt.Key_N:
             widget.blockSignals(False)
-            logger.log(5, " {} has been pressed".format(event.text()))
+            logger.debug( " {} has been pressed".format(event.text()))
             logger.info('neutralise corrections mode')
             self.lineEdit_mancorr.setText("")
             self.getmultiplecorrectionpointswidget()
             self.kb.apply_pressed_signal.connect(self.neutralisatecorrections)
 
-        elif event.key() == Qt.Key_Backslash:
-            logger.info('zeroing mode')
-            logger.log(5, " {} has been pressed".format(event.text()))
+        elif event.key() == Qt.Key_T:
+            widget.blockSignals(False)
+            logger.debug( " {} has been pressed".format(event.text()))
+            logger.info('zeroing TAIL mode')
             self.getcorrectionpointwidget()
-            self.kb.apply_pressed_signal.connect(self.zeroingcorrection)
+            self.kb.apply_pressed_signal.connect(self.zeroingtail)
 
+        elif event.key() == Qt.Key_Z:
+            widget.blockSignals(False)
+            logger.debug( " {} has been pressed".format(event.text()))
+            logger.info('zeroing INTERVAL mode')
+            self.getmultiplecorrectionpointswidget()
+            self.kb.apply_pressed_signal.connect(self.zeroinginterval)
 
-        elif event.key() == Qt.Key_Slash:
-            logger.log(5, " {} has been pressed".format(event.text()))
-            logger.info('unzeroing mode')
 
 
         else:
@@ -3414,9 +3614,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 self.blockSignals(False)
                 return
-            if suggested_den != self.corr_den:
+            if int(suggested_den) != int(self.corr_den):
                 logger.warning('suggested correction is different, do you wish to use it?')
-                qm.setDetailedText("suggested correction is "+str(suggested_den))
+                # qm.setDetailedText("suggested correction is "+str(suggested_den))
                 ret = qm.question(self, '',
                                   "suggested correction is different: " + str(
                                       suggested_den) + "\n  Do you wish to use it?",
@@ -3470,7 +3670,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 self.blockSignals(False)
                 return
-            if (suggested_den != self.corr_den) & suggested_vib != self.corr_vib:
+            if (int(suggested_den) != int(self.corr_den)) & (int(suggested_vib) != int(self.corr_vib)):
                 logger.warning('suggested correction is different, do you wish to use it?')
                 ret = qm.question(self, '',
                                   "suggested correction is different: " + str(
@@ -3563,167 +3763,1088 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if ret == qm_permanent.Yes:
 
             self.handle_makepermbutton()
+            self.gettotalcorrections()
         else:
             pass
 
 
-# -------------------------------
+# # -------------------------------
     @QtCore.pyqtSlot()
-    def zeroingcorrection(self):
+    def changezerotail(self, chan,lid, vib, index):
+        """
+        this function enables the user to change the start time of zeroing of the
+        tail of the data
+
+        it just restores previous data using
+
+
+        :param lid:  density backup
+        :param vib: vibration backup
+        :param index: index of previous zeroing point
+        :return:
+        """
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+
+        zeroing_time = self.data.KG1_data.density[self.chan].time[int(self.data.zeroing_start[self.chan-1])]
+        # logger.log(5, 'old zeroing time t= {}s '.format(zeroing_time))
+        tstep = np.mean(
+            np.diff(self.data.KG1_data.density[chan].time))
+        if int(chan) < 5:  # vertical channels
+            self.data.KG1_data.density[chan].data[
+            index:] = lid
+            self.data.zeroingbackup_den[self.chan-1] = []
+
+            # self.data.xzero_tail = coord[0][0]
+
+
+            for ch in self.data.KG1_data.density.keys():
+                ax_name = 'ax' + str(ch)
+                if ch == self.chan:
+                    for i, line in enumerate(vars()[ax_name].lines):
+                        if abs(line.get_xydata()[0][0]-zeroing_time)<tstep:
+                            del vars()[ax_name].lines[i]
+                            self.update_channel(int(ch))
+                    # vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                else:
+                    for i, line in enumerate(vars()[ax_name].lines):
+                        if abs(line.get_xydata()[0][0]-zeroing_time)<tstep:
+                            del vars()[ax_name].lines[i]
+                    self.update_channel(int(ch))
+
+
+
+            self.data.zeroed[chan-1] = False
+
+
+
+
+
+
+
+        elif int(chan) > 4:  # lateral channels
+            self.data.KG1_data.density[chan].data[
+            index:] = lid
+            self.data.KG1_data.vibration[chan].data[
+            index:] = vib
+            self.data.zeroingbackup_den[self.chan-1] = []
+            self.data.zeroingbackup_vib[self.chan-1] = []
+
+            for ch in self.data.KG1_data.density.keys():
+                ax_name = 'ax' + str(ch)
+                if ch == self.chan:
+                    for i, line in enumerate(vars()[ax_name].lines):
+                        if abs(line.get_xydata()[0][0]-zeroing_time)<tstep:
+                            del vars()[ax_name].lines[i]
+                            self.update_channel(int(ch))
+                    # vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                else:
+                    for i, line in enumerate(vars()[ax_name].lines):
+                        if abs(line.get_xydata()[0][0]-zeroing_time)<tstep:
+                            del vars()[ax_name].lines[i]
+                    self.update_channel(int(ch))
+
+            self.data.zeroed[chan] = False
+
+
+
+
+    # -------------------------------
+    @QtCore.pyqtSlot()
+    def zeroingtail(self):
         """
         this module zeroes correction on selected channel
 
+        Permanent corrections will be generated and take effect such that all data points in the interval t>t1 are put as close to zero as possible and the sum of corrections is 0.
+
+
+
+        if user is unsatisfied it can be called again to amend previous tail point
+
+
+        red line will appear on all 8 tabs to show starting point of zeroed data
+
+
+        ::todo: on other channels must appear smallest t1
+
         :return:
+
         """
+        # dump KG1 data to pickle file so I can restore data easily
+        self.save_kg1('scratch')
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+        ax_name = 'ax' + str(self.chan)
 
         # pyqt_set_trace()
-
         self.blockSignals(True) # signals emitted by this object are blocked
-        self.gettotalcorrections()
+
+        # self.data.zeroingbackup_den = []
+        tstep = np.mean(
+            np.diff(self.data.KG1_data.density[self.chan].time))
 
 
-
-        total_den= int(self.lineEdit_totcorr.text().split(",")[0])
-        logger.info('applying this correction {} to zero total corrections'.format(
-                (total_den)))
         if str(self.chan).isdigit() == True:
             self.chan = int(self.chan)
             time = self.data.KG1_data.density[self.chan].time
             data = self.data.KG1_data.density[self.chan].data
             coord = self.setcoord(self.chan) # get point selected from canvas
+            M = self.data.matrix_lat_channels
+            index, value = find_nearest(time, coord[0][0])  # get nearest point close to selected point in the time array
+
+            zeroing_time = value
+            logger.log(5, 'zeroing @t={} s'.format(zeroing_time))
+            # zeroing_time = coord[0][0]
+            if self.data.zeroed[self.chan-1]:
+                #if coord[0][0] != zeroing_time: # check if you point for zeroing if smaller than previous
+                    logger.log(5,
+                               ' tail zeroing already applied @t={}s changing time'.format(time[int(self.data.zeroing_start[self.chan-1])]))
+                    self.changezerotail(self.chan,lid=self.data.zeroingbackup_den[self.chan-1],vib = None,index=int(self.data.zeroing_start[self.chan-1]))
+
+
+
+
+
+            if  index != self.data.zeroing_start[self.chan-1]:
+                self.data.zeroing_start[
+                    self.chan-1] = index
+                # index of the point where zeroing is applied
+                # logger.log(5,'zeroing time is t={}s'.format())
+
+            if int(self.chan) < 5:  # vertical channels
+                for idx in range(index,
+                                 len(self.data.KG1_data.density[
+                                         self.chan].data)):
+                    diff = self.data.KG1_data.density[self.chan].data[
+                        idx]  # difference between two consecutive points
+                    zeroing_correction = int(round((
+                                                               diff / self.data.constants.DFR_DCN)))  # check if diff is a fringe jump
+                    # logger.log(5,'zeroing correction is {}'.format(zeroing_correction))
+                    self.data.zeroingbackup_den[self.chan-1].append(
+                        self.data.KG1_data.density[self.chan].data[idx])
+                    self.data.KG1_data.density[self.chan].data[idx] = \
+                    self.data.KG1_data.density[self.chan].data[
+                        idx] - zeroing_correction * self.data.constants.DFR_DCN
+
+                self.remove_corrections_while_zeroing(self.chan,
+                                                      index_start=int(self.data.zeroing_start[self.chan-1]),
+                                                      index_stop=None)
+
+
+
+
+                xc = zeroing_time
+                index_min = int(min(self.data.zeroing_start))
+                xc_min = self.data.KG1_data.density[self.chan].time[index_min]
+                self.data.zeroed[self.chan-1]=True
+                for chan in self.data.KG1_data.density.keys():
+                    ax_name = 'ax' + str(chan)
+                    if chan == self.chan:
+                        if xc!=xc_min:
+                            vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                            vars()[ax_name].axvline(x=xc_min, color='r',
+                                                linestyle='--', linewidth=0.25)
+                        else:
+                            vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                    else:
+
+                        if self.data.zeroed[chan-1]:#channel already zeroed
+                            vars()[ax_name].axvline(x=xc_min, color='r',
+                                                    linestyle='--',
+                                                    linewidth=0.25)
+                        else:#channel not been zeroed
+
+                            for zero_idk,zero_value in enumerate(self.data.zeroing_start):
+                                try:
+                                    time_zero=time[zero_value]
+
+
+                                    vars()[ax_name].lines[:] = [x for x in
+                                                        vars()[ax_name].lines if
+                                                        not abs(
+                                                            x.get_xydata()[0][
+                                                                0] - time_zero) < tstep]
+
+                                    vars()[ax_name].axvline(x=xc_min, color='r',
+                                                        linestyle='--',
+                                                        linewidth=0.25)
+
+                                except IndexError:
+                                    pass
+                        self.update_channel(chan)
+
+                self.update_channel(self.chan)
+
+                self.pushButton_undo.clicked.connect(self.unzerotail)
+                self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
+                # if self.data.KG1_data.fj_dcn[self.chan].data.size == 0:
+                #      del self.data.KG1_data.fj_dcn[self.chan]
+                self.blockSignals(False)
+
+                return
+
+
+            elif int(self.chan) > 4:  # lateral channels
+                for idx in range(index,
+                                 len(self.data.KG1_data.density[
+                                         self.chan].data)):
+                    diff_den = self.data.KG1_data.density[self.chan].data[idx]
+                    diff_vib = self.data.KG1_data.vibration[self.chan].data[idx]
+
+                    zeroing_correction = self.data.Minv.dot(np.array([diff_den,
+                                                                      diff_vib]))  # get suggested correction by solving linear problem Ax=b
+                    zeroing_correction = np.around(zeroing_correction)
+                    zeroing_den = int((zeroing_correction[0]))
+                    zeroing_vib = int((zeroing_correction[1]))
+                    # logger.log(5, 'zeroing correction is {} ,{}'.format(
+                    #     zeroing_den,zeroing_vib))
+                    self.data.zeroingbackup_den[self.chan-1].append(
+                        self.data.KG1_data.density[self.chan].data[idx])
+
+                    self.data.zeroingbackup_vib.append(
+                        self.data.KG1_data.vibration[self.chan].data[idx])
+
+                    self.data.KG1_data.density[self.chan].data[idx] = \
+                    self.data.KG1_data.density[self.chan].data[idx] - \
+                    M.dot([zeroing_den, zeroing_vib])[0]
+
+                    self.data.KG1_data.vibration[self.chan].data[idx] = \
+                    self.data.KG1_data.vibration[self.chan].data[idx] - \
+                    M.dot([zeroing_den, zeroing_vib])[1]
+
+                self.remove_corrections_while_zeroing(self.chan,
+                                                      index_start=int(self.data.zeroing_start[self.chan-1]),
+                                                      index_stop=None)
+
+
+
+                # zeroing_time = coord[0][0]
+
+                xc = zeroing_time
+                index_min = int(min(self.data.zeroing_start))
+                xc_min = self.data.KG1_data.density[self.chan].time[index_min]
+
+
+                self.data.zeroed[self.chan-1]=True
+                for chan in self.data.KG1_data.density.keys():
+                    ax_name = 'ax' + str(chan)
+                    if chan == self.chan:
+                        if xc!=xc_min:
+                            vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                            vars()[ax_name].axvline(x=xc_min, color='r',
+                                                linestyle='--', linewidth=0.25)
+                        else:
+                            vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                    else:
+
+                        if self.data.zeroed[chan-1]:#channel already zeroed
+                            vars()[ax_name].axvline(x=xc_min, color='r',
+                                                    linestyle='--',
+                                                    linewidth=0.25)
+                        else:#channel not been zeroed
+
+                            for zero_idk,zero_value in enumerate(self.data.zeroing_start):
+                                try:
+                                    time_zero=time[zero_value]
+
+
+                                    vars()[ax_name].lines[:] = [x for x in
+                                                        vars()[ax_name].lines if
+                                                        not abs(
+                                                            x.get_xydata()[0][
+                                                                0] - time_zero) < tstep]
+
+                                    vars()[ax_name].axvline(x=xc_min, color='r',
+                                                        linestyle='--',
+                                                        linewidth=0.25)
+
+                                except IndexError:
+                                    pass
+                        self.update_channel(chan)
+
+                self.update_channel(self.chan)
+                self.pushButton_undo.clicked.connect(self.unzerotail)
+                self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
+                # if self.data.KG1_data.fj_dcn[self.chan].data.size == 0:
+                #      del self.data.KG1_data.fj_dcn[self.chan]
+                self.blockSignals(False)
+
+                return
+
+            else:
+                # self.pushButton_undo.clicked.connect(self.unzerotail)
+                self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
+                self.blockSignals(False)
+                return
+
+
         else:
             self.update_channel(self.chan)
-            self.pushButton_undo.clicked.connect(self.unzerocorrection)
-            self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection)
+            # self.pushButton_undo.clicked.connect(self.unzerotail)
+            self.kb.apply_pressed_signal.disconnect(self.zeroingtail)
             self.blockSignals(False)
             return
-        if int(self.chan) <5:
-            try:
-                self.corr_den = -int(total_den) * self.data.constants.DFR_DCN # convert fringe jump into density
-            except ValueError: #check if self.coor_den is a number
-                logger.error('use numerical values')
-                self.lineEdit_totcorr.setText("")
-                self.update_channel(self.chan) #update data and canvas
-                logger.info('applying this correction {} '.format(
-                    (total_den)))
 
-                # self.pushButton_undo.disconnect()
-                self.gettotalcorrections() # compute total correction
-                self.pushButton_undo.clicked.connect(self.unzerocorrection) # connect undo button to slot to undo single correction
-                self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection) # disconnect slot
-                self.blockSignals(False)
+
+# -------------------------------
+    @QtCore.pyqtSlot()
+    def unzerotail(self):
+        """
+        once user has set a point to zero tail of data. action can be undo
+
+        This module restores data before zeroing of tail was invoked
+
+        works only after a tail event
+
+
+        :return:
+        """
+
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+
+        if str(self.chan).isdigit() == True:
+            chan = int(self.chan)
+            time = self.data.KG1_data.density[chan].time
+            data = self.data.KG1_data.density[chan].data
+
+            coord = self.setcoord(self.chan)
+
+            if is_empty(coord):
+                logger.error(
+                    'nothing to undo')
                 return
-        elif  int(self.chan) > 4:
+            else:
 
-            try:
-                self.corr_den = -int(self.lineEdit_mancorr.text().split(",")[0])
-                self.corr_vib = -int(self.lineEdit_mancorr.text().split(",")[1])
+                self.setcoord(self.chan,reset=True)
+            zeroing_time = self.data.KG1_data.density[self.chan].time[
+                int(self.data.zeroing_start[self.chan-1])]
+            M = self.data.matrix_lat_channels
+            index, value = find_nearest(time, coord[0][
+                0])  # get nearest point close to selected point in the time array
 
-                corrections = self.data.matrix_lat_channels.dot([self.corr_den, self.corr_vib])
-                self.corr_den = corrections[0]
-                self.corr_vib = corrections[1]
-
-            except IndexError:
-                logger.warning('no vibration correction')
-                self.lineEdit_totcorr.setText("")
-                self.update_channel(self.chan)
-                logger.info('applying this correction {} '.format(
-                    (self.lineEdit_totcorr.text())))
-
-                # self.pushButton_undo.disconnect()
-                self.gettotalcorrections()
-                self.pushButton_undo.clicked.connect(self.unzerocorrection)
-                self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection)
-                self.blockSignals(False)
-                return
-            except ValueError:
-                logger.error('use numerical values')
-                self.lineEdit_totcorr.setText("")
-                self.update_channel(self.chan)
-                logger.info('applying this correction {} '.format(
-                    (self.lineEdit_totcorr.text())))
-
-                # self.pushButton_undo.disconnect()
-                self.gettotalcorrections()
-                self.pushButton_undo.clicked.connect(self.unzerocorrection)
-                self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection)
-                self.blockSignals(False)
-                return
+            if int(self.chan) < 5:  # vertical channels
+                self.data.KG1_data.density[self.chan].data[
+                int(self.data.zeroing_start[self.chan-1]):] = self.data.zeroingbackup_den[self.chan-1]
+                self.data.zeroingbackup_den[self.chan-1] = []
 
 
 
-        index, value = find_nearest(time, coord[0][0]) # finds nearest data point to selected point on canvas
-
-        self.data.KG1_data.density[self.chan].correct_fj(
-            self.corr_den , index=index) # correct data
-
-        if self.data.KG1_data.density[self.chan].corrections is not None:
 
 
-            xc = coord[0][0]
-            # for xc in xposition:
-
-            self.ax1.axvline(x=xc, color='r', linestyle='--')
-            self.ax1.plot(xc,coord[0][1], 'ro')
-            self.ax2.axvline(x=xc, color='r', linestyle='--')
-            self.ax2.plot(xc,coord[0][1], 'ro')
-            self.ax3.axvline(x=xc, color='r', linestyle='--')
-            self.ax3.plot(xc,coord[0][1], 'ro')
-            self.ax4.axvline(x=xc, color='r', linestyle='--')
-            self.ax4.plot(xc,coord[0][1], 'ro')
-            self.ax5.axvline(x=xc, color='r', linestyle='--')
-            self.ax5.plot(xc,coord[0][1], 'ro')
-            self.ax6.axvline(x=xc, color='r', linestyle='--')
-            self.ax6.plot(xc,coord[0][1], 'ro')
-            self.ax7.axvline(x=xc, color='r', linestyle='--')
-            self.ax7.plot(xc,coord[0][1], 'ro')
-            self.ax8.axvline(x=xc, color='r', linestyle='--')
-            self.ax8.plot(xc,coord[0][1], 'ro')
 
 
-        if int(self.chan) > 4:
-            try:
-                self.data.KG1_data.vibration[self.chan].correct_fj(
-                    self.corr_vib ,
-                    time=value)
+            elif int(self.chan) > 4:  # lateral channels
+                self.data.KG1_data.density[self.chan].data[
+                int(self.data.zeroing_start[self.chan-1]):] = self.data.zeroingbackup_den[self.chan-1]
+                self.data.KG1_data.vibration[self.chan].data[
+                int(self.data.zeroing_start[self.chan-1]):] = self.data.zeroingbackup_vib[self.chan-1]
+                self.data.zeroingbackup_den[self.chan-1] = []
+                self.data.zeroingbackup_vib[self.chan-1] = []
+
+            #removing zeroing red line
+            tstep = np.mean(
+                np.diff(self.data.KG1_data.density[chan].time))
+            for chan in self.data.KG1_data.density.keys():
+                ax_name = 'ax' + str(chan)
+
+                if chan == self.chan:
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time) < tstep]
+                else:
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time) < tstep]
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time) < tstep]
+
+            #restoring intershot correction markers
+            self.load_pickle(kg1only=True)
+            ax_name = 'ax' + str(self.chan)
+
+            if self.chan in self.data.KG1_data.fj_dcn:
+                ax_name = 'ax' + str(self.chan)
+                for i, xc in enumerate(self.data.KG1_data.fj_dcn[self.chan].time):
+                    if xc >= zeroing_time:
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+
+            self.data.zeroed[self.chan-1] = False
+            self.update_channel(int(self.chan))
+            self.gettotalcorrections()
+            self.pushButton_undo.clicked.disconnect(self.unzerotail)
 
 
-            except AttributeError:
-                logger.error('insert a correction for the mirror')
-                self.update_channel(self.chan)
-                logger.info('applying this correction {} '.format(
-                    (self.lineEdit_totcorr.text())))
-
-                # self.pushButton_undo.disconnect()
-                self.gettotalcorrections()
-                self.pushButton_undo.clicked.connect(self.unzerocorrection)
-                self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection)
-                self.blockSignals(False)
-                return
-        self.update_channel(self.chan)
-        logger.info('applied this correction {} '.format(
-            (self.lineEdit_totcorr.text())))
-
-        # self.pushButton_undo.disconnect()
-        self.gettotalcorrections()
-        self.pushButton_undo.clicked.connect(self.unzerocorrection)
-        self.kb.apply_pressed_signal.disconnect(self.zeroingcorrection)
-        self.blockSignals(False)
-
-        logger.warning(
-            'remember to mark corrections as permanent before proceeding!')
-        ret = qm_permanent.question(self, '',
-                          "Mark correction/s as permanent?",
-                                    qm_permanent.Yes | qm_permanent.No)
-
-        if ret == qm_permanent.Yes:
-
-            self.handle_makepermbutton()
         else:
-            pass
+            return
 
 
+#--------------------------
+    @QtCore.pyqtSlot()
+    def remove_corrections_while_zeroing(self, chan, index_start, index_stop=None):
+        """
+        function that deals with removing the corrections (permanent and non) from the interval where zeroing is being applyed
+
+        data is dumped to a pickle file for easy restore in case the zeroing will be undo by user
+
+
+
+
+        :param index_start: starting index of zeroing
+        :param index_stop: ending index of zeroing (if None is end of data)
+        :return: deletes corrections inside given interval
+        """
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+        ax_name = 'ax' + str(chan)
+
+        tstep = np.mean(
+            np.diff(self.data.KG1_data.density[chan].time))
+
+
+        # now I convert the index in a time value
+        start_time = self.data.KG1_data.density[chan].time[index_start]
+        if index_stop is None:
+            stop_time = self.data.KG1_data.density[chan].time[-1]
+        else:
+            stop_time = self.data.KG1_data.density[chan].time[index_stop]
+
+        # first looking at user corrections (not saved as permanent)
+        if self.data.KG1_data.density[
+            chan].corrections.data is None:  # if there are no manual corrections (yet) - skip
+            logger.debug('no manual corrections at all!')
+        elif self.data.KG1_data.density[
+            chan].corrections.data.size==0:
+            logger.debug('no manual corrections at all!')
+
+        else:
+            linestoberemoved = []
+            # now looking for the index of the correction
+            ind_corr_start, value_start = find_nearest(
+                self.data.KG1_data.density[chan].corrections.time, start_time)
+            ind_corr_stop, value_stop = find_nearest(
+                self.data.KG1_data.density[chan].corrections.time, stop_time)
+
+            # find time values and indexes of corrections within selected range
+            indexes_manual, values_manual = find_within_range(
+                self.data.KG1_data.density[chan].corrections.time,
+                start_time,
+                stop_time)  # get time data and indexes of manual corrections
+            if (
+                    not indexes_manual):  # if there are no manual correction in the selected interval skip
+
+                logger.debug(
+                    'no manual corrections inside selected zeroing interval')
+
+            else:
+                logger.debug('found manual corrections inside interval')
+
+                if int(chan) <= 4:
+                    self.data.KG1_data.density[
+                        chan].corrections.data = np.delete(
+                        self.data.KG1_data.density[chan].corrections.data,
+                        indexes_manual)
+                    self.data.KG1_data.density[
+                        chan].corrections.time = np.delete(
+                        self.data.KG1_data.density[chan].corrections.time,
+                        indexes_manual)
+                else:
+                    self.data.KG1_data.density[
+                        chan].corrections.data = np.delete(
+                        self.data.KG1_data.density[chan].corrections.data,
+                        indexes_manual)
+                    self.data.KG1_data.density[
+                        chan].corrections.time = np.delete(
+                        self.data.KG1_data.density[chan].corrections.time,
+                        indexes_manual)
+
+                    self.data.KG1_data.density[
+                        chan].corrections.data = np.delete(
+                        self.data.KG1_data.vibration[chan].corrections.data,
+                        indexes_manual)
+                    self.data.KG1_data.density[
+                        chan].corrections.time = np.delete(
+                        self.data.KG1_data.vibration[chan].corrections.time,
+                        indexes_manual)
+
+                num_of_correction = 1  # removing last line
+                for j, value in enumerate(values_manual):
+                    for i, line in enumerate(vars()[ax_name].lines):
+                            logger.log(5, "evaluating line @ {}s".format(
+                            line.get_xydata()[0][0]))
+
+
+                        # if abs(line.get_xydata()[i][0] > value)<tstep:
+                            if ((line.get_xydata()[0][0] > start_time) & (line.get_xydata()[0][0] <= stop_time)):
+                                logger.log(5," removing line @ {}s".format(value))
+                                # del vars()[ax_name].lines[i]
+                                #
+                                # if abs(line.get_xydata()[0][0] - value) < tstep:
+                                #     logger.log(5,
+                                #                " removing line @ {}s".format(value))
+                                linestoberemoved.append(i)
+                dummy=set(linestoberemoved)
+                linestoberemoved = list(dummy)
+                for x in reversed(linestoberemoved):
+                        del vars()[ax_name].lines[x]
+                # for i, line in enumerate(vars()[ax_name].lines):
+                #     for j, value in enumerate(values_manual):
+                #         if line.get_xydata()[0][0] == value:
+                #             del vars()[ax_name].lines[i]
+
+
+                # for i, line in enumerate(vars()[ax_name].lines):
+                #     logger.log(5, "evaluating line @ {}s".format(
+                #         line.get_xydata()[0][0]))
+                #     for j, value in enumerate(values_manual):
+                #
+                #         # if abs(line.get_xydata()[i][0] > value)<tstep:
+                #         if ((line.get_xydata()[0][0] > start_time) & (line.get_xydata()[0][0] <= stop_time)):
+                #             logger.log(5," removing line @ {}s".format(value))
+                #             del vars()[ax_name].lines[i]
+
+        # now looking at permanent correction and intershot corrections
+        # first looking at user corrections (not saved as permanent)
+        # if self.data.KG1_data.fj_dcn[chan].data is None:  # if there are no manual corrections (yet) - skip
+        if chan not in self.data.KG1_data.fj_dcn.keys() :
+                logger.debug('no intershot corrections at all!')
+
+        elif self.data.KG1_data.fj_dcn[chan].time.size ==0:
+            logger.debug('no intershot corrections at all!')
+
+        else:
+            linestoberemoved = []
+            # now looking for the index of the correction
+            ind_corr_start, value_start = find_nearest(
+                self.data.KG1_data.fj_dcn[chan].time, start_time)
+            ind_corr_stop, value_stop = find_nearest(
+                self.data.KG1_data.fj_dcn[chan].time, stop_time)
+            # find time values and indexes of corrections within selected range
+            indexes_automatic, values_automatic = find_within_range(
+                self.data.KG1_data.fj_dcn[chan].time,
+                start_time,
+                stop_time)  # get time data and indexes of intershot corrections
+            if (
+                    not indexes_automatic):  # if there are no intershot correction in the selected interval skip
+
+                logger.debug(
+                    'no intershot corrections inside selected zeroing interval')
+
+            else:
+                logger.debug('found intershot corrections inside interval')
+                # for ind_corr in range(ind_corr_start, ind_corr_stop):
+                if int(chan) <= 4:
+                    self.data.KG1_data.fj_dcn[
+                        chan].data = np.delete(
+                        self.data.KG1_data.fj_dcn[chan].data,
+                        indexes_automatic)
+                    self.data.KG1_data.fj_dcn[
+                        chan].time = np.delete(
+                        self.data.KG1_data.fj_dcn[chan].time,
+                        indexes_automatic)
+                else:
+                    self.data.KG1_data.fj_dcn[
+                        chan].data = np.delete(
+                        self.data.KG1_data.fj_dcn[chan].data,
+                        indexes_automatic)
+                    self.data.KG1_data.fj_dcn[
+                        chan].time = np.delete(
+                        self.data.KG1_data.fj_dcn[chan].time,
+                        indexes_automatic)
+                    if chan + 4 in self.data.KG1_data.fj_dcn.keys():
+                        self.data.KG1_data.fj_dcn[
+                            chan + 4].data = np.delete(
+                            self.data.KG1_data.fj_dcn[
+                                chan + 4].data,
+                            indexes_automatic)
+                        self.data.KG1_data.fj_dcn[
+                            chan + 4].time = np.delete(
+                            self.data.KG1_data.fj_dcn[
+                                chan + 4].time,
+                            indexes_automatic)
+
+                for j, value in enumerate(values_automatic):
+                    for i, line in enumerate(vars()[ax_name].lines):
+                            logger.log(5, "evaluating line @ {}s".format(
+                            line.get_xydata()[0][0]))
+
+
+                        # if abs(line.get_xydata()[i][0] > value)<tstep:
+                            if ((line.get_xydata()[0][0] > start_time) & (line.get_xydata()[0][0] <= stop_time)):
+                                logger.log(5," removing line @ {}s".format(value))
+                                # del vars()[ax_name].lines[i]
+                                #
+                                # if abs(line.get_xydata()[0][0] - value) < tstep:
+                                #     logger.log(5,
+                                #                " removing line @ {}s".format(value))
+                                linestoberemoved.append(i)
+                dummy=set(linestoberemoved)
+                linestoberemoved = list(dummy)
+                for x in reversed(linestoberemoved):
+                        del vars()[ax_name].lines[x]
     # -------------------------------
+    @QtCore.pyqtSlot()
+    def zeroinginterval(self):
+        # -------------------------------
+
+        """
+        this module zeroes data on selected channel inside a chosen interval
+
+        Permanent corrections will be generated and take effect such that all data points in the interval t2<t>t1 are put as close to zero as possible and the sum of corrections is 0.
+
+        it is possible to zero multiple interval
+
+        undo button click will undo just last action (i.e. last zeroed interval)
+
+
+        ::todo: on other channels must appear smallest t1 and largest t2
+
+
+        :return:
+        """
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+
+
+        self.data.zeroingbackup_den[self.chan-1] = []
+        self.data.zeroingbackup_vib[self.chan-1] = []
+
+        # pyqt_set_trace()
+        self.blockSignals(True) # signals emitted by this object are blocked
+        # self.gettotalcorrections()
+        tstep = np.mean(
+            np.diff(self.data.KG1_data.density[self.chan].time))
+
+
+
+        if str(self.chan).isdigit() == True:
+            self.chan = int(self.chan)
+            time = self.data.KG1_data.density[self.chan].time
+            data = self.data.KG1_data.density[self.chan].data
+            coord = self.setcoord(self.chan) # get point selected from canvas
+            if is_empty(coord):
+                logger.error(
+                    'no interval selected!')
+                return
+        else:
+            self.update_channel(self.chan)
+            self.pushButton_undo.clicked.connect(self.unzeroinginterval)
+            self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
+            self.disconnnet_multiplecorrectionpointswidget()
+            self.blockSignals(False)
+            return
+
+        min_coord = min(coord)
+        max_coord = max(coord)
+
+
+        M = self.data.matrix_lat_channels
+        index_start, value_start = find_nearest(time, min_coord[0])  # get nearest point close to selected point in the time array
+        index_stop, value_stop = find_nearest(time, max_coord[0]) #get nearest point close to selected point in the time array
+
+        logger.info('zeroing chan. {} between t1= {}s and t2= {}s'.format(self.chan,value_start,value_stop))
+        self.data.zeroing_start[self.chan-1] = index_start
+        self.data.zeroing_stop[self.chan-1] = index_stop
+
+        zeroing_time_start = value_start
+        zeroing_time_stop = value_stop
+
+
+        if index_start != self.data.zeroing_start[self.chan - 1]:
+            self.data.zeroing_start[
+                self.chan - 1] = index_start
+
+        if index_stop != self.data.zeroing_stop[self.chan - 1]:
+            self.data.zeroing_stop[
+                self.chan - 1] = index_stop
+
+
+        if int(self.chan) <5: # vertical channels
+            for idx in range(index_start,index_stop):
+
+                diff =  self.data.KG1_data.density[self.chan].data[idx] # difference between two consecutive points
+                zeroing_correction = int(round((diff /self.data.constants.DFR_DCN))) # check if diff is a fringe jump
+                # logger.log(5,'zeroing correction is {}'.format(zeroing_correction))
+                self.data.zeroingbackup_den[self.chan-1].append(self.data.KG1_data.density[self.chan].data[idx])
+                self.data.KG1_data.density[self.chan].data[idx] = self.data.KG1_data.density[self.chan].data[idx] - zeroing_correction*self.data.constants.DFR_DCN
+            self.remove_corrections_while_zeroing(self.chan,
+                                                  index_start=int(self.data.zeroing_start[self.chan-1]),
+                                                  index_stop=int(self.data.zeroing_stop[self.chan-1]))
+
+            #
+            xc = zeroing_time_start
+            xc1 = zeroing_time_stop
+            index_min = int(min(self.data.zeroing_start))
+            index_max = int(max(self.data.zeroing_stop))
+
+            xc_min = self.data.KG1_data.density[self.chan].time[index_min]
+            xc_max = self.data.KG1_data.density[self.chan].time[index_max]
+            self.data.zeroed[self.chan - 1] = True
+            for chan in self.data.KG1_data.density.keys():
+                ax_name = 'ax' + str(chan)
+                if chan == self.chan:
+                    if xc != xc_min:
+                        vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                        vars()[ax_name].axvline(x=xc_min, color='r',
+                                                linestyle='--', linewidth=0.25)
+                    if xc1 != xc_max:
+                        vars()[ax_name].axvline(x=xc1, color='r', linestyle='--')
+                        vars()[ax_name].axvline(x=xc_max, color='r',
+                                                linestyle='--', linewidth=0.25)
+                    else:
+                        vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                        vars()[ax_name].axvline(x=xc1, color='r', linestyle='--')
+                else:
+
+                    if self.data.zeroed[chan - 1]:  # channel already zeroed
+                        vars()[ax_name].axvline(x=xc_min, color='r',
+                                                linestyle='--',
+                                                linewidth=0.25)
+                        vars()[ax_name].axvline(x=xc_max, color='r',
+                                                linestyle='--',
+                                                linewidth=0.25)
+                    else:  # channel not been zeroed
+
+                        for i in range(0,len(self.data.zeroing_start)):
+                            if int(self.data.zeroing_stop[i]) !=0:
+                                time_zero = time[int(self.data.zeroing_stop[i])]
+
+                                vars()[ax_name].lines[:] = [x for x in
+                                                        vars()[
+                                                            ax_name].lines
+                                                        if
+                                                        not abs(
+                                                            x.get_xydata()[
+                                                                0][
+                                                                0] - time_zero) < tstep]
+
+                                vars()[ax_name].axvline(x=xc_max, color='r',
+                                                    linestyle='--',
+                                                    linewidth=0.25)
+
+                            try:
+                                time_zero = time[int(self.data.zeroing_start[i])]
+
+                                vars()[ax_name].lines[:] = [x for x in
+                                                            vars()[
+                                                                ax_name].lines
+                                                            if
+                                                            not abs(
+                                                                x.get_xydata()[
+                                                                    0][
+                                                                    0] - time_zero) < tstep]
+
+                                vars()[ax_name].axvline(x=xc_min, color='r',
+                                                        linestyle='--',
+                                                        linewidth=0.25)
+
+                            except IndexError:
+                                pass
+                    self.update_channel(chan)
+
+            self.update_channel(self.chan)
+            self.pushButton_undo.clicked.connect(self.unzeroinginterval)
+            self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
+            self.blockSignals(False)
+
+
+
+
+        elif int(self.chan) > 4: # lateral channels
+            for idx in range(index_start,index_stop):
+                diff_den =   self.data.KG1_data.density[self.chan].data[idx]
+                diff_vib =   self.data.KG1_data.vibration[self.chan].data[idx]
+
+
+
+
+
+                zeroing_correction = self.data.Minv.dot(np.array([diff_den, diff_vib])) # get suggested correction by solving linear problem Ax=b
+                zeroing_correction = np.around(zeroing_correction)
+                zeroing_den = int((zeroing_correction[0]))
+                zeroing_vib = int((zeroing_correction[1]))
+
+
+                self.data.zeroingbackup_den[self.chan-1].append(
+                    self.data.KG1_data.density[self.chan].data[idx])
+
+                self.data.zeroingbackup_vib[self.chan-1].append(
+                    self.data.KG1_data.vibration[self.chan].data[idx])
+
+                self.data.KG1_data.density[self.chan].data[idx]= self.data.KG1_data.density[self.chan].data[idx] - M.dot([zeroing_den,zeroing_vib])[0]
+
+                self.data.KG1_data.vibration[self.chan].data[idx] = self.data.KG1_data.vibration[self.chan].data[idx] - M.dot([zeroing_den,zeroing_vib])[1]
+
+            self.remove_corrections_while_zeroing(self.chan,
+                                                  index_start=int(self.data.zeroing_start[self.chan-1]),
+                                                  index_stop=int(self.data.zeroing_stop[self.chan-1]))
+
+
+
+            #
+            xc = zeroing_time_start
+            xc1 = zeroing_time_stop
+            index_min = int(min(self.data.zeroing_start))
+            index_max = int(max(self.data.zeroing_stop))
+
+            xc_min = self.data.KG1_data.density[self.chan].time[index_min]
+            xc_max = self.data.KG1_data.density[self.chan].time[index_max]
+            self.data.zeroed[self.chan - 1] = True
+            for chan in self.data.KG1_data.density.keys():
+                ax_name = 'ax' + str(chan)
+                if chan == self.chan:
+                    if xc != xc_min:
+                        vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                        vars()[ax_name].axvline(x=xc_min, color='r',
+                                                linestyle='--', linewidth=0.25)
+                    if xc1 != xc_max:
+                        vars()[ax_name].axvline(x=xc1, color='r', linestyle='--')
+                        vars()[ax_name].axvline(x=xc_max, color='r',
+                                                linestyle='--', linewidth=0.25)
+                    else:
+                        vars()[ax_name].axvline(x=xc, color='r', linestyle='--')
+                        vars()[ax_name].axvline(x=xc1, color='r', linestyle='--')
+                else:
+
+                    if self.data.zeroed[chan - 1]:  # channel already zeroed
+                        vars()[ax_name].axvline(x=xc_min, color='r',
+                                                linestyle='--',
+                                                linewidth=0.25)
+                        vars()[ax_name].axvline(x=xc_max, color='r',
+                                                linestyle='--',
+                                                linewidth=0.25)
+                    else:  # channel not been zeroed
+
+                        for i in range(0,len(self.data.zeroing_start)):
+                            if int(self.data.zeroing_stop[i]) !=0:
+                                time_zero = time[int(self.data.zeroing_stop[i])]
+
+                                vars()[ax_name].lines[:] = [x for x in
+                                                        vars()[
+                                                            ax_name].lines
+                                                        if
+                                                        not abs(
+                                                            x.get_xydata()[
+                                                                0][
+                                                                0] - time_zero) < tstep]
+
+                                vars()[ax_name].axvline(x=xc_max, color='r',
+                                                    linestyle='--',
+                                                    linewidth=0.25)
+
+                            try:
+                                time_zero = time[int(self.data.zeroing_start[i])]
+
+                                vars()[ax_name].lines[:] = [x for x in
+                                                            vars()[
+                                                                ax_name].lines
+                                                            if
+                                                            not abs(
+                                                                x.get_xydata()[
+                                                                    0][
+                                                                    0] - time_zero) < tstep]
+
+                                vars()[ax_name].axvline(x=xc_min, color='r',
+                                                        linestyle='--',
+                                                        linewidth=0.25)
+
+                            except IndexError:
+                                pass
+                    self.update_channel(chan)
+
+            #     self.update_channel(chan)
+            self.update_channel(self.chan)
+            self.pushButton_undo.clicked.connect(self.unzeroinginterval)
+            self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
+            self.disconnnet_multiplecorrectionpointswidget()
+            self.blockSignals(False)
+        else:
+            self.pushButton_undo.clicked.connect(self.unzeroinginterval)
+            self.kb.apply_pressed_signal.disconnect(self.zeroinginterval)
+            self.disconnnet_multiplecorrectionpointswidget()
+            self.blockSignals(False)
+
+
+
+        # return
+
+
+#------------------------
+    # -------------------------------
+    @QtCore.pyqtSlot()
+    def unzeroinginterval(self):
+
+        """
+        once user has zeroed an interval of data. action can be undo
+
+        works only after a zeroing interval event
+
+        :return:
+        """
+
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+
+
+
+        self.blockSignals(True)
+        if str(self.chan).isdigit() == True:
+            chan = int(self.chan)
+            time = self.data.KG1_data.density[chan].time
+            data = self.data.KG1_data.density[chan].data
+
+            coord = self.setcoord(self.chan)
+
+        else:
+            self.update_channel(int(self.chan))
+
+            self.pushButton_undo.clicked.disconnect(self.unzeroinginterval)
+            self.blockSignals(False)
+            return
+
+        min_coord = min(coord)
+        max_coord = max(coord)
+        tstep = np.mean(
+            np.diff(self.data.KG1_data.density[self.chan].time))
+        index_start, value_start = find_nearest(time, min_coord[0])  # get nearest point close to selected point in the time array
+        index_stop, value_stop = find_nearest(time, max_coord[0]) #get nearest point close to selected point in the time array
+
+        zeroing_time_start = self.data.KG1_data.density[self.chan].time[
+            int(self.data.zeroing_start[self.chan - 1])]
+        zeroing_time_stop = self.data.KG1_data.density[self.chan].time[
+            int(self.data.zeroing_stop[self.chan - 1])]
+
+        # try:
+        if int(self.chan) < 5:  # vertical channels
+            self.data.KG1_data.density[self.chan].data[int(self.data.zeroing_start[self.chan-1]):int(self.data.zeroing_stop[self.chan-1])] = self.data.zeroingbackup_den[self.chan-1]
+            self.data.zeroingbackup_den[self.chan-1] = []
+
+
+
+            #removing zeroing red line
+            tstep = np.mean(
+                np.diff(self.data.KG1_data.density[chan].time))
+            for chan in self.data.KG1_data.density.keys():
+                ax_name = 'ax' + str(chan)
+
+                if chan == self.chan:
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time_start) < tstep]
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time_stop) < tstep]
+                else:
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time_start) < tstep]
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time_stop) < tstep]
+
+
+
+            self.load_pickle(kg1only=True)
+
+            ax_name = 'ax' + str(self.chan)
+            if self.chan in self.data.KG1_data.fj_dcn:
+                for i, xc in enumerate(
+                        self.data.KG1_data.fj_dcn[self.chan].time):
+                    if ((xc >= value_start) &  (xc<=value_stop)):
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+
+
+
+            self.update_channel(int(self.chan))
+            self.setcoord(self.chan, reset=True)
+            self.pushButton_undo.clicked.disconnect(self.unzeroinginterval)
+            self.blockSignals(False)
+
+
+        elif int(self.chan) > 4:  # lateral channels
+            self.data.KG1_data.density[self.chan].data[int(self.data.zeroing_start[self.chan-1]):int(self.data.zeroing_stop[self.chan-1])] = self.data.zeroingbackup_den[self.chan-1]
+            self.data.KG1_data.vibration[self.chan].data[int(self.data.zeroing_start[self.chan-1]):int(self.data.zeroing_stop[self.chan-1])] = self.data.zeroingbackup_vib[self.chan-1]
+
+            self.data.zeroingbackup_den[self.chan-1] = []
+            self.data.zeroingbackup_vib[self.chan-1] = []
+
+
+            #removing zeroing red line
+            tstep = np.mean(
+                np.diff(self.data.KG1_data.density[chan].time))
+            for chan in self.data.KG1_data.density.keys():
+                ax_name = 'ax' + str(chan)
+
+                if chan == self.chan:
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time_start) < tstep]
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time_stop) < tstep]
+                else:
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time_start) < tstep]
+                    vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+                        x.get_xydata()[0][0] - zeroing_time_stop) < tstep]
+
+
+            self.load_pickle(kg1only=True)
+
+            ax_name = 'ax' + str(self.chan)
+            if self.chan in self.data.KG1_data.fj_dcn:
+                for i, xc in enumerate(
+                        self.data.KG1_data.fj_dcn[self.chan].time):
+                    if ((xc >= value_start) &  (xc<=value_stop)):
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+
+            self.update_channel(int(self.chan))
+            self.setcoord(self.chan, reset=True)
+            self.pushButton_undo.clicked.disconnect(self.unzeroinginterval)
+            # if self.data.KG1_data.fj_dcn[self.chan].data.size == 0:
+            #     del self.data.KG1_data.fj_dcn[self.chan]
+            self.blockSignals(False)
+        # except:
+        #     # logger.error('error in '.format(inspect.currentframe()))
+        #     logger.error('error in '.format(sys._getframe(1)))
+        #     self.blockSignals(False)
+
+
+
     @QtCore.pyqtSlot()
     def neutralisatecorrections(self):
         """
@@ -3866,6 +4987,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
+
 #automatic correction (made by hardware)
 
 
@@ -3914,7 +5036,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 #create lists of corrections
                 corrections = self.data.KG1_data.fj_dcn[self.chan].data[
                     indexes_automatic]
-                if self.chan + 4 in self.data.KG1_data.fj_dcn.keys():
+                if (self.chan >4) & (self.chan + 4 in self.data.KG1_data.fj_dcn.keys()):
                     corrections_vib = self.data.KG1_data.fj_dcn[self.chan+4].data[
                         indexes_automatic_vib]
 
@@ -3945,7 +5067,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     #for lateral channels
                     if int(self.chan) > 4:
                         #if there is a vibration automatic correction
-                        if self.chan + 4 in self.data.KG1_data.fj_dcn.keys():
+                        if  (self.chan + 4 in self.data.KG1_data.fj_dcn.keys()):
                             #iterate vibration correction
                             for j,value_vib in enumerate(self.data.KG1_data.fj_dcn[self.chan +4].time[indexes_automatic_vib]):
                                 #if time vibration correction is the same
@@ -4015,6 +5137,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if ret == qm_permanent.Yes:
 
             self.handle_makepermbutton()
+            self.gettotalcorrections()
         else:
             pass
 
@@ -4046,9 +5169,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-                    Minv = np.linalg.inv(self.data.matrix_lat_channels) # invert correction matrix for lateral channels
 
-                    suggest_correction = Minv.dot(np.array([diff_den, diff_vib])) # get suggested correction by solving linear problem Ax=b
+
+                    suggest_correction = self.data.Minv.dot(np.array([diff_den, diff_vib])) # get suggested correction by solving linear problem Ax=b
                     suggest_correction = np.around(suggest_correction)
                     suggested_den = int((suggest_correction[0]))
                     suggested_vib = int((suggest_correction[1]))
@@ -4087,6 +5210,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         and shows widget to apply correction
         :return:
         """
+        self.blockSignals(True)
         if self.current_tab  == 'LID_1':
             self.widget_LID1.signal.connect(self.get_point)
         elif self.current_tab  == 'LID_2':
@@ -4103,7 +5227,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.widget_LID7.signal.connect(self.get_point)
         elif self.current_tab  == 'LID_8':
             self.widget_LID8.signal.connect(self.get_point)
-
+        self.blockSignals(False)
         # #
 
         self.kb.show()
@@ -4119,31 +5243,39 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         and shows widget to apply correction
         :return:
         """
-
+        self.blockSignals(True)
         if self.current_tab  == 'LID_1':
-            self.widget_LID1.signal.connect(self.get_multiple_points)
             self.setcoord(1, reset=True)
+            self.widget_LID1.signal.connect(self.get_multiple_points)
+
         elif self.current_tab  == 'LID_2':
-            self.widget_LID2.signal.connect(self.get_multiple_points)
             self.setcoord(2, reset=True)
+            self.widget_LID2.signal.connect(self.get_multiple_points)
+
         elif self.current_tab  == 'LID_3':
-            self.widget_LID3.signal.connect(self.get_multiple_points)
             self.setcoord(3, reset=True)
+            self.widget_LID3.signal.connect(self.get_multiple_points)
+
         elif self.current_tab  == 'LID_4':
-            self.widget_LID4.signal.connect(self.get_multiple_points)
             self.setcoord(4, reset=True)
+            self.widget_LID4.signal.connect(self.get_multiple_points)
+
         elif self.current_tab  == 'LID_5':
-            self.widget_LID5.signal.connect(self.get_multiple_points)
             self.setcoord(5, reset=True)
+            self.widget_LID5.signal.connect(self.get_multiple_points)
+
         elif self.current_tab  == 'LID_6':
-            self.widget_LID6.signal.connect(self.get_multiple_points)
             self.setcoord(6, reset=True)
+            self.widget_LID6.signal.connect(self.get_multiple_points)
+
         elif self.current_tab  == 'LID_7':
-            self.widget_LID7.signal.connect(self.get_multiple_points)
             self.setcoord(7, reset=True)
+            self.widget_LID7.signal.connect(self.get_multiple_points)
+
         elif self.current_tab  == 'LID_8':
-            self.widget_LID8.signal.connect(self.get_multiple_points)
             self.setcoord(8, reset=True)
+            self.widget_LID8.signal.connect(self.get_multiple_points)
+        self.blockSignals(False)
 
         # #
 
@@ -4194,6 +5326,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 #temporary (not marked as permanent) corrections set by user during validation
                 if self.data.KG1_data.density[chan].corrections.data is None:
                     total = 0
+                elif self.data.KG1_data.density[chan].corrections.data.size==0:
+                    total = 0
+
                     # self.totalcorrections_den[chan]= total
                 else:
                     total = int(round(np.sum(self.data.KG1_data.density[chan].corrections.data)))
@@ -4201,6 +5336,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 if chan in self.data.KG1_data.fj_dcn.keys():
                     if self.data.KG1_data.fj_dcn[chan].data is None:
+                        total_dcn = 0
+                    elif self.data.KG1_data.fj_dcn[chan].data.size==0:
                         total_dcn = 0
                         # self.totalcorrections_den_dcn[chan]= total_dcn
                     else:
@@ -4219,11 +5356,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             if chan > 4:
                 if self.data.KG1_data.density[chan].corrections.data is None:
                     total1 = 0
+                elif self.data.KG1_data.density[chan].corrections.data.size==0:
+                    total1 = 0
                     # self.totalcorrections_den_dcn[chan] = total1
                 else:
                     total1 = int(round(np.sum(self.data.KG1_data.density[chan].corrections.data)))
                     # self.totalcorrections_den_dcn[chan] = total1
                 if self.data.KG1_data.vibration[chan].corrections.data is None:
+                    total2 = 0
+                elif self.data.KG1_data.vibration[chan].corrections.data.size==0:
                     total2 = 0
                     # self.totalcorrections_vib_dcn[chan] = total2
                 else:
@@ -4271,6 +5412,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         # pyqt_set_trace()
 
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+        ax_name = 'ax' + str(self.chan)
+
         self.blockSignals(True) # signals emitted by this object are blocked
         self.correction_to_be_applied = self.lineEdit_mancorr.text() # reads correction from gui
         if str(self.chan).isdigit() == True:
@@ -4306,7 +5458,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.kb.apply_pressed_signal.disconnect(self.singlecorrection) # disconnect slot
                 self.blockSignals(False)
                 return
-            if suggested_den != self.corr_den:
+            if (int(suggested_den) != int(self.corr_den)):
                 logger.warning('suggested correction is different, do you wish to use it?')
                 ret = qm.question(self,'', "suggested correction is different: " +str(suggested_den)+"\n  Do you wish to use it?", qm.Yes | qm.No)
                 # x  = input('y/n?')
@@ -4318,10 +5470,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         elif  int(self.chan) > 4:
             suggested_den, suggested_vib = self.suggestcorrection()
             try:
-                self.corr_den = int(self.lineEdit_mancorr.text().split(",")[0])
-                self.corr_vib = int(self.lineEdit_mancorr.text().split(",")[1])
+                corr_den = int(self.lineEdit_mancorr.text().split(",")[0])
+                corr_vib = int(self.lineEdit_mancorr.text().split(",")[1])
 
-                corrections = self.data.matrix_lat_channels.dot([self.corr_den, self.corr_vib])
+                corrections = self.data.matrix_lat_channels.dot([corr_den, corr_vib])
                 self.corr_den = corrections[0]
                 self.corr_vib = corrections[1]
 
@@ -4351,7 +5503,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
                 self.blockSignals(False)
                 return
-            if (suggested_den != self.corr_den) & suggested_vib != self.corr_vib:
+            if ((int(suggested_den) != int(corr_den))) & (int(suggested_vib) != int(corr_vib)):
                 logger.warning('suggested correction is different, do you wish to use it?')
                 ret = qm.question(self,'', "suggested correction is different: " +str(suggested_den)+', '+ str(suggested_vib) +"\n  Do you wish to use it?", qm.Yes | qm.No)
 
@@ -4375,30 +5527,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             xc = self.data.KG1_data.density[self.chan].corrections.time
             # for xc in xposition:
-            if self.chan == 1:
-                self.ax1.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax1.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 2:
-                self.ax2.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax2.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 3:
-                self.ax3.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax3.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 4:
-                self.ax4.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax4.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 5:
-                self.ax5.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax5.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 6:
-                self.ax6.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax6.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 7:
-                self.ax7.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax7.plot(coord[0][0],coord[0][1], 'mo')
-            elif self.chan == 8:
-                self.ax8.axvline(x=coord[0][0], color='m', linestyle='--')
-                self.ax8.plot(coord[0][0],coord[0][1], 'mo')
+
+
+            vars()[ax_name].axvline(x=time[index], color='m', linestyle='--')
+            vars()[ax_name].plot(time[index],data[index], 'mo')
 
 
         if int(self.chan) > 4:
@@ -4440,8 +5572,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if ret == qm_permanent.Yes:
 
             self.handle_makepermbutton()
+            self.gettotalcorrections()
         else:
             pass
+
 
 
     # -------------------------------.
@@ -4454,55 +5588,56 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :return:
         """
         # gotcorrectionpoint = pyqtSignal()
+        self.blockSignals(True)
         if self.current_tab == 'LID_1':
             self.data.coord_ch1 = [[self.widget_LID1.xs, self.widget_LID1.ys]]
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID1.xs),
                 (self.widget_LID1.ys)))
             self.widget_LID1.signal.disconnect(self.get_point)
         elif self.current_tab == 'LID_2':
             self.data.coord_ch2 = [[self.widget_LID2.xs, self.widget_LID2.ys]]
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID2.xs),
                 (self.widget_LID2.ys)))
             self.widget_LID2.signal.disconnect(self.get_point)
         elif self.current_tab == 'LID_3':
             self.data.coord_ch3 = [[self.widget_LID3.xs, self.widget_LID3.ys]]
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID3.xs),
                 (self.widget_LID3.ys)))
             self.widget_LID3.signal.disconnect(self.get_point)
         elif self.current_tab == 'LID_4':
             self.data.coord_ch4 = [[self.widget_LID4.xs, self.widget_LID4.ys]]
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID4.xs),
                 (self.widget_LID4.ys)))
             self.widget_LID4.signal.disconnect(self.get_point)
         elif self.current_tab == 'LID_5':
             self.data.coord_ch5 = [[self.widget_LID5.xs, self.widget_LID5.ys]]
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID5.xs),
                 (self.widget_LID5.ys)))
             self.widget_LID5.signal.disconnect(self.get_point)
         elif self.current_tab == 'LID_6':
             self.data.coord_ch6 = [[self.widget_LID6.xs, self.widget_LID6.ys]]
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID6.xs),
                 (self.widget_LID6.ys)))
             self.widget_LID6.signal.disconnect(self.get_point)
         elif self.current_tab == 'LID_7':
             self.data.coord_ch7 = [[self.widget_LID7.xs, self.widget_LID7.ys]]
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID7.xs),
                 (self.widget_LID7.ys)))
             self.widget_LID7.signal.disconnect(self.get_point)
         elif self.current_tab == 'LID_8':
             self.data.coord_ch8 = [[self.widget_LID8.xs, self.widget_LID8.ys]]
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID8.xs),
                 (self.widget_LID8.ys)))
             self.widget_LID8.signal.disconnect(self.get_point)
-
+        self.blockSignals(False)
 
 #----------------------------------
     @QtCore.pyqtSlot()
@@ -4513,62 +5648,63 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :return:
         """
         # gotcorrectionpoint = pyqtSignal()
+        self.blockSignals(True)
         if self.current_tab == 'LID_1':
             self.data.coord_ch1.append(
                 (self.widget_LID1.xs, self.widget_LID1.ys))
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID1.xs),
                 (self.widget_LID1.ys)))
 
         elif self.current_tab == 'LID_2':
             self.data.coord_ch2.append(
                 (self.widget_LID2.xs, self.widget_LID2.ys))
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID2.xs),
                 (self.widget_LID2.ys)))
 
         elif self.current_tab == 'LID_3':
             self.data.coord_ch3.append(
                 (self.widget_LID3.xs, self.widget_LID3.ys))
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID3.xs),
                 (self.widget_LID3.ys)))
 
         elif self.current_tab == 'LID_4':
             self.data.coord_ch4.append(
                 (self.widget_LID4.xs, self.widget_LID4.ys))
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID4.xs),
                 (self.widget_LID4.ys)))
 
         elif self.current_tab == 'LID_5':
             self.data.coord_ch5.append(
                 (self.widget_LID5.xs, self.widget_LID5.ys))
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID5.xs),
                 (self.widget_LID5.ys)))
 
         elif self.current_tab == 'LID_6':
             self.data.coord_ch6.append(
                 (self.widget_LID6.xs, self.widget_LID6.ys))
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID6.xs),
                 (self.widget_LID6.ys)))
 
         elif self.current_tab == 'LID_7':
             self.data.coord_ch7.append(
                 (self.widget_LID7.xs, self.widget_LID7.ys))
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID7.xs),
                 (self.widget_LID7.ys)))
 
         elif self.current_tab == 'LID_8':
             self.data.coord_ch8.append(
                 (self.widget_LID8.xs, self.widget_LID8.ys))
-            logger.log(5, "Tab selected is {} - data is {} {}".format(
+            logger.debug( "Tab selected is {} - data is {} {}".format(
                 self.current_tab, (self.widget_LID8.xs),
                 (self.widget_LID8.ys)))
-
+        self.blockSignals(False)
 
 
 
@@ -4582,6 +5718,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         before it is permanently applied
         :return:
         """
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+        ax_name = 'ax' + str(self.chan)
 
         if str(self.chan).isdigit() == True:
             chan = int(self.chan)
@@ -4614,30 +5760,46 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             vibration.uncorrect_fj(
                 self.corr_vib , index=index)
-        num_of_correction = 2 # this number is always 2 for single correction mode!
-        if self.chan == 1:
-            del self.ax1.lines[-num_of_correction:]
 
-        elif self.chan == 2:
-            del self.ax2.lines[-num_of_correction:]
 
-        elif self.chan == 3:
-            del self.ax3.lines[-num_of_correction:]
+        tstep = np.mean(np.diff(self.data.KG1_data.density[chan].time))
+        linestoberemoved=[]
 
-        elif self.chan == 4:
-            del self.ax4.lines[-num_of_correction:]
+        for i, line in enumerate(vars()[ax_name].lines):
+            logger.log(5, "checking line {} @ {}".format(i,line.get_xydata()[0][0]))
+            if abs(line.get_xydata()[0][0] - value)<tstep:
+                    logger.log(5, " removing line @ {}s".format(value))
+                    linestoberemoved.append(i)
+        for x in reversed(linestoberemoved):
+            del vars()[ax_name].lines[x]
 
-        elif self.chan == 5:
-            del self.ax5.lines[-num_of_correction:]
 
-        elif self.chan == 6:
-            del self.ax6.lines[-num_of_correction:]
 
-        elif self.chan == 7:
-            del self.ax7.lines[-num_of_correction:]
 
-        elif self.chan == 8:
-            del self.ax8.lines[-num_of_correction:]
+
+        # if self.chan == 1:
+        #     del self.ax1.lines[-num_of_correction:]
+        #
+        # elif self.chan == 2:
+        #     del self.ax2.lines[-num_of_correction:]
+        #
+        # elif self.chan == 3:
+        #     del self.ax3.lines[-num_of_correction:]
+        #
+        # elif self.chan == 4:
+        #     del self.ax4.lines[-num_of_correction:]
+        #
+        # elif self.chan == 5:
+        #     del self.ax5.lines[-num_of_correction:]
+        #
+        # elif self.chan == 6:
+        #     del self.ax6.lines[-num_of_correction:]
+        #
+        # elif self.chan == 7:
+        #     del self.ax7.lines[-num_of_correction:]
+        #
+        # elif self.chan == 8:
+        #     del self.ax8.lines[-num_of_correction:]
 
         self.update_channel(int(self.chan))
         self.gettotalcorrections()
@@ -4773,6 +5935,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         :return:
         """
+
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
+
+        ax_name = 'ax' + str(self.chan)
+
         if str(self.chan).isdigit() == True:
             chan = int(self.chan)
             time = self.data.KG1_data.density[chan].time
@@ -4804,30 +5978,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 vibration.uncorrect_fj(
                     self.corr_vib , index=index)
-        num_of_correction = 2*len(coord)  # this number is always 2 for single correction mode!
-        if self.chan == 1:
-            del self.ax1.lines[-num_of_correction:]
+        #
+        tstep = np.mean(np.diff(self.data.KG1_data.density[chan].time))
+        linestoberemoved=[]
+        for j, value in enumerate(coord):
+            for i, line in enumerate(vars()[ax_name].lines):
+                logger.log(5, "checking line {} @ {}".format(i,line.get_xydata()[0][0]))
+                if abs(line.get_xydata()[0][0] - value[0])<tstep:
+                        logger.log(5, " removing line @ {}s".format(value))
+                        linestoberemoved.append(i)
+        for x in reversed(linestoberemoved):
+            del vars()[ax_name].lines[x]
 
-        elif self.chan == 2:
-            del self.ax2.lines[-num_of_correction:]
-
-        elif self.chan == 3:
-            del self.ax3.lines[-num_of_correction:]
-
-        elif self.chan == 4:
-            del self.ax4.lines[-num_of_correction:]
-
-        elif self.chan == 5:
-            del self.ax5.lines[-num_of_correction:]
-
-        elif self.chan == 6:
-            del self.ax6.lines[-num_of_correction:]
-
-        elif self.chan == 7:
-            del self.ax7.lines[-num_of_correction:]
-
-        elif self.chan == 8:
-            del self.ax8.lines[-num_of_correction:]
 
         self.update_channel(int(self.chan))
         self.gettotalcorrections()
@@ -4885,7 +6047,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         Exit the application
         """
         if hasattr(self.data, 'pulse') is False:
-            logger.log(5, 'data has been loaded, nothing has been modified, it is save to exit')
+            logger.debug( 'data has been loaded, nothing has been modified, it is save to exit')
 
             self.areyousure_window = QtGui.QMainWindow()
             self.ui_areyousure = Ui_areyousure_window()
@@ -4897,7 +6059,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.ui_areyousure.pushButton_NO.clicked.connect(
                 self.handle_no)
         elif self.data.pulse is None:
-            logger.log(5,'no data has been loaded, it is save to exit')
+            logger.debug('no data has been loaded, it is save to exit')
 
             self.areyousure_window = QtGui.QMainWindow()
             self.ui_areyousure = Ui_areyousure_window()
@@ -4912,7 +6074,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             #logger.info(' Exit now')
             #sys.exit()
         elif hasattr(self.data, 'KG1_data') is False:
-            logger.log(5,'no data has been loaded, it is save to exit')
+            logger.debug('no data has been loaded, it is save to exit')
 
             self.areyousure_window = QtGui.QMainWindow()
             self.ui_areyousure = Ui_areyousure_window()
@@ -4925,9 +6087,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.handle_no)
 
         elif (self.data.data_changed | self.data.statusflag_changed) is True:
-            logger.log(5, "data changed? {} status flags changed? {}".format(self.data.data_changed, self.data.statusflag_changed))
+            logger.debug( "data changed? {} status flags changed? {}".format(self.data.data_changed, self.data.statusflag_changed))
             if self.data.saved:
-                logger.log(5,"data has been saved")
+                logger.debug("data has been saved")
                 self.handle_yes_exit()
             else:
                 logger.info(' data has not been saved do you want to exit? ')
@@ -5000,7 +6162,7 @@ def main():
     width, height = [480,360]
     MainWindow = CORMAT_GUI()
     screenShape = QtGui.QDesktopWidget().screenGeometry()
-    logger.log(5, 'screen resolution is {} x {}'.format(screenShape.width(), screenShape.height()))
+    logger.debug( 'screen resolution is {} x {}'.format(screenShape.width(), screenShape.height()))
     # 1366x768 vnc viewer size
     # time.sleep(3.0)
     MainWindow.show()

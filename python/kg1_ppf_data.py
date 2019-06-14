@@ -43,7 +43,7 @@ class Kg1PPFData(SignalBase):
         self.status = {}
         self.global_status = {}
         self.kg1rt = {}
-        self.type = ""
+        self.type = {}
         self.mode = ""
 
         # PPF data: If a KG1 PPF has already been written,

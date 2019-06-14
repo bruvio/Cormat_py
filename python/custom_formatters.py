@@ -91,7 +91,7 @@ class QPlainTextEditLogger(logging.Handler):
 class HTMLFormatter(logging.Formatter):
     FORMATS = {
         logging.ERROR:   ("[%(levelname)-5s] %(message)s", QtGui.QColor("red")),
-        logging.DEBUG:   ("[%(levelname)-5s] [%(filename)s:%(lineno)d] %(message)s", "green"),
+        logging.DEBUG:   ("[%(levelname)-5s] [%(filename)s:%(lineno)d] %(message)s", "black"),
         logging.INFO:    ("[%(levelname)-4s] %(message)s", "#0000FF"),
         # logging.WARNING: ('%(asctime)s - %(name)s - %(levelname)s - %(message)s', QtGui.QColor(100, 100, 0)),
         logging.WARNING: ('%(levelname)s - %(message)s', QtGui.QColor(100, 100, 0)),
