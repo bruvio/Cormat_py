@@ -107,6 +107,13 @@
                </property>
               </widget>
              </item>
+             <item row="2" column="0">
+              <widget class="QCheckBox" name="checkBox_DS">
+               <property name="text">
+                <string>downsample</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -182,9 +189,7 @@
            <widget class="QLineEdit" name="lineEdit_totcorr"/>
           </item>
           <item row="3" column="0" colspan="2">
-           <widget class="QWidget" name="widget_mancorr" native="true">
-            <zorder>pushButton_undo</zorder>
-           </widget>
+           <widget class="QWidget" name="widget_mancorr" native="true"/>
           </item>
           <item row="5" column="0" colspan="2">
            <widget class="QPushButton" name="pushButton_makeperm">

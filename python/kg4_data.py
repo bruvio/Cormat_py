@@ -217,7 +217,7 @@ class Kg4Data:
 
         # Read in kg4r signal from ppf
         for kg4_chan in self.constants.kg4r.keys():
-            nodename = self.constants.kg1v[kg4_chan]
+            nodename = self.constants.kg4r[kg4_chan]
             density = SignalBase(self.constants)
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
