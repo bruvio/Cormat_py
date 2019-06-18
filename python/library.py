@@ -79,6 +79,36 @@ def find_in_list_array(array,value):
         index =[]
         return found, index
 
+def find_listelements_in_otherlist2(list1,list2,tstep):
+    """
+
+    :param list1:
+    :param list2:
+    :param tstep: minimum distance between two data points
+    :return:
+    """
+    #
+    list1=list(list1)
+    list2=list(list2)
+    # [i for e in list1 for i in list2 if e in i]
+    found_list = []
+    index_list = []
+    for i, value in enumerate(list2):
+        found, index = find_in_list_array(list1,value)
+        if found:
+            index_list.append(index)
+
+
+
+
+
+
+    # def find_listelements_in_otherlist(list1,list2):
+#     list1=list(list1)
+#     list2=list(list2)
+#
+#     [item for item in list1 if any(x in item for x in list2)]
+
 
 def find_within_range(array,minvalue,maxvalue):
 

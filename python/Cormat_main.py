@@ -3393,6 +3393,40 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                           linestyle='None')
                     vars()[ax_name1].legend()
 
+            for chan in self.data.KG1_data.fj_dcn.keys():
+                if chan < 9:
+                    ax_name = 'ax' + str(chan)
+                    name = 'LID' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
+                    xposition = self.data.KG1_data.fj_dcn[chan].time
+                    for xc in xposition:
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+                else:
+                    ax_name = 'ax' + str(chan - 4) + str(1)
+                    name = 'LID' + str(chan - 4)
+                    widget_name = 'widget_LID' + str(chan)
+                    xposition = self.data.KG1_data.fj_dcn[chan].time
+                    for xc in xposition:
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            for chan in self.data.KG1_data.fj_met.keys():
+                if chan < 5:
+                    ax_name = 'ax' + str(chan)
+                    name = 'LID' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
+                    xposition = self.data.KG1_data.fj_met[chan].time
+                    for xc in xposition:
+                        vars()[ax_name].axvline(x=xc, color='c', linestyle='--')
+
+                else:
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+
+                    xposition = self.data.KG1_data.fj_met[chan].time
+                    for xc in xposition:
+                        vars()[ax_name1].axvline(x=xc, color='c',
+                                                 linestyle='--')
+
+
             # update canvas
             self.widget_LID1.draw()
             self.widget_LID2.draw()
@@ -3517,6 +3551,39 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                           linestyle='None')
                     vars()[ax_name1].legend()
 
+            for chan in self.data.KG1_data.fj_dcn.keys():
+                if chan < 9:
+                    ax_name = 'ax' + str(chan)
+                    name = 'LID' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
+                    xposition = self.data.KG1_data.fj_dcn[chan].time
+                    for xc in xposition:
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+                else:
+                    ax_name = 'ax' + str(chan - 4) + str(1)
+                    name = 'LID' + str(chan - 4)
+                    widget_name = 'widget_LID' + str(chan)
+                    xposition = self.data.KG1_data.fj_dcn[chan].time
+                    for xc in xposition:
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            for chan in self.data.KG1_data.fj_met.keys():
+                if chan < 5:
+                    ax_name = 'ax' + str(chan)
+                    name = 'LID' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
+                    xposition = self.data.KG1_data.fj_met[chan].time
+                    for xc in xposition:
+                        vars()[ax_name].axvline(x=xc, color='c', linestyle='--')
+
+                else:
+                    ax_name1 = 'ax' + str(chan) + str(1)
+                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+
+                    xposition = self.data.KG1_data.fj_met[chan].time
+                    for xc in xposition:
+                        vars()[ax_name1].axvline(x=xc, color='c',
+                                                 linestyle='--')
+
             # update canvas
             self.widget_LID1.draw()
             self.widget_LID2.draw()
@@ -3547,6 +3614,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         """
         chan = self.chan
+        tstep = np.mean(
+            np.diff(self.data.KG1_data.density[chan].time))
         #if correction is not empty than proceed
         if self.data.KG1_data.density[chan].corrections is not None:
             if self.data.KG1_data.density[chan].corrections.data.size >0:
@@ -3568,6 +3637,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.KG1_data.fj_dcn[chan].data[index]
                 self.data.KG1_data.fj_dcn[chan].time = \
                 self.data.KG1_data.fj_dcn[chan].time[index]
+
+                # self.data.KG1_data.fj_dcn[chan].time[:] =
 
                 self.setcoord(self.chan, reset=True)
         if chan >4:
@@ -5010,6 +5081,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             time = self.data.KG1_data.density[self.chan].time # get time data
             data = self.data.KG1_data.density[self.chan].data # get density data
             coord = self.setcoord(self.chan) # get points selected by user
+            tstep = np.mean(np.diff(self.data.KG1_data.density[self.chan].time))
         else:#the user has run the Neutralise event not on a 1-8 tab
             self.update_channel(self.chan)
 
@@ -5024,7 +5096,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # get coordinates seletecte by user
         min_coord = min(coord)
         max_coord = max(coord)
-
+        values_manual = None
+        values_automatic = None
 
         if self.data.KG1_data.density[self.chan].corrections.data is None: # if there are no manual corrections (yet) - skip
             pass
@@ -5044,7 +5117,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             else:
 
                 if self.data.KG1_data.density[
-                    self.chan].corrections.time is not None: # if there are corrections in that range
+                    self.chan].corrections.time is not None: # if there are corrections
 
                     corrections_manual = \
                     self.data.KG1_data.density[self.chan].corrections.data[
@@ -5054,14 +5127,26 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                    corrections_manual]
 
                     logger.info("applying this neutralaisation at {}".format(
-                        corrections_manual_inverted))
+                        corrections_manual))
+
+                    # indexes_manual = [x+1 for x in indexes_manual] # first line is kg1 data!
+
+                    ax_name = 'ax'+str(self.chan)
+
+                    for jj, ind in enumerate((indexes_manual)):
+                        vars()[ax_name].lines[:] = [x for x in
+                                                    vars()[ax_name].lines if
+                                                    not abs(
+                                                        x.get_xydata()[0][
+                                                            0] - self.data.KG1_data.density[self.chan].corrections.time[
+                        ind]) < tstep]
 
                     #iterate corrections
                     for i, value in enumerate(values_manual):
                         #find times of correction and index inside time vector
                         index, value = find_nearest(time, value)
 
-                        self.corr_den = int(round(corrections_manual_inverted[i]))
+                        self.corr_den = int(round(corrections_manual[i])) # correction to neutralise (uncorrect)
 
                         time_corr = values_manual[i]
 
@@ -5072,18 +5157,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                        value,
                                        index))
                         #apply correction
-                        self.data.KG1_data.density[self.chan].correct_fj(
+                        self.data.KG1_data.density[self.chan].uncorrect_fj(
                             self.corr_den * self.data.constants.DFR_DCN, index=index
                         )
 
                         if int(self.chan) > 4: #if is a lateral channel
                             if self.chan+4 in self.data.KG1_data.fj_dcn.keys(): # if there are automatic corrections in the vibration signal
-                                self.corr_vib = int(round(self.data.KG1_data.density[self.chan+4].corrections.data[i]))
+                                self.corr_vib = -int(round(self.data.KG1_data.density[self.chan+4].corrections.data[i]))
                             else:
                                 self.corr_vib = 0
 
                             self.data.KG1_data.vibration[
-                                    self.chan].correct_fj(
+                                    self.chan].uncorrect_fj(
                                     self.corr_vib * self.data.constants.DFR_DCN,
                                     index=index)
 
@@ -5092,27 +5177,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-                    indexes_manual = [x+1 for x in indexes_manual] # first line is kg1 data!
-                    for jj, ind in enumerate(reversed(indexes_manual)):
-                        # print(jj,ind)
-                        if self.chan == 1:
-                            # del self.ax1.lines[-(len(self.ax1.lines)):-1]
-                            del self.ax1.lines[ind]
-                            # del self.ax1.lines[1:]
-                        elif self.chan == 2:
-                            del self.ax2.lines[ind]
-                        elif self.chan == 3:
-                            del self.ax3.lines[ind]
-                        elif self.chan == 4:
-                            del self.ax4.lines[ind]
-                        elif self.chan == 5:
-                            del self.ax5.lines[ind]
-                        elif self.chan == 6:
-                            del self.ax6.lines[ind]
-                        elif self.chan == 7:
-                            del self.ax7.lines[ind]
-                        elif self.chan == 8:
-                            del self.ax8.lines[ind]
 
 
 
@@ -5143,7 +5207,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             self.blockSignals(False)
             return
+        elif self.data.KG1_data.fj_dcn[self.chan].data.size ==0:
+            # if there are not automatic correction updated channel and close event
+            self.update_channel(self.chan)
+            self.gettotalcorrections()
+            self.pushButton_undo.clicked.connect(self.discard_neutralise_corrections)
+            self.kb.apply_pressed_signal.disconnect(
+                self.neutralisatecorrections)
+            self.disconnnet_multiplecorrectionpointswidget()
 
+            self.blockSignals(False)
+            return
         else:
             #find corrections
             indexes_automatic, values_automatic = find_within_range(
@@ -5154,6 +5228,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.update_channel(self.chan)
                 self.gettotalcorrections()
             else:
+                # if values_manual is not None:
+                #     if values_automatic is not None:
+                #         i = 0
+                #         for i, dummy in enumerate(values_automatic):
+                #             if i>len(values_manual)-1:
+                #                 break
+                #             else:
+                #                 values_automatic[:] = [x for x in
+                #                                     values_automatic if
+                #                                     not abs(
+                #                                         x - values_manual[i]) <= tstep]
+                #                 # indexes_automatic[:] =
+                #
+                #
+                #                 i = i +1
+                #
+                # if len(values_automatic) ==0:
+
+
                 # logger.info("automatic correction times {} \n ".format(self.data.KG1_data.fj_dcn[self.chan].time[indexes_automatic]))
                 if self.chan <5:
                     logger.info("automatic correction data {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic]))
@@ -5182,9 +5275,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                             self.data.KG1_data.fj_dcn[self.chan].data[
                                 indexes_automatic]))
 
+
+                #compare manual correction list and automatic correction list (in the selected interval)
+
                 #create lists of corrections
                 corrections = self.data.KG1_data.fj_dcn[self.chan].data[
                     indexes_automatic]
+
+
                 if (self.chan >4) & (self.chan + 4 in self.data.KG1_data.fj_dcn.keys()):
                     corrections_vib = self.data.KG1_data.fj_dcn[self.chan+4].data[
                         indexes_automatic_vib]
@@ -5223,8 +5321,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
                     logger.log(5,
-                               " found point where to neutralise correction @t= {} with index {}".format(value,index))
+                              " found point where to neutralise correction @t= {} with index {}".format(value,index))
+                    # indexes_automatic = [x + 1 for x in
+                    #                      indexes_automatic]  # first line is kg1 data!
 
+                    for jj, ind in enumerate((indexes_automatic)):
+
+                        ax_name = 'ax' + str(self.chan)
+
+                        for jj, ind in enumerate((indexes_automatic)):
+                            vars()[ax_name].lines[:] = [x for x in
+                                                        vars()[ax_name].lines if
+                                                        not abs(
+                                                            x.get_xydata()[0][
+                                                                0] - self.data.KG1_data.fj_dcn[self.chan].time[ind]) < tstep]
 
                     #for lateral channels
                     if int(self.chan) > 4:
@@ -5236,6 +5346,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 if value == value_vib:
 
                                     self.corr_vib = -int(round(self.data.KG1_data.fj_dcn[self.chan + 4].data[j]))
+                                    self.data.KG1_data.fj_dcn[self.chan + 4].data[
+                                        i] = self.corr_vib
                                 else:
                                     self.corr_vib = 0
 
@@ -5245,6 +5357,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                                     self.corr_vib = -int(round(
                                     self.data.KG1_data.fj_met[self.chan].data[j]))
+                                    self.data.KG1_data.fj_met[self.chan].data[
+                                        i] = self.corr_vib
                                 else:
                                     self.corr_vib = 0
 
@@ -5261,33 +5375,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                         self.data.KG1_data.vibration[self.chan].correct_fj(self.mir,index=index,lid=self.corr_vib)
                     else:
-                        self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_DCN,index=index)
-
+                        self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_DCN,index=index+1)
+                        self.data.KG1_data.fj_dcn[self.chan].data[i] = self.corr_den
                     vars()[ax_name].axvline(x=value, color='g',
                                             linestyle='--',linewidth=0.25)
 
-                indexes_automatic = [x + 1 for x in
-                                     indexes_automatic]  # first line is kg1 data!
-                for jj, ind in enumerate(reversed(indexes_automatic)):
 
-                    if self.chan == 1:
-
-                        del self.ax1.lines[ind]
-
-                    elif self.chan == 2:
-                        del self.ax2.lines[ind]
-                    elif self.chan == 3:
-                        del self.ax3.lines[ind]
-                    elif self.chan == 4:
-                        del self.ax4.lines[ind]
-                    elif self.chan == 5:
-                        del self.ax5.lines[ind]
-                    elif self.chan == 6:
-                        del self.ax6.lines[ind]
-                    elif self.chan == 7:
-                        del self.ax7.lines[ind]
-                    elif self.chan == 8:
-                        del self.ax8.lines[ind]
 
                 self.update_channel(self.chan)
 
@@ -5530,7 +5623,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-            if chan > 4:
+            elif chan > 4:
                 if self.data.KG1_data.density[chan].corrections.data is None:
                     total1 = 0
                 elif self.data.KG1_data.density[chan].corrections.data.size==0:
@@ -5944,41 +6037,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         tstep = np.mean(np.diff(self.data.KG1_data.density[chan].time))
         linestoberemoved=[]
 
-        for i, line in enumerate(vars()[ax_name].lines):
-            logger.log(5, "checking line {} @ {}".format(i,line.get_xydata()[0][0]))
-            if abs(line.get_xydata()[0][0] - value)<tstep:
-                    logger.log(5, " removing line @ {}s".format(value))
-                    linestoberemoved.append(i)
-        for x in reversed(linestoberemoved):
-            del vars()[ax_name].lines[x]
+        # for i, line in enumerate(vars()[ax_name].lines):
+        #     logger.log(5, "checking line {} @ {}".format(i,line.get_xydata()[0][0]))
+        #     if abs(line.get_xydata()[0][0] - value)<tstep:
+        #             logger.log(5, " removing line @ {}s".format(value))
+        #             linestoberemoved.append(i)
+        # for x in reversed(linestoberemoved):
+        #     del vars()[ax_name].lines[x]
+
+        vars()[ax_name].lines[:] = [x for x in vars()[ax_name].lines if not abs(
+            x.get_xydata()[0][0] - value) < tstep]
 
 
 
-
-
-        # if self.chan == 1:
-        #     del self.ax1.lines[-num_of_correction:]
-        #
-        # elif self.chan == 2:
-        #     del self.ax2.lines[-num_of_correction:]
-        #
-        # elif self.chan == 3:
-        #     del self.ax3.lines[-num_of_correction:]
-        #
-        # elif self.chan == 4:
-        #     del self.ax4.lines[-num_of_correction:]
-        #
-        # elif self.chan == 5:
-        #     del self.ax5.lines[-num_of_correction:]
-        #
-        # elif self.chan == 6:
-        #     del self.ax6.lines[-num_of_correction:]
-        #
-        # elif self.chan == 7:
-        #     del self.ax7.lines[-num_of_correction:]
-        #
-        # elif self.chan == 8:
-        #     del self.ax8.lines[-num_of_correction:]
 
         self.update_channel(int(self.chan))
         self.gettotalcorrections()
