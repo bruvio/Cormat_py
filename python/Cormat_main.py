@@ -1225,8 +1225,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :return:
         """
         # logger.info(' dumping KG1 data')
-        self.checkStatuFlags
+        self.checkStatuFlags()
+        actual_chan = self.chan
+        for chan in self.data.KG1_data.density.keys():
+            self.chan = chan
+            logging.getLogger().disabled = True
+            self.handle_makepermbutton()
+        self.chan = actual_chan
+        logging.getLogger().disabled = False
         self.save_kg1('scratch')
+
         # logger.info(' KG1 data dumped to scratch')
         # if workspace is saved then delete data point collected (so no need to undo)
         self.setcoord(reset=True,chan='all')
@@ -1954,10 +1962,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.KG1_data.density[chan].data)
             self.ax_all.lines[chan - 1].set_ydata(
                 self.data.KG1_data.density[chan].data)
-            ax1 = self.ax51
-            ax1.lines[0].set_ydata(self.data.KG1_data.vibration[chan].data* 1e6)
+            ax = self.ax51
+            ax.lines[0].set_ydata(self.data.KG1_data.vibration[chan].data* 1e6)
             autoscale_data(ax1, self.data.KG1_data.vibration[chan].data * 1e6)
-            ax1.lines[0].set_color('blue')
+            ax.lines[0].set_color('blue')
             self.ax_mir.lines[0].set_ydata(
                 self.data.KG1_data.vibration[chan].data* 1e6)
             self.ax_mir.autoscale(axis='y')
@@ -4212,8 +4220,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 #      del self.data.KG1_data.fj_dcn[self.chan]
                 self.blockSignals(False)
                 # setting total correction to 0
-                self.zeroing_correction
-                self.gettotalcorrections
+                self.zeroing_correction()
+                self.gettotalcorrections()
                 return
 
 
@@ -4302,8 +4310,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 #      del self.data.KG1_data.fj_dcn[self.chan]
                 self.blockSignals(False)
                 # setting total correction to 0
-                self.zeroing_correction
-                self.gettotalcorrections
+                self.zeroing_correction()
+                self.gettotalcorrections()
                 return
 
             else:
@@ -5632,8 +5640,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     zeroing_time = self.data.KG1_data.density[chan].time[
                         int(self.data.zeroing_start[chan - 1])]
 
-                    self.data.KG1_data.density[chan].corrections.data.append(total)
-                    self.data.KG1_data.density[chan].corrections.time.append(
+                    self.data.KG1_data.density[chan].corrections.data = np.append(self.data.KG1_data.density[chan].corrections.data,-total)
+                    self.data.KG1_data.density[chan].corrections.time = np.append(self.data.KG1_data.density[chan].corrections.time,
                         zeroing_time)
 
 
@@ -5646,8 +5654,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     zeroing_time = self.data.KG1_data.vibration[chan].time[
                         int(self.data.zeroing_start[chan - 1])]
 
-                    self.data.KG1_data.vibration[chan].corrections.data.append(total)
-                    self.data.KG1_data.vibration[chan].corrections.time.append(
+                    self.data.KG1_data.vibration[chan].corrections.data= np.append(self.data.KG1_data.vibration[chan].corrections.data,-total)
+                    self.data.KG1_data.vibration[chan].corrections.time= np.append(self.data.KG1_data.vibration[chan].corrections.time,
                         zeroing_time)
 
 
@@ -5740,6 +5748,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if int(self.chan) <5:
             suggested_den = self.suggestcorrection() # compute correction based on fringe jump on selected point
             try:
+                corr_den = int(self.lineEdit_mancorr.text())
                 self.corr_den = int(self.lineEdit_mancorr.text()) * self.data.constants.DFR_DCN # convert fringe jump into density
             except ValueError: #check if self.coor_den is a number
                 logger.error('use numerical values')
