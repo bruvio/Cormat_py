@@ -145,8 +145,7 @@ class SignalKg1(SignalBase):
 
             index = np.min(index)
 
-        logger.log(5, "From index {}, time {}, subtracting {} ({} fringes)".format(index, self.time[index],
-                                                                                       corr, corr/self.constants.DFR_DCN))
+
         self.data[index:] = self.data[index:] - corr
 
         # Store correction in terms of number of fringes
@@ -155,10 +154,17 @@ class SignalKg1(SignalBase):
         else:
             corr_store = lid
 
+        logger.log(5,
+                   "From index {}, time {}, subtracting {} ".format(
+                       index, self.time[index],
+                       corr))
 
         # If this is a mirror movement signal, store raw correction
-        if "vib" in self.signal_type:
+        if ("vib" in self.signal_type):
                 corr_store = corr
+
+
+
 
 
         if store:
