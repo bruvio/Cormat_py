@@ -4202,7 +4202,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # if self.data.KG1_data.fj_dcn[self.chan].data.size == 0:
                 #      del self.data.KG1_data.fj_dcn[self.chan]
                 self.blockSignals(False)
-
+                self.lineEdit_totcorr.setText(
+                    str(0))  # setting total correction to 0
                 return
 
 
@@ -4290,7 +4291,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # if self.data.KG1_data.fj_dcn[self.chan].data.size == 0:
                 #      del self.data.KG1_data.fj_dcn[self.chan]
                 self.blockSignals(False)
-
+                self.lineEdit_totcorr.setText(str(0)) # setting total correction to 0
                 return
 
             else:
@@ -4720,7 +4721,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             xc_min = self.data.KG1_data.density[self.chan].time[index_min]
             xc_max = self.data.KG1_data.density[self.chan].time[index_max]
-            self.data.zeroed[self.chan - 1] = True
+            # self.data.zeroed[self.chan - 1] = True
             for chan in self.data.KG1_data.density.keys():
                 ax_name = 'ax' + str(chan)
                 if chan == self.chan:
@@ -4830,7 +4831,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             xc_min = self.data.KG1_data.density[self.chan].time[index_min]
             xc_max = self.data.KG1_data.density[self.chan].time[index_max]
-            self.data.zeroed[self.chan - 1] = True
+            # self.data.zeroed[self.chan - 1] = True
             for chan in self.data.KG1_data.density.keys():
                 ax_name = 'ax' + str(chan)
                 if chan == self.chan:
