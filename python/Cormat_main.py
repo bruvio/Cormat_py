@@ -133,20 +133,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         logging.getLogger().disabled = True
 
                         self.load_pickle()
-
+                        pulse = self.data.pulse
                         # logging.disable(logging.NOTSET)
                         logging.getLogger().disabled = False
                         logger.log(5,'checking pulse data in workspace')
-                        list_attr=['self.data.KG1_data','self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data','self.data.ELM_data', 'self.data.HRTS_data','self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time','self.data.LIDAR_data']
+                        list_attr=['self.data.pulse', 'self.data.KG1_data',
+                 'self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data',
+                 'self.data.ELM_data', 'self.data.HRTS_data',
+                 'self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time',
+                 'self.data.LIDAR_data','self.data.zeroing_start','self.data.zeroing_stop','self.data.zeroed', 'self.data.zeroingbackup_den',
+                 'self.data.zeroingbackup_vib']
                         for attr in list_attr:
                             # pyqt_set_trace()
                             if hasattr(self, attr):
                                 delattr(self,attr)
-                        self.setWindowTitle("CORMAT_py - {}".format(self.data.pulse))
-                        self.lineEdit_jpn.setText(str(self.data.pulse))
+                        self.setWindowTitle("CORMAT_py - {}".format(pulse))
+                        self.lineEdit_jpn.setText(str(pulse))
 
 
-                        del  self.data.pulse
+
 
             # -------------------------------
             # backup for kg1 data
@@ -543,58 +548,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
         self.data.pulse = int(self.lineEdit_jpn.text())
-        logger.log(5, "resetting Canvas before reading data")
-        # status flag groupbox is disabled
-        self.groupBox_statusflag.setEnabled(False)
-        self.tabWidget.setCurrentIndex(0)
-
-        # disable "normalize" and "restore" buttons
-        self.button_normalize.setEnabled(False)
-        self.button_restore.setEnabled(False)
-        self.comboBox_markers.setEnabled(False)
-        self.comboBox_2ndtrace.setEnabled(False)
-        self.comboBox_2ndtrace.setCurrentIndex(0)
-        self.comboBox_markers.setCurrentIndex(0)
-        self.checkBox_DS.setChecked(False)
-        self.interp_kg1v = False
 
 
 
-        self.widget_LID1.figure.clear()
-        self.widget_LID1.draw()
 
-        self.widget_LID2.figure.clear()
-        self.widget_LID2.draw()
-
-        self.widget_LID3.figure.clear()
-        self.widget_LID3.draw()
-
-        self.widget_LID4.figure.clear()
-        self.widget_LID4.draw()
-
-        self.widget_LID5.figure.clear()
-        self.widget_LID5.draw()
-
-        self.widget_LID6.figure.clear()
-        self.widget_LID6.draw()
-
-        self.widget_LID7.figure.clear()
-        self.widget_LID7.draw()
-
-        self.widget_LID8.figure.clear()
-        self.widget_LID8.draw()
-
-        self.widget_LID_14.figure.clear()
-        self.widget_LID_14.draw()
-
-        self.widget_LID_58.figure.clear()
-        self.widget_LID_58.draw()
-
-        self.widget_LID_ALL.figure.clear()
-        self.widget_LID_ALL.draw()
-
-        self.widget_MIR.figure.clear()
-        self.widget_MIR.draw()
 
         #
         #
@@ -628,6 +585,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 if (self.checkBox_newpulse.isChecked()):
                     logger.log(5, '{} is  checked'.format(self.checkBox_newpulse.objectName()))
 
+
+                    self.init_read()
                     # -------------------------------
                     # READ self.data.
                     # -------------------------------
@@ -697,6 +656,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     # pyqt_set_trace()
                     # logging.disable(logger.info)
                     # logging.getLogger().disabled = True
+
+                    self.init_read()
 
                     self.load_pickle()
 
@@ -1287,16 +1248,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         success = self.readdata()
 
         if success:
-            # status flag groupbox is disabled
-            self.groupBox_statusflag.setEnabled(False)
-            self.checkSFbutton.setEnabled(False)
-            self.comboBox_markers.setEnabled(False)
-            # disable "normalize" and "restore" buttons
-            self.button_normalize.setEnabled(False)
-            self.button_restore.setEnabled(False)
-            self.comboBox_2ndtrace.setCurrentIndex(0)
-            self.comboBox_markers.setCurrentIndex(0)
 
+            self.init_read()
 
             self.plot_data()
 
@@ -1695,7 +1648,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     widget_name = 'widget_LID' + str(chan)
                     xposition = self.data.KG1_data.fj_met[chan].time
                     for xc in xposition:
-                        vars()[ax_name].axvline(x=xc, color='m', linestyle='--')
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
 
             else:
                 ax_name1 = 'ax' + str(chan) + str(1)
@@ -1703,7 +1656,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 xposition = self.data.KG1_data.fj_met[chan].time
                 for xc in xposition:
-                    vars()[ax_name1].axvline(x=xc, color='m', linestyle='--')
+                    vars()[ax_name1].axvline(x=xc, color='y', linestyle='--')
 
         # for i,value in enumerate(self.data.zeroing_start):
         #     chan = i+1
@@ -1964,7 +1917,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.data.KG1_data.density[chan].data)
             ax = self.ax51
             ax.lines[0].set_ydata(self.data.KG1_data.vibration[chan].data* 1e6)
-            autoscale_data(ax1, self.data.KG1_data.vibration[chan].data * 1e6)
+            autoscale_data(ax, self.data.KG1_data.vibration[chan].data * 1e6)
             ax.lines[0].set_color('blue')
             self.ax_mir.lines[0].set_ydata(
                 self.data.KG1_data.vibration[chan].data* 1e6)
@@ -6333,6 +6286,58 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         else:
             self.kb.hide()
 
+    def init_read(self):
+
+        logger.log(5, "resetting Canvas before reading data")
+        # status flag groupbox is disabled
+        self.groupBox_statusflag.setEnabled(False)
+        self.tabWidget.setCurrentIndex(0)
+
+        # disable "normalize" and "restore" buttons
+        self.button_normalize.setEnabled(False)
+        self.button_restore.setEnabled(False)
+        self.comboBox_markers.setEnabled(False)
+        self.comboBox_2ndtrace.setEnabled(False)
+        self.comboBox_2ndtrace.setCurrentIndex(0)
+        self.comboBox_markers.setCurrentIndex(0)
+        self.checkBox_DS.setChecked(False)
+        self.interp_kg1v = False
+
+        self.widget_LID1.figure.clear()
+        self.widget_LID1.draw()
+
+        self.widget_LID2.figure.clear()
+        self.widget_LID2.draw()
+
+        self.widget_LID3.figure.clear()
+        self.widget_LID3.draw()
+
+        self.widget_LID4.figure.clear()
+        self.widget_LID4.draw()
+
+        self.widget_LID5.figure.clear()
+        self.widget_LID5.draw()
+
+        self.widget_LID6.figure.clear()
+        self.widget_LID6.draw()
+
+        self.widget_LID7.figure.clear()
+        self.widget_LID7.draw()
+
+        self.widget_LID8.figure.clear()
+        self.widget_LID8.draw()
+
+        self.widget_LID_14.figure.clear()
+        self.widget_LID_14.draw()
+
+        self.widget_LID_58.figure.clear()
+        self.widget_LID_58.draw()
+
+        self.widget_LID_ALL.figure.clear()
+        self.widget_LID_ALL.draw()
+
+        self.widget_MIR.figure.clear()
+        self.widget_MIR.draw()
     # ----------------------------
     @QtCore.pyqtSlot()
     def handle_exit_button(self):
@@ -6485,7 +6490,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run CORMAT_py')
     parser.add_argument("-d", "--debug", type=int,
                         help="Debug level. 0: Info, 1: Warning, 2: Debug,"
-                             " 3: Error, 4: Debug Plus; \n default level is INFO", default=4)
+                             " 3: Error, 4: Debug Plus; \n default level is INFO", default=0)
     parser.add_argument("-doc", "--documentation", type=str,
                         help="Make documentation. yes/no", default='no')
 
