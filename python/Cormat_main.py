@@ -2201,37 +2201,38 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.info('no second trace selected\n')
         elif self.data.s2ndtrace == 'HRTS':
             # check HRTS data exist
-            if self.data.HRTS_data is not None:
-                # if len(self.data.HRTS_data.density[chan].time) == 0:
-                #     logger.info('NO HRTS data')
-                # else:
-                for chan in self.data.HRTS_data.density.keys():
-                    if chan in self.data.KG1_data.density.keys():
-                        ax_name = 'ax' + str(chan)
-                        name = 'HRTS ch.' + str(chan)
-                        # noinspection PyUnusedLocal
-                        widget_name = 'widget_LID' + str(chan)
+            if self.data.HRTS_data.density is not None:
+                if len(self.data.HRTS_data.density) == 0:
 
-                        self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
-                        self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
+                    logging.warning('no {} data'.format(self.data.s2ndtrace))
+                else:
+                    for chan in self.data.HRTS_data.density.keys():
+                        if chan in self.data.KG1_data.density.keys():
+                            ax_name = 'ax' + str(chan)
+                            name = 'HRTS ch.' + str(chan)
+                            # noinspection PyUnusedLocal
+                            widget_name = 'widget_LID' + str(chan)
 
-                        self.data.secondtrace_original[chan].time = \
-                            self.data.HRTS_data.density[chan].time
-                        self.data.secondtrace_original[chan].data = \
-                            self.data.HRTS_data.density[chan].data
-                        # self.data.secondtrace_norm[chan].data = norm(self.data.HRTS_data.density[chan].data)
-                        try:
-                            self.data.secondtrace_norm[chan].data = normalise(
-                            self.data.HRTS_data.density[chan],
-                            self.data.KG1_data.density[chan], self.data.dis_time)
+                            self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                            self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
 
-                            vars()[ax_name].plot(self.data.HRTS_data.density[chan].time,
-                                             self.data.HRTS_data.density[chan].data,
-                                             label=name, marker='o',
-                                             color='orange')
-                            vars()[ax_name].legend()
-                        except:
-                            logger.error('is not possible to plot HRTS for channel {}'.format(chan))
+                            self.data.secondtrace_original[chan].time = \
+                                self.data.HRTS_data.density[chan].time
+                            self.data.secondtrace_original[chan].data = \
+                                self.data.HRTS_data.density[chan].data
+                            # self.data.secondtrace_norm[chan].data = norm(self.data.HRTS_data.density[chan].data)
+                            try:
+                                self.data.secondtrace_norm[chan].data = normalise(
+                                self.data.HRTS_data.density[chan],
+                                self.data.KG1_data.density[chan], self.data.dis_time)
+
+                                vars()[ax_name].plot(self.data.HRTS_data.density[chan].time,
+                                                 self.data.HRTS_data.density[chan].data,
+                                                 label=name, marker='o',
+                                                 color='orange')
+                                vars()[ax_name].legend()
+                            except:
+                                logger.error('is not possible to plot HRTS for channel {}'.format(chan))
 
             else:
                 logging.warning('no {} data'.format(self.data.s2ndtrace))
@@ -3610,7 +3611,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             np.diff(self.data.KG1_data.density[chan].time))
         #if correction is not empty than proceed
         if self.data.KG1_data.density[chan].corrections is not None:
-            if self.data.KG1_data.density[chan].corrections.data.size >0:
+            if self.data.KG1_data.density[chan].corrections.data is None:
+                logger.warning('no corrections to save for ch. {}'.format(chan))
+
+            elif len(self.data.KG1_data.density[chan].corrections.data) >0:
             #check if the corrections applied are already stored, if so overwrite
                 for i, value in enumerate(self.data.KG1_data.density[chan].corrections.time):
                     found, index = find_in_list_array(
