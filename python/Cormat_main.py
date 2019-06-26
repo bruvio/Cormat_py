@@ -1444,15 +1444,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         self.data.unval_seq, self.data.val_seq = get_min_max_seq(self.data.pulse, dda="KG1V",
                                                        read_uid=self.read_uid)
+
+
+
         if self.read_uid.lower() == 'jetppf':
             logger.info(
-                '{} last public validated seq is {}\n'.format(str(self.data.pulse),
+                '{} last public seq is {}\n'.format(str(self.data.pulse),
                                                             str(self.data.val_seq)))
         else:
             if "Automatic Corrections" in self.data.KG1_data.mode:
                 self.data.KG1_data.correctedby = self.data.KG1_data.mode
                 logger.info(
-                '{} last private UNVALIDATED seq is {} by {}\n'.format(str(self.data.pulse),
+                '{} last private seq is {} by {}\n'.format(str(self.data.pulse),
                                                              str(self.data.val_seq),self.data.KG1_data.correctedby))
                 logger.info('userid is {}'.format(self.read_uid))
 
@@ -1460,7 +1463,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             else:
                 self.data.KG1_data.correctedby = \
                     self.data.KG1_data.mode.split(" ")[2]
-                logger.info('{} last validated seq is {} by {}\n'.format(
+                logger.info('{} last seq is {} by {}\n'.format(
                     str(self.data.pulse),
                     str(self.data.val_seq), self.data.KG1_data.correctedby))
 
@@ -5825,7 +5828,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
                 self.blockSignals(False)
                 return
-            if ((int(suggested_den) != int(corr_den))) & (int(suggested_vib) != int(corr_vib)):
+            if (int(suggested_den) != int(corr_den) | int(suggested_vib) != int(corr_vib)):
                 logger.warning('suggested correction is different, do you wish to use it?')
                 ret = qm.question(self,'', "suggested correction is different: " +str(suggested_den)+', '+ str(suggested_vib) +"\n  Do you wish to use it?", qm.Yes | qm.No)
 

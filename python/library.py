@@ -213,8 +213,14 @@ def get_min_max_seq(shot_no, dda="KG1V", read_uid="JETPPF"):
         unval_seq = min(kg1v_seq)
         if len(kg1v_seq) > 1:
             val_seq = max(kg1v_seq)
+            return unval_seq, val_seq
+        else:
+            val_seq = unval_seq
+            return unval_seq, val_seq
 
-    return unval_seq, val_seq
+
+
+
 
 def check_SF(read_uid,pulse):
     """
