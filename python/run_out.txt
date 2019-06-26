@@ -46,3 +46,9 @@ shot: 94043 user: bviola date: 2019-06-26 seq: 62 written by: bviola
 shot: 94043 user: JETPPF date: 2019-06-26 seq: 72 written by: bviola
 shot: 94045 user: bviola date: 2019-06-26 seq: 74 written by: bviola
 shot: 94045 user: JETPPF date: 2019-06-26 seq: 78 written by: bviola
+shot: 94048 user: bviola date: 2019-06-26 seq: 64 written by: bviola
+shot: 94048 user: JETPPF date: 2019-06-26 seq: 78 written by: bviola
+shot: 94114 user: bviola date: 2019-06-26 seq: 54 written by: bviola
+shot: 94114 user: JETPPF date: 2019-06-26 seq: 78 written by: bviola
+shot: 94115 user: bviola date: 2019-06-26 seq: 51 written by: bviola
+shot: 94115 user: JETPPF date: 2019-06-26 seq: 80 written by: bviola

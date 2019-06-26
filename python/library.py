@@ -165,10 +165,15 @@ def normalise(signal, kg1_signal, dis_time):
 
         #    print("max kg1 {} max signal {}".format(max_kg1, max_signal))
 
-        norm_factor = max_kg1 / max_signal
-        signal.data = signal.data * norm_factor
+        if max_signal == 0:
+            logger.warning('divide by 0 ')
+            max_signal =1
 
-        return signal.data
+
+        norm_factor = max_kg1 / max_signal
+        dummy = np.multiply(signal.data,norm_factor)
+
+        return dummy
 
 def get_seq(shot_no, dda, read_uid="JETPPF"):
     """
