@@ -5272,23 +5272,26 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.update_channel(self.chan)
                 self.gettotalcorrections()
             else:
-                # if values_manual is not None:
-                #     if values_automatic is not None:
-                #         i = 0
-                #         for i, dummy in enumerate(values_automatic):
-                #             if i>len(values_manual)-1:
-                #                 break
-                #             else:
-                #                 values_automatic[:] = [x for x in
-                #                                     values_automatic if
-                #                                     not abs(
-                #                                         x - values_manual[i]) <= tstep]
-                #                 # indexes_automatic[:] =
+                if values_manual is not None:
+                    if values_automatic is not None:
+                        i = 0
+                        for j, dummy in enumerate(values_automatic):
+                            if i>len(values_manual)-1:
+                                break
+                            else:
+                                values_automatic[:] = [x for x in
+                                                    values_automatic if
+                                                    not abs(
+                                                        x - values_manual[i]) <= tstep]
+                                # indexes_automatic[:] =
+
+
+                                i = i +1
                 #
-                #
-                #                 i = i +1
-                #
-                # if len(values_automatic) ==0:
+                if len(values_automatic) ==0:
+                    # if no correction in selected range update and close event
+                    self.update_channel(self.chan)
+                    self.gettotalcorrections()
 
 
                 # logger.info("automatic correction times {} \n ".format(self.data.KG1_data.fj_dcn[self.chan].time[indexes_automatic]))
@@ -5361,24 +5364,31 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     time_corr =  values_automatic[i]
 
-
-
+                    ax_name = 'ax' + str(self.chan)
+                    vars()[ax_name].lines[:] = [x for x in
+                                                vars()[ax_name].lines if
+                                                not abs(
+                                                    x.get_xydata()[0][
+                                                        0] -
+                                                    self.data.KG1_data.fj_dcn[
+                                                        self.chan].time[
+                                                        i]) < tstep]
 
                     logger.log(5,
                               " found point where to neutralise correction @t= {} with index {}".format(value,index))
                     # indexes_automatic = [x + 1 for x in
                     #                      indexes_automatic]  # first line is kg1 data!
 
-                    for jj, ind in enumerate((indexes_automatic)):
-
-                        ax_name = 'ax' + str(self.chan)
-
-                        for jj, ind in enumerate((indexes_automatic)):
-                            vars()[ax_name].lines[:] = [x for x in
-                                                        vars()[ax_name].lines if
-                                                        not abs(
-                                                            x.get_xydata()[0][
-                                                                0] - self.data.KG1_data.fj_dcn[self.chan].time[ind]) < tstep]
+                    # for jj, ind in enumerate((indexes_automatic)):
+                    #
+                    #     ax_name = 'ax' + str(self.chan)
+                    #
+                    #     for jj, ind in enumerate((indexes_automatic)):
+                    #         vars()[ax_name].lines[:] = [x for x in
+                    #                                     vars()[ax_name].lines if
+                    #                                     not abs(
+                    #                                         x.get_xydata()[0][
+                    #                                             0] - self.data.KG1_data.fj_dcn[self.chan].time[value]) < tstep]
 
                     #for lateral channels
                     if int(self.chan) > 4:
