@@ -2416,28 +2416,138 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logging.error('not implemented yet')
 
 
+        # for chan in self.data.KG1_data.fj_dcn.keys():
+        #     if chan >9:
+        #         pass
+        #     else:
+        #         ax_name = 'ax' + str(chan)
+        #         name = 'LID' + str(chan)
+        #         widget_name = 'widget_LID' + str(chan)
+        #         xposition = self.data.KG1_data.fj_dcn[chan].time
+        #         for xc in xposition:
+        #             vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+        # for chan in self.data.KG1_data.fj_met.keys():
+        #     if chan >9:
+        #         pass
+        #     else:
+        #         ax_name = 'ax' + str(chan)
+        #         name = 'LID' + str(chan)
+        #         widget_name = 'widget_LID' + str(chan)
+        #         xposition = self.data.KG1_data.fj_met[chan].time
+        #         for xc in xposition:
+        #             vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+
+        #####
         for chan in self.data.KG1_data.fj_dcn.keys():
-            if chan >9:
-                pass
-            else:
+            if chan < 9:
                 ax_name = 'ax' + str(chan)
                 name = 'LID' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
                 xposition = self.data.KG1_data.fj_dcn[chan].time
                 for xc in xposition:
                     vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
-        for chan in self.data.KG1_data.fj_met.keys():
-            if chan >9:
-                pass
             else:
-                ax_name = 'ax' + str(chan)
-                name = 'LID' + str(chan)
+                ax_name = 'ax' + str(chan - 4) + str(1)
+                name = 'LID' + str(chan-4)
                 widget_name = 'widget_LID' + str(chan)
-                xposition = self.data.KG1_data.fj_met[chan].time
+                xposition = self.data.KG1_data.fj_dcn[chan].time
                 for xc in xposition:
                     vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+        for chan in self.data.KG1_data.fj_met.keys():
+            if chan <5:
+                    ax_name = 'ax' + str(chan)
+                    name = 'LID' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
+                    xposition = self.data.KG1_data.fj_met[chan].time
+                    for xc in xposition:
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+
+            else:
+                ax_name1 = 'ax' + str(chan) + str(1)
+                widget_name1 = 'widget_LID' + str(chan) + str(1)
+
+                xposition = self.data.KG1_data.fj_met[chan].time
+                for xc in xposition:
+                    vars()[ax_name1].axvline(x=xc, color='y', linestyle='--')
+
+        if (self.data.zeroing_start < 1.e6).any():
+            x = []
+            # chan_min=[]
+            dummy = np.array(self.data.zeroing_start) < 1e6
+            for i, value in enumerate(dummy):
+                if value:
+                    # chan_min.append(i+1)
+                    x.append(self.data.KG1_data.density[i + 1].time[
+                                 int(self.data.zeroing_start[i])])
+
+            chan_min = np.argmin(x) + 1
+            xc_min = min(x)
+            index_min = self.data.zeroing_start[chan_min - 1]
+            for i, value in enumerate(self.data.zeroing_start):
+                chan = i + 1
+
+                ax_name = 'ax' + str(chan)
+                if value < 1e6:
+                    if value != index_min:
+                        xc = int(self.data.zeroing_start[chan - 1])
+                        xc = self.data.KG1_data.density[chan].time[xc]
+                        vars()[ax_name].axvline(x=xc_min, color='r',
+                                                linestyle='--',
+                                                linewidth=0.25)
+                        vars()[ax_name].axvline(x=xc, color='r',
+                                                linestyle='--')
+
+                    if value == index_min:
+                        xc = int(self.data.zeroing_start[chan - 1])
+                        xc = self.data.KG1_data.density[chan].time[xc]
+
+                        vars()[ax_name].axvline(x=xc, color='r',
+                                                linestyle='--')
+                else:
+                    vars()[ax_name].axvline(x=xc_min, color='r',
+                                            linestyle='--',
+                                            linewidth=0.25)
+
+        if (self.data.zeroing_stop > 0).any():
+            x = []
+            # chan_min=[]
+            dummy = np.array(self.data.zeroing_stop) > 0
+            for i, value in enumerate(dummy):
+                if value:
+                    # chan_min.append(i+1)
+                    x.append(self.data.KG1_data.density[i + 1].time[
+                                 int(self.data.zeroing_stop[i])])
+
+            chan_max = np.argmax(x) + 1
+            xc_max = max(x)
+            index_max = self.data.zeroing_stop[chan_max - 1]
+            for i, value in enumerate(self.data.zeroing_stop):
+                chan = i + 1
+                xc_max = self.data.KG1_data.density[chan].time[index_max]
+                ax_name = 'ax' + str(chan)
+                if value < 1e6:
+                    if value != index_max:
+                        xc = int(self.data.zeroing_stop[chan - 1])
+                        xc = self.data.KG1_data.density[chan].time[xc]
+                        vars()[ax_name].axvline(x=xc_max, color='r',
+                                                linestyle='--',
+                                                linewidth=0.25)
+                        vars()[ax_name].axvline(x=xc, color='r',
+                                                linestyle='--')
+
+                    if value == index_max:
+                        xc = int(self.data.zeroing_stop[chan - 1])
+                        xc = self.data.KG1_data.density[chan].time[xc]
+
+                        vars()[ax_name].axvline(x=xc, color='r',
+                                                linestyle='--')
+                else:
+                    vars()[ax_name].axvline(x=xc_max, color='r',
+                                            linestyle='--',
+                                            linewidth=0.25)
 
 
+        ####
 
         # update canvas
         self.widget_LID1.draw()
@@ -2726,21 +2836,128 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                 linewidth=2, color="red")
             else:
                 logger.info('No PELLET marker\n')
-
+        #
+        # for chan in self.data.KG1_data.fj_dcn.keys():
+        #     ax_name = 'ax' + str(chan)
+        #     name = 'LID' + str(chan)
+        #     widget_name = 'widget_LID' + str(chan)
+        #     xposition = self.data.KG1_data.fj_dcn[chan].time
+        #     for xc in xposition:
+        #         vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+        # for chan in self.data.KG1_data.fj_met.keys():
+        #     ax_name = 'ax' + str(chan)
+        #     name = 'LID' + str(chan)
+        #     widget_name = 'widget_LID' + str(chan)
+        #     xposition = self.data.KG1_data.fj_met[chan].time
+        #     for xc in xposition:
+        #         vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
         for chan in self.data.KG1_data.fj_dcn.keys():
-            ax_name = 'ax' + str(chan)
-            name = 'LID' + str(chan)
-            widget_name = 'widget_LID' + str(chan)
-            xposition = self.data.KG1_data.fj_dcn[chan].time
-            for xc in xposition:
-                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            if chan < 9:
+                ax_name = 'ax' + str(chan)
+                name = 'LID' + str(chan)
+                widget_name = 'widget_LID' + str(chan)
+                xposition = self.data.KG1_data.fj_dcn[chan].time
+                for xc in xposition:
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            else:
+                ax_name = 'ax' + str(chan - 4) + str(1)
+                name = 'LID' + str(chan-4)
+                widget_name = 'widget_LID' + str(chan)
+                xposition = self.data.KG1_data.fj_dcn[chan].time
+                for xc in xposition:
+                    vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
         for chan in self.data.KG1_data.fj_met.keys():
-            ax_name = 'ax' + str(chan)
-            name = 'LID' + str(chan)
-            widget_name = 'widget_LID' + str(chan)
-            xposition = self.data.KG1_data.fj_met[chan].time
-            for xc in xposition:
-                vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+            if chan <5:
+                    ax_name = 'ax' + str(chan)
+                    name = 'LID' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
+                    xposition = self.data.KG1_data.fj_met[chan].time
+                    for xc in xposition:
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+
+            else:
+                ax_name1 = 'ax' + str(chan) + str(1)
+                widget_name1 = 'widget_LID' + str(chan) + str(1)
+
+                xposition = self.data.KG1_data.fj_met[chan].time
+                for xc in xposition:
+                    vars()[ax_name1].axvline(x=xc, color='y', linestyle='--')
+
+        if (self.data.zeroing_start < 1.e6).any():
+            x = []
+            # chan_min=[]
+            dummy = np.array(self.data.zeroing_start) < 1e6
+            for i, value in enumerate(dummy):
+                if value:
+                    # chan_min.append(i+1)
+                    x.append(self.data.KG1_data.density[i + 1].time[
+                                 int(self.data.zeroing_start[i])])
+
+            chan_min = np.argmin(x) + 1
+            xc_min = min(x)
+            index_min = self.data.zeroing_start[chan_min - 1]
+            for i, value in enumerate(self.data.zeroing_start):
+                chan = i + 1
+
+                ax_name = 'ax' + str(chan)
+                if value < 1e6:
+                    if value != index_min:
+                        xc = int(self.data.zeroing_start[chan - 1])
+                        xc = self.data.KG1_data.density[chan].time[xc]
+                        vars()[ax_name].axvline(x=xc_min, color='r',
+                                                linestyle='--',
+                                                linewidth=0.25)
+                        vars()[ax_name].axvline(x=xc, color='r',
+                                                linestyle='--')
+
+                    if value == index_min:
+                        xc = int(self.data.zeroing_start[chan - 1])
+                        xc = self.data.KG1_data.density[chan].time[xc]
+
+                        vars()[ax_name].axvline(x=xc, color='r',
+                                                linestyle='--')
+                else:
+                    vars()[ax_name].axvline(x=xc_min, color='r',
+                                            linestyle='--',
+                                            linewidth=0.25)
+
+        if (self.data.zeroing_stop > 0).any():
+            x = []
+            # chan_min=[]
+            dummy = np.array(self.data.zeroing_stop) > 0
+            for i, value in enumerate(dummy):
+                if value:
+                    # chan_min.append(i+1)
+                    x.append(self.data.KG1_data.density[i + 1].time[
+                                 int(self.data.zeroing_stop[i])])
+
+            chan_max = np.argmax(x) + 1
+            xc_max = max(x)
+            index_max = self.data.zeroing_stop[chan_max - 1]
+            for i, value in enumerate(self.data.zeroing_stop):
+                chan = i + 1
+                xc_max = self.data.KG1_data.density[chan].time[index_max]
+                ax_name = 'ax' + str(chan)
+                if value < 1e6:
+                    if value != index_max:
+                        xc = int(self.data.zeroing_stop[chan - 1])
+                        xc = self.data.KG1_data.density[chan].time[xc]
+                        vars()[ax_name].axvline(x=xc_max, color='r',
+                                                linestyle='--',
+                                                linewidth=0.25)
+                        vars()[ax_name].axvline(x=xc, color='r',
+                                                linestyle='--')
+
+                    if value == index_max:
+                        xc = int(self.data.zeroing_stop[chan - 1])
+                        xc = self.data.KG1_data.density[chan].time[xc]
+
+                        vars()[ax_name].axvline(x=xc, color='r',
+                                                linestyle='--')
+                else:
+                    vars()[ax_name].axvline(x=xc_max, color='r',
+                                            linestyle='--',
+                                            linewidth=0.25)
 
             # pass
         # self.widget_LID1.figure.clear()
@@ -5417,9 +5634,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         elif self.chan in self.data.KG1_data.fj_met.keys():
                             for j, value_vib in enumerate(self.data.KG1_data.fj_met[self.chan].time[indexes_automatic_vib]):
                                 if value == value_vib:
-
+                                    idx =  np.where(self.data.KG1_data.fj_met[self.chan].time == value_vib)[0]
                                     self.corr_vib = -int(round(
-                                    self.data.KG1_data.fj_met[self.chan].data[j]))
+                                    self.data.KG1_data.fj_met[self.chan].data[idx[0]]))
                                     self.data.KG1_data.fj_met[self.chan].data[
                                         i] = self.corr_vib
                                 else:

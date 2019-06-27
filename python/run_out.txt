@@ -85,3 +85,9 @@ shot: 93903 user: bviola date: 2019-06-27 seq: 49 written by: bviola
 shot: 93903 user: JETPPF date: 2019-06-27 seq: 69 written by: bviola
 shot: 93893 user: bviola date: 2019-06-27 seq: 79 written by: bviola
 shot: 93893 user: JETPPF date: 2019-06-27 seq: 80 written by: bviola
+shot: 93871 user: bviola date: 2019-06-27 seq: 81 written by: bviola
+shot: 93871 user: JETPPF date: 2019-06-27 seq: 80 written by: bviola
+shot: 93873 user: bviola date: 2019-06-27 seq: 86 written by: bviola
+shot: 93873 user: JETPPF date: 2019-06-27 seq: 79 written by: bviola
+shot: 94039 user: bviola date: 2019-06-27 seq: 63 written by: bviola
+shot: 94039 user: JETPPF date: 2019-06-27 seq: 78 written by: bviola
