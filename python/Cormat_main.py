@@ -130,26 +130,28 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             exists = os.path.isfile('./scratch/kg1_data.pkl')
 
             if exists :
-                        logging.getLogger().disabled = True
+                        try:
+                            logging.getLogger().disabled = True
 
-                        self.load_pickle()
-                        pulse = self.data.pulse
-                        # logging.disable(logging.NOTSET)
-                        logging.getLogger().disabled = False
-                        logger.log(5,'checking pulse data in workspace')
-                        list_attr=['self.data.pulse', 'self.data.KG1_data',
-                 'self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data',
-                 'self.data.ELM_data', 'self.data.HRTS_data',
-                 'self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time',
-                 'self.data.LIDAR_data','self.data.zeroing_start','self.data.zeroing_stop','self.data.zeroed', 'self.data.zeroingbackup_den',
-                 'self.data.zeroingbackup_vib']
-                        for attr in list_attr:
-                            # pyqt_set_trace()
-                            if hasattr(self, attr):
-                                delattr(self,attr)
-                        self.setWindowTitle("CORMAT_py - {}".format(pulse))
-                        self.lineEdit_jpn.setText(str(pulse))
-
+                            self.load_pickle()
+                            pulse = self.data.pulse
+                            # logging.disable(logging.NOTSET)
+                            logging.getLogger().disabled = False
+                            logger.log(5,'checking pulse data in workspace')
+                            list_attr=['self.data.pulse', 'self.data.KG1_data',
+                     'self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data',
+                     'self.data.ELM_data', 'self.data.HRTS_data',
+                     'self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time',
+                     'self.data.LIDAR_data','self.data.zeroing_start','self.data.zeroing_stop','self.data.zeroed', 'self.data.zeroingbackup_den',
+                     'self.data.zeroingbackup_vib']
+                            for attr in list_attr:
+                                # pyqt_set_trace()
+                                if hasattr(self, attr):
+                                    delattr(self,attr)
+                            self.setWindowTitle("CORMAT_py - {}".format(pulse))
+                            self.lineEdit_jpn.setText(str(pulse))
+                        except:
+                            logger.error('failed to read data from workspace!')
 
 
 
@@ -1180,13 +1182,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :param folder:
         :return:
         """
+
         logger.debug(' saving KG1 data to {}'.format(folder))
-        with open('./' + folder + '/kg1_data.pkl', 'wb') as f:
-            pickle.dump(
-                [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
-                 self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib], f)
-        f.close()
-        logger.info(' KG1 data saved to {}\n'.format(folder))
+        try:
+            with open('./' + folder + '/kg1_data.pkl', 'wb') as f:
+                pickle.dump(
+                    [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
+                     self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib], f)
+            f.close()
+            logger.info(' KG1 data saved to {}\n'.format(folder))
+        except AttributeError:
+            logger.error('failed to save, check data!')
 
 #---------------------------------
     @QtCore.pyqtSlot()
@@ -1441,9 +1447,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.data.SF_old7 = self.data.SF_ch7
         self.data.SF_old8 = self.data.SF_ch8
 
-
-        self.data.unval_seq, self.data.val_seq = get_min_max_seq(self.data.pulse, dda="KG1V",
+        try:
+            self.data.unval_seq, self.data.val_seq = get_min_max_seq(self.data.pulse, dda="KG1V",
                                                        read_uid=self.read_uid)
+        except TypeError:
+            logger.error('impossible to read sequence for user {}'.format(self.read_uid))
 
 
 
@@ -1461,12 +1469,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
             else:
-                self.data.KG1_data.correctedby = \
-                    self.data.KG1_data.mode.split(" ")[2]
-                logger.info('{} last seq is {} by {}\n'.format(
-                    str(self.data.pulse),
-                    str(self.data.val_seq), self.data.KG1_data.correctedby))
-
+                try:
+                    self.data.KG1_data.correctedby = \
+                        self.data.KG1_data.mode.split(" ")[2]
+                    logger.info('{} last seq is {} by {}\n'.format(
+                        str(self.data.pulse),
+                        str(self.data.val_seq), self.data.KG1_data.correctedby))
+                except IndexError:
+                    logger.error('no ')
         logger.info('pulse has disrupted? {}\n'.format(self.data.is_dis))
 
         # logger.info('unval_seq {}, val_seq {}'.format(str(self.data.unval_seq),str(self.data.val_seq)))
@@ -3039,20 +3049,23 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.ui_areyousure.setupUi(self.areyousure_window)
             self.areyousure_window.show()
 
-            ###temporary solution
-            logger.warning(
-                'writing a new ppf until ppf library is fixed - 20 may 2019\n')
-            self.ui_areyousure.pushButton_YES.clicked.connect(
-                self.handle_save_data_statusflag)
-            self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-            ###end of temporary solution
+            # ###temporary solution
+            # logger.warning(
+            #     'writing a new ppf until ppf library is fixed - 20 may 2019\n')
+            # self.ui_areyousure.pushButton_YES.clicked.connect(
+            #     self.handle_save_data_statusflag)
+            # self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+            # ###end of temporary solution
 
 
-            # if self.data.data_changed is False:
-            #     self.ui_areyousure.pushButton_YES.clicked.connect(
-            #         self.handle_save_statusflag)
-            #     self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-            # else:
+            if self.data.data_changed is False:
+                self.ui_areyousure.pushButton_YES.clicked.connect(
+                    self.handle_save_statusflag)
+                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+            else:
+                self.ui_areyousure.pushButton_YES.clicked.connect(
+                    self.handle_save_data_statusflag)
+                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
 
 
 
@@ -3064,34 +3077,35 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.ui_areyousure.setupUi(self.areyousure_window)
             self.areyousure_window.show()
 
-            ###temporary solution
-            logger.warning(
-                'writing a new ppf until ppf library is fixed - 20 may 2019\n')
-            self.ui_areyousure.pushButton_YES.clicked.connect(
-                self.handle_save_data_statusflag)
-            self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-            ###end of temporary solution
-            # if self.read_uid != self.write_uid:
-            #     logger.info('read_uid different from write_uid')
-            #     logger.info('retrieving sequence numbers for {}'.format{self.write_uid})
-            #
-            #     self.data.unval_seq, self.data.val_seq = get_min_max_seq(self.data.pulse, dda="KG1V",
-            #                                            read_uid=self.write_uid)
-            #     if self.data.val_seq <0:
-            #         logger.warning('no validated data for user {}\n'.format{self.write_uid})
-            #         logger.info('writing new PPF')
-            #
-            #         self.ui_areyousure.pushButton_YES.clicked.connect(
-            #             self.handle_save_data_statusflag)
-            #         self.ui_areyousure.pushButton_NO.clicked.connect(
-            #             self.handle_no)
-            #     else:
-            #         self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_data_statusflag)
-            #         self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-            #
-            # else:
-            #     self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_statusflag)
-            #     self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+            # ###temporary solution
+            # logger.warning(
+            #     'writing a new ppf until ppf library is fixed - 20 may 2019\n')
+            # self.ui_areyousure.pushButton_YES.clicked.connect(
+            #     self.handle_save_data_statusflag)
+            # self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+            # ###end of temporary solution
+
+            if self.read_uid != self.write_uid:
+                logger.info('read_uid different from write_uid')
+                logger.info('retrieving sequence numbers for {}'.format(self.write_uid))
+
+                self.data.unval_seq, self.data.val_seq = get_min_max_seq(self.data.pulse, dda="KG1V",
+                                                       read_uid=self.write_uid)
+                if self.data.val_seq <0:
+                    logger.warning('no validated data for user {}\n'.format(self.write_uid))
+                    logger.info('writing new PPF')
+
+                    self.ui_areyousure.pushButton_YES.clicked.connect(
+                        self.handle_save_data_statusflag)
+                    self.ui_areyousure.pushButton_NO.clicked.connect(
+                        self.handle_no)
+                else:
+                    self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_statusflag)
+                    self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+
+            else:
+                self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_statusflag)
+                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
         elif (self.radioButton_storeSF.isChecked() & self.radioButton_storeData.isChecked()):
             logging.error(' please select action! \n')
 
@@ -3453,6 +3467,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                   self.data.SF_list[chan - 1])
 
 
+
             if write_err != 0:
                 logger.error(
                     "Failed to write {}/{} status flag. Errorcode {}".format(
@@ -3461,16 +3476,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 break
             else:
                 logger.info(
-                    "Status Flag {} written to {}/{} \n".format(self.data.SF_list[chan - 1],
+                    "Status Flag {} written to {}/{}".format(self.data.SF_list[chan - 1],
                         'KG1V', dtype_lid,
                         ))
         # logger.info("Close PPF.")
         # err = close_ppf(self.data.pulse, self.write_uid,
         #                 self.data.constants.code_version)
+
+
+
+
         self.ui_areyousure.pushButton_YES.setChecked(False)
 
         self.areyousure_window.hide()
-        logger.info("     Status flags written to ppf.\n")
+        logger.info("\n     Status flags written to ppf.\n")
         self.data.saved = True
         data_change = True
         self.data.statusflag_changed = True
@@ -3486,6 +3505,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                        self.data.statusflag_changed))
         delete_files_in_folder('./saved')
 
+        data_SF = list()
+        LID_dtype=['LID1','LID2','LID3','LID4','LID5','LID6','LID7','LID8']
+        for i in range(0,len(LID_dtype)):
+
+            ddatype=str(LID_dtype[i])
+
+            aa=GetSF(self.data.pulse, 'kg1v',ddatype)
+            # print(aa)
+            data_SF.append(np.asscalar(aa))
+
+        logger.warning('check if status flags have been written correctly! As from May 2019 there is a bug in ppfssr and the routine is not linked to the correct C one.')
+        logger.warning('new status flags are {}'.format(data_SF))
 
         return return_code
 
@@ -4307,7 +4338,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         red line will appear on all 8 tabs to show starting point of zeroed data
 
 
-        ::todo: on other channels must appear smallest t1
+
 
         :return:
 
@@ -4874,7 +4905,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         undo button click will undo just last action (i.e. last zeroed interval)
 
 
-        ::todo: on other channels must appear smallest t1 and largest t2
+
 
 
         :return:
@@ -5914,7 +5945,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     total = 0
                 elif self.data.KG1_data.density[chan].corrections.data.size==0:
                     total = 0
-
+                elif not self.chan in self.data.KG1_data.density.keys():
+                    # pass
+                    logger.warning(
+                        ' checking total corrections - channel {} not available'.format(
+                            self.chan))
                 else:
                     total = int(round(np.sum(self.data.KG1_data.density[chan].corrections.data)))
 
@@ -5925,7 +5960,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     total1 = 0
                 elif self.data.KG1_data.density[chan].corrections.data.size==0:
                     total1 = 0
-
+                elif not self.chan in self.data.KG1_data.density.keys():
+                    # pass
+                    logger.warning(
+                        ' checking total corrections - channel {} not available'.format(
+                            self.chan))
                 else:
                     total1 = int(round(np.sum(self.data.KG1_data.density[chan].corrections.data)))
 
@@ -5933,7 +5972,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     total2 = 0
                 elif self.data.KG1_data.vibration[chan].corrections.data.size==0:
                     total2 = 0
-
+                elif not self.chan in self.data.KG1_data.vibration.keys():
+                    # pass
+                    logger.warning(
+                        ' checking total corrections - channel {} not available'.format(
+                            self.chan))
                 else:
                     total2 = int(round(np.sum(self.data.KG1_data.vibration[chan].corrections.data)))
                 self.lineEdit_totcorr.setText(
