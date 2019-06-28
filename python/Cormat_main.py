@@ -1860,194 +1860,67 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :return:
         """
         #ax,widget = self.which_tab()
-        if chan ==1:
-            ax = self.ax1
-            widget = self.widget_LID1
 
-            ax.lines[0].set_ydata(self.data.KG1_data.density[chan].data)
-            ax.lines[0].set_color('blue')
-            # ax.autoscale(enable=True, axis="y", tight=False)
-            data = self.data.KG1_data.density[chan].data
-            autoscale_data(ax,data)
+        ax1=self.ax1
+        ax2=self.ax2
+        ax3=self.ax3
+        ax4=self.ax4
+        ax5=self.ax5
+        ax6=self.ax6
+        ax7=self.ax7
+        ax8=self.ax8
+        ax51=self.ax51
+        ax61=self.ax61
+        ax71=self.ax71
+        ax81=self.ax81
+
+
+        widget1 = self.widget_LID1
+        widget2 = self.widget_LID2
+        widget3 = self.widget_LID3
+        widget4 = self.widget_LID4
+        widget5 = self.widget_LID5
+        widget6 = self.widget_LID6
+        widget7 = self.widget_LID7
+        widget8 = self.widget_LID8
+
+
+        ax_name='ax'+str(chan)
+        ax_name1='ax'+str(chan)+str(1)
+        widget_name='widget'+str(chan)
+
+
+        vars()[ax_name].lines[0].set_ydata(self.data.KG1_data.density[chan].data)
+        vars()[ax_name].lines[0].set_color('blue')
+        # ax.autoscale(enable=True, axis="y", tight=False)
+        data = self.data.KG1_data.density[chan].data
+        # autoscale_data(vars()[ax_name],data)
+        if chan<5:
             self.ax_14.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
             self.ax_all.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
             self.widget_LID_14.draw()
             self.widget_LID_14.flush_events()
-            self.widget_LID_ALL.draw()
-            self.widget_LID_ALL.flush_events()
-            widget.draw()
-            widget.flush_events()
-            widget.blockSignals(True)
-
-            # ax.yaxis.set_major_locator(MyLocator())
 
 
-        elif chan ==2:
-            ax = self.ax2
-            widget = self.widget_LID2
-            ax.lines[0].set_ydata(self.data.KG1_data.density[chan].data)
-            ax.lines[0].set_color('blue')
-            data = self.data.KG1_data.density[chan].data
-            autoscale_data(ax,data)
-            self.ax_14.lines[chan - 1].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            self.ax_all.lines[chan - 1].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            self.widget_LID_14.draw()
-            self.widget_LID_14.flush_events()
-            self.widget_LID_ALL.draw()
-            self.widget_LID_ALL.flush_events()
-            widget.draw()
-            widget.flush_events()
-            widget.blockSignals(True)
-
-
-        elif chan ==3:
-            ax = self.ax3
-            widget = self.widget_LID3
-            ax.lines[0].set_ydata(self.data.KG1_data.density[chan].data)
-            ax.lines[0].set_color('blue')
-            data = self.data.KG1_data.density[chan].data
-            autoscale_data(ax,data)
-            self.ax_14.lines[chan - 1].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            self.ax_all.lines[chan - 1].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            self.widget_LID_14.draw()
-            self.widget_LID_14.flush_events()
-            self.widget_LID_ALL.draw()
-            self.widget_LID_ALL.flush_events()
-            widget.draw()
-            widget.flush_events()
-            widget.blockSignals(True)
-
-        elif chan == 4:
-            ax = self.ax4
-            widget = self.widget_LID4
-            ax.lines[0].set_ydata(self.data.KG1_data.density[chan].data)
-            ax.lines[0].set_color('blue')
-            data = self.data.KG1_data.density[chan].data
-            autoscale_data(ax,data)
-            self.ax_14.lines[chan - 1].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            self.ax_all.lines[chan - 1].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            self.widget_LID_14.draw()
-            self.widget_LID_14.flush_events()
-            self.widget_LID_ALL.draw()
-            self.widget_LID_ALL.flush_events()
-            widget.draw()
-            widget.flush_events()
-            widget.blockSignals(True)
-
-        elif chan == 5:
-            ax = self.ax5
-            widget = self.widget_LID5
-            ax.lines[0].set_ydata(self.data.KG1_data.density[chan].data)
-            ax.lines[0].set_color('blue')
-            data = self.data.KG1_data.density[chan].data
-            autoscale_data(ax,data)
-            self.ax_58.lines[0].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            self.ax_all.lines[chan - 1].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            ax = self.ax51
-            ax.lines[0].set_ydata(self.data.KG1_data.vibration[chan].data* 1e6)
-            autoscale_data(ax, self.data.KG1_data.vibration[chan].data * 1e6)
-            ax.lines[0].set_color('blue')
+        if chan>4:
+            self.ax_58.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
+            self.ax_all.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
+            vars()[ax_name1].lines[0].set_ydata(self.data.KG1_data.vibration[chan].data * 1e6)
+            # autoscale_data(vars()[ax_name1], self.data.KG1_data.vibration[chan].data * 1e6)
+            vars()[ax_name1].lines[0].lines[0].set_color('blue')
             self.ax_mir.lines[0].set_ydata(
-                self.data.KG1_data.vibration[chan].data* 1e6)
-            self.ax_mir.autoscale(axis='y')
+                self.data.KG1_data.vibration[chan].data * 1e6)
             self.widget_LID_58.draw()
             self.widget_LID_58.flush_events()
-            self.widget_MIR.draw()
-            self.widget_MIR.flush_events()
-            self.widget_LID_ALL.draw()
-            self.widget_LID_ALL.flush_events()
-            widget.draw()
-            widget.flush_events()
-            widget.blockSignals(True)
 
-        elif chan == 6:
-            ax = self.ax6
-            widget = self.widget_LID6
-            ax.lines[0].set_ydata(self.data.KG1_data.density[chan].data)
-            ax.lines[0].set_color('blue')
-            data = self.data.KG1_data.density[chan].data
-            autoscale_data(ax,data)
-            self.ax_58.lines[1].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            self.ax_all.lines[chan - 1].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            ax1 = self.ax61
-            ax1.lines[0].set_ydata(self.data.KG1_data.vibration[chan].data* 1e6)
-            autoscale_data(ax1, self.data.KG1_data.vibration[chan].data * 1e6)
-            ax1.lines[0].set_color('blue')
-            self.ax_mir.lines[1].set_ydata(
-                self.data.KG1_data.vibration[chan].data* 1e6)
-            self.widget_LID_58.draw()
-            self.widget_LID_58.flush_events()
-            self.widget_MIR.draw()
-            self.widget_MIR.flush_events()
-            self.widget_LID_ALL.draw()
-            self.widget_LID_ALL.flush_events()
-            widget.draw()
-            widget.flush_events()
-            widget.blockSignals(True)
+        self.widget_LID_ALL.draw()
+        self.widget_LID_ALL.flush_events()
 
-        elif chan == 7:
-            ax = self.ax7
-            widget = self.widget_LID7
-            ax.lines[0].set_ydata(self.data.KG1_data.density[chan].data)
-            ax.lines[0].set_color('blue')
-            data = self.data.KG1_data.density[chan].data
-            autoscale_data(ax,data)
-            self.ax_58.lines[2].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            self.ax_all.lines[chan - 1].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            ax1 = self.ax71
-            ax1.lines[0].set_ydata(self.data.KG1_data.vibration[chan].data* 1e6)
-            autoscale_data(ax1, self.data.KG1_data.vibration[chan].data * 1e6)
-            ax1.lines[0].set_color('blue')
-            self.ax_mir.lines[2].set_ydata(
-                self.data.KG1_data.vibration[chan].data* 1e6)
-            self.widget_LID_58.draw()
-            self.widget_LID_58.flush_events()
-            self.widget_MIR.draw()
-            self.widget_MIR.flush_events()
-            self.widget_LID_ALL.draw()
-            self.widget_LID_ALL.flush_events()
-            widget.draw()
-            widget.flush_events()
-            widget.blockSignals(True)
+        vars()[widget_name].draw()
+        vars()[widget_name].flush_events()
+        vars()[widget_name].blockSignals(True)
 
-        elif chan == 8:
-            ax = self.ax8
-            widget = self.widget_LID8
-            ax.lines[0].set_ydata(self.data.KG1_data.density[chan].data)
-            ax.lines[0].set_color('blue')
-            data = self.data.KG1_data.density[chan].data
-            autoscale_data(ax,data)
-            self.ax_58.lines[3].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            self.ax_all.lines[chan - 1].set_ydata(
-                self.data.KG1_data.density[chan].data)
-            ax1 = self.ax81
-            ax1.lines[0].set_ydata(self.data.KG1_data.vibration[chan].data* 1e6)
-            autoscale_data(ax1, self.data.KG1_data.vibration[chan].data* 1e6)
-            ax1.lines[0].set_color('blue')
-            self.ax_mir.lines[3].set_ydata(
-                self.data.KG1_data.vibration[chan].data* 1e6)
-            self.widget_LID_58.draw()
-            self.widget_LID_58.flush_events()
-            self.widget_MIR.draw()
-            self.widget_MIR.flush_events()
-            self.widget_LID_ALL.draw()
-            self.widget_LID_ALL.flush_events()
-            widget.draw()
-            widget.flush_events()
-            widget.blockSignals(True)
+
 
         logger.log(5,' updated channhel {}'.format(chan))
 
