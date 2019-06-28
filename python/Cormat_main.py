@@ -143,7 +143,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                      'self.data.ELM_data', 'self.data.HRTS_data',
                      'self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time',
                      'self.data.LIDAR_data','self.data.zeroing_start','self.data.zeroing_stop','self.data.zeroed', 'self.data.zeroingbackup_den',
-                     'self.data.zeroingbackup_vib']
+                     'self.data.zeroingbackup_vib','self.data.data_changed','self.data.statusflag_changed']
                             for attr in list_attr:
                                 # pyqt_set_trace()
                                 if hasattr(self, attr):
@@ -194,22 +194,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # storing backup of data when zeroing
             self.data.zeroingbackup_den = [ [],[],[],[],[],[],[],[]]
             self.data.zeroingbackup_vib = [ [],[],[],[],[],[],[],[]]
-            # self.data.zeroingbackup_vib = []
 
-            #setting zeroed vertical line to 100s
-            # self.data.xzero_tail = 100
-            # self.data.zeroing_start[self.chan] = 1e6 # index of starting of zeroing when zeroing tail data
-
-            #
-            # self.data.z = 1e6 #index of start of zeroing interval
-            # self.data.zeroing_stop = 0 # index of end of zeroing interval
             #
             self.data.zeroed = np.zeros(8, dtype=bool) # array that stores info is channel has been tail zeroed
             self.data.zeroing_start =np.full(8,1e6, dtype=int)
             self.data.zeroing_stop = np.full(8,0, dtype=int)
+
+            self.data.data_changed = np.zeros(8,
+                                        dtype=bool)  # array that stores info if channel data have been changed
+            self.data.statusflag_changed = np.zeros(8,
+                                        dtype=bool)  # array that stores info is channel status flag have been changed
             #
-            # self.data.zeroing_start_min = 1e6 # minimum index of zeroing interval (to be shown in other channels)
-            # self.data.zeroing_stop_max = 0# maximum index of zeroing interval (to be shown in other channels)
+
         #
 
 
@@ -225,8 +221,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # set saved status to False
 
             self.data.saved = False
-            self.data.data_changed = False
-            self.data.statusflag_changed = False
+
 
             logger.log(5,
                        "{} - saved is {} - data changed is {} - status flags changed is {}".format(
@@ -568,8 +563,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             assert(exists)
             print(' \n' *45)
             logger.info( "The workspace contains data not saved to ppf\n")
-            self.data.data_changed = True
-            self.data.statusflag_changed = True
+            self.data.data_changed =  np.full(8,True,dtype=bool)
+            self.data.statusflag_changed = np.full(8,True,dtype=bool)
             self.data.saved = False
 
         else:
@@ -580,7 +575,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # data_changed = equalsFile('./saved/' + str(self.data.pulse) + '_kg1.pkl',
         #                           './scratch/' + str(self.data.pulse) + '_kg1.pkl')
 
-        if (self.data.data_changed | self.data.statusflag_changed) == True: # data has changed
+        if (any(self.data.data_changed) | any(self.data.statusflag_changed)) == True: # data has changed
             logger.log(5," data or status flags have changed\n")
 
             if self.data.saved:  # data saved to ppf
@@ -637,7 +632,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.log(5, "data or status flag have NOT been saved to PPF")
 
                 if (self.checkBox_newpulse.isChecked()):
-                    assert ((self.data.data_changed | self.data.statusflag_changed) & (
+                    assert ((any(self.data.data_changed) | any(self.data.statusflag_changed)) & (
                         not self.data.saved) & (
                                 self.checkBox_newpulse.isChecked()))
 
@@ -747,8 +742,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         #now set
         self.data.saved = False
-        self.data.statusflag_changed = False
-        self.data.data_changed = False
+        self.data.statusflag_changed = np.full(8,False,dtype=bool)
+        self.data.data_changed = np.full(8,False,dtype=bool)
         logger.log(5, " {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
 
 
@@ -979,45 +974,45 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if self.current_tab == 'LID_8':
             self.data.SF_ch8 = SF
 
-
+        chan = int(self.chan)
         if (self.current_tab == 'LID_1') & (int(self.data.SF_old1) != int(self.data.SF_ch1)):
 
-            self.data.statusflag_changed = True
+            self.data.statusflag_changed[chan-1] = True
             logger.log(5, "status flag LID1 changed by user")
 
         elif (self.current_tab == 'LID_2') & (int(self.data.SF_old2) != int(self.data.SF_ch2)):
 
-            self.data.statusflag_changed = True
+            self.data.statusflag_changed[chan-1] = True
             logger.log(5, "status flag LID2 changed by user")
 
         elif (self.current_tab == 'LID_3') &  (int(self.data.SF_old3) != int(self.data.SF_ch3)):
 
-            self.data.statusflag_changed = True
+            self.data.statusflag_changed[chan-1] = True
             logger.log(5, "status flag LID3 changed by user")
 
         elif (self.current_tab == 'LID_4') & (int(self.data.SF_old4) != int(self.data.SF_ch4)):
 
-            self.data.statusflag_changed = True
+            self.data.statusflag_changed[chan-1] = True
             logger.log(5, "status flag LID4 changed by user")
 
         elif (self.current_tab == 'LID_5') & (int(self.data.SF_old5) != int(self.data.SF_ch5)):
 
-            self.data.statusflag_changed = True
+            self.data.statusflag_changed[chan-1] = True
             logger.log(5, "status flag LID5 changed by user")
 
         elif (self.current_tab == 'LID_6') & (int(self.data.SF_old6) != int(self.data.SF_ch6)):
 
-            self.data.statusflag_changed = True
+            self.data.statusflag_changed[chan-1] = True
             logger.log(5, "status flag LID6 changed by user")
 
         elif (self.current_tab == 'LID_7') & (int(self.data.SF_old7) != int(self.data.SF_ch7)):
 
-            self.data.statusflag_changed = True
+            self.data.statusflag_changed[chan-1] = True
             logger.log(5, "status flag LID7 changed by user")
 
         elif (self.current_tab == 'LID_8') & (int(self.data.SF_old8) != int(self.data.SF_ch8)):
 
-            self.data.statusflag_changed = True
+            self.data.statusflag_changed[chan-1] = True
             logger.log(5, "status flag LID8 changed by user")
 
 
@@ -1097,12 +1092,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  self.data.ELM_data, self.data.HRTS_data,
                  self.data.NBI_data, self.data.is_dis, self.data.dis_time,
                  self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,self.data.zeroed, self.data.zeroingbackup_den,
-                self.data.zeroingbackup_vib] = pickle.load(f)
+                self.data.zeroingbackup_vib,self.data.data_changed,self.data.statusflag_changed] = pickle.load(f)
             f.close()
             with open('./scratch/kg1_data.pkl',
                       'rb') as f:  # Python 3: open(..., 'rb')
                 [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
-                 self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib] = pickle.load(f)
+                 self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib,self.data.data_changed,self.data.statusflag_changed] = pickle.load(f)
             f.close()
             logger.info(' workspace loaded\n')
             logger.info(
@@ -1143,8 +1138,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             # set saved status to False
             self.data.saved = False
-            self.data.data_changed = False
-            self.data.statusflag_changed = False
+            self.data.data_changed = np.full(8,False,dtype=bool)
+            self.data.statusflag_changed = np.full(8,False,dtype=bool)
             logger.log(5, "load_pickle - saved is {} - data changed is {} - status flags changed is {}".format(self.data.saved,self.data.data_changed, self.data.statusflag_changed))
         else:
             logger.log(5,'recovering KG1 data only')
@@ -1171,7 +1166,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
                  self.data.ELM_data, self.data.HRTS_data,
                  self.data.NBI_data, self.data.is_dis, self.data.dis_time,
-                 self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,self.data.zeroed,self.data.zeroingbackup_den,self.data.zeroingbackup_vib], f)
+                 self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,self.data.zeroed,self.data.zeroingbackup_den,self.data.zeroingbackup_vib,self.data.data_changed,self.data.statusflag_changed], f)
         f.close()
         logger.info(' data saved to {}\n'.format(folder))
 
@@ -1188,7 +1183,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             with open('./' + folder + '/kg1_data.pkl', 'wb') as f:
                 pickle.dump(
                     [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
-                     self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib], f)
+                     self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib,self.data.data_changed,self.data.statusflag_changed], f)
             f.close()
             logger.info(' KG1 data saved to {}\n'.format(folder))
         except AttributeError:
@@ -1317,8 +1312,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         logger.log(5, 'old pulse is {}, new pulse is {}'.format(self.data.old_pulse, self.data.pulse))
         # now set
         self.data.saved = False
-        self.data.statusflag_changed = False
-        self.data.data_changed = False
+        self.data.statusflag_changed = np.full(8,False,dtype=bool)
+        self.data.data_changed = np.full(8,False,dtype=bool)
         self.gettotalcorrections()
         logger.log(5, 'data saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
 #-------------------------
@@ -1488,8 +1483,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.save_kg1('saved')
         self.save_kg1('scratch')
         self.data.saved = False
-        self.data.data_changed = False
-        self.data.statusflag_changed = False
+        self.data.data_changed = np.full(8,False,dtype=bool)
+        self.data.statusflag_changed = np.full(8,False,dtype=bool)
         # dump KG1 data on different file (used to autosave later when applying corrections)
         self.dump_kg1
 
@@ -3058,7 +3053,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # ###end of temporary solution
 
 
-            if self.data.data_changed is False:
+            if any(self.data.data_changed) is False:
                 self.ui_areyousure.pushButton_YES.clicked.connect(
                     self.handle_save_statusflag)
                 self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
@@ -3100,12 +3095,30 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.ui_areyousure.pushButton_NO.clicked.connect(
                         self.handle_no)
                 else:
-                    self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_statusflag)
-                    self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+
+                    if any(self.data.data_changed):
+                        self.ui_areyousure.pushButton_YES.clicked.connect(
+                            self.handle_save_data_statusflag)
+                        self.ui_areyousure.pushButton_NO.clicked.connect(
+                            self.handle_no)
+                    else:
+                        self.ui_areyousure.pushButton_YES.clicked.connect(
+                            self.handle_save_statusflag)
+                        self.ui_areyousure.pushButton_NO.clicked.connect(
+                            self.handle_no)
 
             else:
-                self.ui_areyousure.pushButton_YES.clicked.connect(self.handle_save_statusflag)
-                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+                if any(self.data.data_changed):
+                    self.ui_areyousure.pushButton_YES.clicked.connect(
+                        self.handle_save_data_statusflag)
+                    self.ui_areyousure.pushButton_NO.clicked.connect(
+                        self.handle_no)
+                else:
+                    self.ui_areyousure.pushButton_YES.clicked.connect(
+                        self.handle_save_statusflag)
+                    self.ui_areyousure.pushButton_NO.clicked.connect(
+                        self.handle_no)
+
         elif (self.radioButton_storeSF.isChecked() & self.radioButton_storeData.isChecked()):
             logging.error(' please select action! \n')
 
@@ -3423,8 +3436,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             return 67
 
         self.data.saved = True
-        self.data.data_changed = True
-        self.data.statusflag_changed = True
+        self.data.data_changed = np.full(8,True,dtype=bool)
+        self.data.statusflag_changed = np.full(8,True,dtype=bool)
 
         self.save_kg1('saved')
         logger.log(5, ' deleting scratch folder')
@@ -3491,8 +3504,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.areyousure_window.hide()
         logger.info("\n     Status flags written to ppf.\n")
         self.data.saved = True
-        data_change = True
-        self.data.statusflag_changed = True
+        self.data.data_changed = np.full(8, True, dtype=bool)
+        # self.data.statusflag_changed = np.full(8, True, dtype=bool)
 
         self.save_kg1('saved')
         logger.log(5, ' deleting scratch folder')
@@ -4467,6 +4480,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # setting total correction to 0
                 self.zeroing_correction()
                 self.gettotalcorrections()
+                self.data.data_changed[self.chan-1] = True
                 return
 
 
@@ -4557,6 +4571,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # setting total correction to 0
                 self.zeroing_correction()
                 self.gettotalcorrections()
+                self.data.data_changed[self.chan-1] = True
                 return
 
             else:
@@ -4625,6 +4640,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 self.data.KG1_data.density[self.chan].correction.data.pop()
                 self.data.KG1_data.density[self.chan].correction.time.pop()
+                self.data.data_changed[self.chan-1] = False
 
 
 
@@ -4674,7 +4690,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.update_channel(int(self.chan))
             self.gettotalcorrections()
             self.pushButton_undo.clicked.disconnect(self.unzerotail)
-
+            self.data.data_changed[self.chan-1] = False
 
         else:
             return
@@ -6720,7 +6736,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.ui_areyousure.pushButton_NO.clicked.connect(
                 self.handle_no)
 
-        elif (self.data.data_changed | self.data.statusflag_changed) is True:
+        elif (any(self.data.data_changed) | any(self.data.statusflag_changed)) is True:
             logger.debug( "data changed? {} status flags changed? {}".format(self.data.data_changed, self.data.statusflag_changed))
             if self.data.saved:
                 logger.debug("data has been saved")
