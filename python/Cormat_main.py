@@ -3051,7 +3051,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             # Write signal type
             dtype_type = "TYP{}".format(chan)
-            comment = "SIG TYPE: {} CH.{}".format(self.data.KG1_data.type[chan], chan)
+            if not chan in self.data.KG1_data.type.keys():
+                comment = "SIG TYPE: {} CH.{}".format(
+                    'KG1V', chan)
+            else:
+                comment = "SIG TYPE: {} CH.{}".format(self.data.KG1_data.type[chan], chan)
             write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_type, np.array([1]),
                                                  time=np.array([0]), comment=comment, unitd=" ", unitt=" ", itref=-1,
                                                  nt=1, status=None)
@@ -4117,7 +4121,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         self.kb.apply_pressed_signal.disconnect(self.multiplecorrections)
         self.disconnnet_multiplecorrectionpointswidget()
-
+        self.data.data_changed[self.chan - 1] = True
         self.blockSignals(False)
 
 # # -------------------------------
@@ -5609,6 +5613,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.neutralisatecorrections)
         self.disconnnet_multiplecorrectionpointswidget()
         self.gettotalcorrections()
+        self.data.data_changed[self.chan - 1] = True
         self.blockSignals(False)
     # -------------------------------
     @QtCore.pyqtSlot()
@@ -6069,6 +6074,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.update_channel(self.chan)
         self.gettotalcorrections()
         self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
+        self.data.data_changed[self.chan - 1] = True
         self.blockSignals(False)
 
     # -------------------------------.

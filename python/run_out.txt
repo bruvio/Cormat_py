@@ -94,3 +94,4 @@ shot: 94039 user: JETPPF date: 2019-06-27 seq: 78 written by: bviola
 shot: 94039 user: bviola date: 2019-06-28 seq: 64 written by: bviola
 shot: 93901 user: bviola date: 2019-06-28 seq: 55 written by: bviola
 shot: 93901 user: JETPPF date: 2019-06-28 seq: 75 written by: bviola
+shot: 92121 user: bviola date: 2019-07-01 seq: 414 written by: bviola
