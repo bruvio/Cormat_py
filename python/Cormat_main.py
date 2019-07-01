@@ -1903,11 +1903,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
         if chan>4:
-            self.ax_58.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
+            self.ax_58.lines[chan-1-4].set_ydata(self.data.KG1_data.density[chan].data)
             self.ax_all.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
             vars()[ax_name1].lines[0].set_ydata(self.data.KG1_data.vibration[chan].data * 1e6)
             # autoscale_data(vars()[ax_name1], self.data.KG1_data.vibration[chan].data * 1e6)
-            vars()[ax_name1].lines[0].lines[0].set_color('blue')
+            vars()[ax_name1].lines[0].set_color('blue')
             self.ax_mir.lines[0].set_ydata(
                 self.data.KG1_data.vibration[chan].data * 1e6)
             self.widget_LID_58.draw()
