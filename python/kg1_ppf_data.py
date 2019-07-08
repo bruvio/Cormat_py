@@ -192,7 +192,11 @@ class Kg1PPFData(SignalBase):
         signal_mode = SignalBase(self.constants)
         
         signal_mode.read_data_ppf('KG1V', 'MODE', shot_no, read_bad=False, read_uid=read_uid)
-        self.mode = signal_mode.ihdata[36:]
+        try:
+            self.mode = signal_mode.ihdata[36:]
+        except TypeError:
+            logger.error('no KG1V/MODE data!')
+
         
 
 

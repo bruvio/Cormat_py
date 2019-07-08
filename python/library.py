@@ -79,6 +79,36 @@ def find_in_list_array(array,value):
         index =[]
         return found, index
 
+def find_listelements_in_otherlist2(list1,list2,tstep):
+    """
+
+    :param list1:
+    :param list2:
+    :param tstep: minimum distance between two data points
+    :return:
+    """
+    #
+    list1=list(list1)
+    list2=list(list2)
+    # [i for e in list1 for i in list2 if e in i]
+    found_list = []
+    index_list = []
+    for i, value in enumerate(list2):
+        found, index = find_in_list_array(list1,value)
+        if found:
+            index_list.append(index)
+
+
+
+
+
+
+    # def find_listelements_in_otherlist(list1,list2):
+#     list1=list(list1)
+#     list2=list(list2)
+#
+#     [item for item in list1 if any(x in item for x in list2)]
+
 
 def find_within_range(array,minvalue,maxvalue):
 
@@ -135,10 +165,15 @@ def normalise(signal, kg1_signal, dis_time):
 
         #    print("max kg1 {} max signal {}".format(max_kg1, max_signal))
 
-        norm_factor = max_kg1 / max_signal
-        signal.data = signal.data * norm_factor
+        if max_signal == 0:
+            logger.warning('divide by 0 ')
+            max_signal =1
 
-        return signal.data
+
+        norm_factor = max_kg1 / max_signal
+        dummy = np.multiply(signal.data,norm_factor)
+
+        return dummy
 
 def get_seq(shot_no, dda, read_uid="JETPPF"):
     """
@@ -178,8 +213,14 @@ def get_min_max_seq(shot_no, dda="KG1V", read_uid="JETPPF"):
         unval_seq = min(kg1v_seq)
         if len(kg1v_seq) > 1:
             val_seq = max(kg1v_seq)
+            return unval_seq, val_seq
+        else:
+            val_seq = unval_seq
+            return unval_seq, val_seq
 
-    return unval_seq, val_seq
+
+
+
 
 def check_SF(read_uid,pulse):
     """

@@ -75,7 +75,7 @@ class QPlainTextEditLogger(logging.Handler):
         #first creates a text edit widget (parent is the main gui)
         self.widget = QtGui.QPlainTextEdit(parent)
         #adding this newly created widget to gridLayout_4
-        parent.gridLayout_4.addWidget(self.widget,4, 0, 1, 2)
+        parent.gridLayout_4.addWidget(self.widget,4, 0, 1,2)
     
 
         self.widget.setReadOnly(True)
