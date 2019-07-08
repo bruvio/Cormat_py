@@ -233,7 +233,7 @@ class SignalBase():
         by
         -interpolation,
         -zeropadding
-        :param resample_method: method to use, only "interp" implemented atm.
+        :param resample_method: method to use
         :return: numpy array of resampled data
         """
         if resample_method == "interp":
