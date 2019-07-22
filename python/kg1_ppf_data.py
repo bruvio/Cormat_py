@@ -11,6 +11,7 @@ from ppf_write import write_ppf
 from signal_kg1 import SignalKg1
 from signal_base import SignalBase
 from pdb import set_trace as bp
+from library import * #containing useful function
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +82,9 @@ class Kg1PPFData(SignalBase):
                 self.status[chan].data = np.zeros(
                         len(self.density[chan].time))
                 self.status[chan].time = self.density[chan].time
-                self.global_status[chan] = 0
+                dummy = check_SF(read_uid, shot_no)
+                self.global_status[chan] = dummy[chan - 1]
+                # self.global_status[chan] = 0
                 # self.density[chan].corrections = SignalBase(self.constants)
                 self.density[chan].signal_type = 'vert'
                 if chan >4:
