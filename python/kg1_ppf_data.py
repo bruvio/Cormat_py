@@ -65,6 +65,7 @@ class Kg1PPFData(SignalBase):
         :param read_uid: read UID
         :return: True if data was read in successfully, False otherwise
         """
+        dummy = check_SF(read_uid, shot_no)
         for chan in self.constants.kg1v.keys():
             nodename = self.constants.kg1v[chan]
             density = SignalKg1(self.constants,self.pulse)
@@ -82,7 +83,7 @@ class Kg1PPFData(SignalBase):
                 self.status[chan].data = np.zeros(
                         len(self.density[chan].time))
                 self.status[chan].time = self.density[chan].time
-                dummy = check_SF(read_uid, shot_no)
+
                 self.global_status[chan] = dummy[chan - 1]
                 # self.global_status[chan] = 0
                 # self.density[chan].corrections = SignalBase(self.constants)

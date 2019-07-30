@@ -10,6 +10,9 @@ from numpy import arange,asscalar
 import os
 
 import shutil
+from collections import defaultdict
+
+
 logger = logging.getLogger(__name__)
 
 def test_logger():
@@ -18,6 +21,34 @@ def test_logger():
     logger.warning('warn')
     logger.error('error')
     logger.log(5, "debug plus")
+
+
+
+def find_duplicate_w_index(l):
+    """
+
+    :param l: list
+    :return: value and indexes
+    """
+    values=[]
+    indexes=[]
+    dups = defaultdict(list)
+    for i, e in enumerate(l):
+      dups[e].append(i)
+
+    for k, v in sorted(dups.items()):
+        values.append(k)
+        if len(v) >= 2:
+            indexes.append(np.argmax(v))
+        else:
+            indexes.append(v[0])
+
+        # if len(v) >= 2:
+
+        # logger.log(5,'%s: %r' % (k, v))
+
+    return values,indexes
+
 
 def reconnect(signal, newhandler=None, oldhandler=None):
     while True:

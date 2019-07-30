@@ -1447,6 +1447,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                        read_uid=self.read_uid)
         except TypeError:
             logger.error('impossible to read sequence for user {}'.format(self.read_uid))
+            return
 
 
 
@@ -5291,8 +5292,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             else:
 
-                if self.data.KG1_data.density[
-                    self.chan].corrections.time is not None: # if there are corrections
+                if (self.data.KG1_data.density[
+                    self.chan].corrections.time is not None) & (len(self.data.KG1_data.density[
+                    self.chan].corrections.time)!=0): # if there are corrections
 
                     corrections_manual = \
                     self.data.KG1_data.density[self.chan].corrections.data[
@@ -5417,36 +5419,63 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             indexes_automatic, values_automatic = find_within_range(
                 self.data.KG1_data.fj_dcn[self.chan].time, min_coord[0],
                 max_coord[0])
+
+
+
+
             if (not indexes_automatic)  :
                 #if no correction in selected range update and close event
                 self.update_channel(self.chan)
                 self.gettotalcorrections()
             else:
-                if values_manual is not None:
-                    if values_automatic is not None:
+                if (values_manual is not None) & (len(values_manual)>0):
+                    if (values_automatic is not None) & (len(values_automatic)>0):
                         i = 0
+                        indexes_automatic_new = []
                         for j, dummy in enumerate(values_automatic):
                             if i>len(values_manual)-1:
                                 break
                             else:
-                                values_automatic[:] = [x for x in
+                                values_automatic_new = [x for x in
                                                     values_automatic if
                                                     not abs(
                                                         x - values_manual[i]) <= tstep]
-                                # indexes_automatic[:] =
+                                for ind, value in enumerate(indexes_automatic):
+                                    if not abs(values_automatic[ind] -
+                                               values_manual[i]) <= tstep:
+                                        indexes_automatic_new.append(value)
 
 
                                 i = i +1
-                #
+                values_automatic = values_automatic_new
+                indexes_automatic = indexes_automatic_new
                 if len(values_automatic) ==0:
                     # if no correction in selected range update and close event
                     self.update_channel(self.chan)
                     self.gettotalcorrections()
+                    self.pushButton_undo.clicked.connect(
+                        self.discard_neutralise_corrections)
+                    self.kb.apply_pressed_signal.disconnect(
+                        self.neutralisatecorrections)
+                    self.disconnnet_multiplecorrectionpointswidget()
+
+                    self.blockSignals(False)
+                    return
+
+                values_automatic_unique, indexes_unique = find_duplicate_w_index(
+                    values_automatic)
+                indexes_automatic_unique =  []
+                for i in range(0, len(indexes_unique)):
+                    indexes_automatic_unique.append(indexes_automatic[indexes_unique[i]])
+                #
+
+
+
 
 
                 # logger.info("automatic correction times {} \n ".format(self.data.KG1_data.fj_dcn[self.chan].time[indexes_automatic]))
                 if self.chan <5:
-                    logger.info("automatic correction data {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic]))
+                    logger.info("automatic correction data {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic_unique]))
                 else:
                     if self.data.KG1_data.type[self.chan] is not None:
                         if self.chan in self.data.KG1_data.fj_met.keys():
@@ -5454,7 +5483,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 self.data.KG1_data.fj_met[self.chan].time,
                                 min_coord[0],
                                 max_coord[0])
-                            logger.info("automatic correction data {}, {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic],self.data.KG1_data.fj_met[self.chan].data[indexes_automatic_vib]))
+                            values_automatic_unique_vib, indexes_unique_vib = find_duplicate_w_index(
+                                values_automatic_vib)
+                            indexes_automatic_unique_vib = indexes_automatic_vib[
+                                np.argmax(indexes_unique_vib)]
+                            logger.info("automatic correction data {}, {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic_unique],self.data.KG1_data.fj_met[self.chan].data[indexes_automatic_unique_vib]))
 
 
                     #if chan+4 is in fj_dcn means there are automatic corrections for vibration channel
@@ -5464,6 +5497,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 self.data.KG1_data.fj_dcn[self.chan+4].time,
                                 min_coord[0],
                                 max_coord[0])
+                            values_automatic_unique_vib, indexes_unique_vib = find_duplicate_w_index(
+                                values_automatic_vib)
+                            indexes_automatic_unique_vib = indexes_automatic_vib[
+                                np.argmax(indexes_unique_vib)]
+
                             logger.info("automatic correction data {}, {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic],self.data.KG1_data.fj_dcn[self.chan+4].data[indexes_automatic_vib]))
 
 
@@ -5476,26 +5514,38 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 #compare manual correction list and automatic correction list (in the selected interval)
 
                 #create lists of corrections
+
+
+
+
                 corrections = self.data.KG1_data.fj_dcn[self.chan].data[
-                    indexes_automatic]
+                    indexes_automatic_unique]
 
 
                 if (self.chan >4) & (self.chan + 4 in self.data.KG1_data.fj_dcn.keys()):
                     corrections_vib = self.data.KG1_data.fj_dcn[self.chan+4].data[
-                        indexes_automatic_vib]
+                        indexes_automatic_unique_vib]
+
+
                     for i, value in enumerate(corrections_vib):
                         logger.debug(" mirror correction found  @ {}".format(
-                            values_automatic[i]))
+                            values_automatic_unique[i]))
 
                 elif (self.chan >4) & (self.chan in self.data.KG1_data.fj_met.keys()):
                     corrections_vib = self.data.KG1_data.fj_met[self.chan].data[
-                        indexes_automatic_vib]
+                        indexes_automatic_unique_vib]
                     for i, value in enumerate(corrections_vib):
                         logger.debug( " mirror correction found  @ {}".format(
-                            values_automatic[i]))
-
-                for i,value in enumerate(corrections):
-                    logger.debug(" density correction found  @ {}".format(values_automatic[i]))
+                            values_automatic_unique[i]))
+                #
+                # if len(corrections)==0:
+                #     logger.info('no density correction found')
+                # elif    len(corrections)==1:
+                #     logger.debug(" density correction found  @ {}".format(
+                #         values_automatic_unique))
+                # else:
+                #     for i,value in enumerate(corrections):
+                logger.debug(" density correction found  @ {}".format(values_automatic_unique))
 
 
                 corrections_inverted = [x * (-1) for x in corrections]
@@ -5505,7 +5555,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
                 # iterate corrections
-                for i, value in enumerate(values_automatic):
+                for i, value in enumerate(values_automatic_unique):
                     #look inside time array to find index of the correction
                     index, value_found = find_nearest(time, value)
 
@@ -5545,7 +5595,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         #if there is a vibration automatic correction
                         if  (self.chan + 4 in self.data.KG1_data.fj_dcn.keys()):
                             #iterate vibration correction
-                            for j,value_vib in enumerate(self.data.KG1_data.fj_dcn[self.chan +4].time[indexes_automatic_vib]):
+                            for j,value_vib in enumerate(self.data.KG1_data.fj_dcn[self.chan +4].time[indexes_automatic_unique_vib]):
                                 #if time vibration correction is the same
                                 if value == value_vib:
 
@@ -5556,7 +5606,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                     self.corr_vib = 0
 
                         elif self.chan in self.data.KG1_data.fj_met.keys():
-                            for j, value_vib in enumerate(self.data.KG1_data.fj_met[self.chan].time[indexes_automatic_vib]):
+                            for j, value_vib in enumerate(self.data.KG1_data.fj_met[self.chan].time[indexes_automatic_unique_vib]):
                                 if value == value_vib:
                                     idx =  np.where(self.data.KG1_data.fj_met[self.chan].time == value_vib)[0]
                                     self.corr_vib = -int(round(
@@ -6344,6 +6394,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             indexes_automatic, values_automatic = find_within_range(
                 self.data.KG1_data.fj_dcn[self.chan].time, min_coord[0],
                 max_coord[0])
+
+
+
+
+
+
             #unique values
             # values = list(set(values)) # using this insctruction creates an error
             # as creates a mismatch between times of correction and value of the correction
@@ -6690,16 +6746,17 @@ def main():
     app = QtGui.QApplication(sys.argv)
     # screen_resolution = app.desktop().screenGeometry()
     # width, height = screen_resolution.width(), screen_resolution.height()
-    width, height = [640,480]
-    width, height = [480,360]
+    #width, height = [640,480]
+    #width, height = [480,360]
     MainWindow = CORMAT_GUI()
-    screenShape = QtGui.QDesktopWidget().screenGeometry()
-    logger.debug( 'screen resolution is {} x {}'.format(screenShape.width(), screenShape.height()))
+    #screenShape = QtGui.QDesktopWidget().screenGeometry()
+    #logger.debug( 'screen resolution is {} x {}'.format(screenShape.width(), screenShape.height()))
     # 1366x768 vnc viewer size
     # time.sleep(3.0)
+    MainWindow.resize(480, 360)
     MainWindow.show()
     # MainWindow.resize(screenShape.width(), screenShape.height())
-    MainWindow.resize(width, height)
+
     # MainWindow.showMaximized()
     app.exec_()
     pr.disable()
