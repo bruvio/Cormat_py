@@ -5428,8 +5428,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.update_channel(self.chan)
                 self.gettotalcorrections()
             else:
-                if (values_manual is not None) & (len(values_manual)>0):
-                    if (values_automatic is not None) & (len(values_automatic)>0):
+                if (values_manual is not None):
+                 if (len(values_manual)>0):
+                    if (values_automatic is not None):
+                     if (len(values_automatic)>0):
                         i = 0
                         indexes_automatic_new = []
                         for j, dummy in enumerate(values_automatic):
@@ -5447,8 +5449,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
                                 i = i +1
-                values_automatic = values_automatic_new
-                indexes_automatic = indexes_automatic_new
+                        values_automatic = values_automatic_new
+                        indexes_automatic = indexes_automatic_new
                 if len(values_automatic) ==0:
                     # if no correction in selected range update and close event
                     self.update_channel(self.chan)
@@ -5483,10 +5485,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 self.data.KG1_data.fj_met[self.chan].time,
                                 min_coord[0],
                                 max_coord[0])
+
+
+
                             values_automatic_unique_vib, indexes_unique_vib = find_duplicate_w_index(
                                 values_automatic_vib)
-                            indexes_automatic_unique_vib = indexes_automatic_vib[
-                                np.argmax(indexes_unique_vib)]
+                            indexes_automatic_unique_vib = []
+                            for i in range(0, len(indexes_unique_vib)):
+                                indexes_automatic_unique_vib.append(
+                                    indexes_automatic_vib[indexes_unique_vib[i]])
+
+
                             logger.info("automatic correction data {}, {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic_unique],self.data.KG1_data.fj_met[self.chan].data[indexes_automatic_unique_vib]))
 
 
@@ -5534,9 +5543,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 elif (self.chan >4) & (self.chan in self.data.KG1_data.fj_met.keys()):
                     corrections_vib = self.data.KG1_data.fj_met[self.chan].data[
                         indexes_automatic_unique_vib]
-                    for i, value in enumerate(corrections_vib):
-                        logger.debug( " mirror correction found  @ {}".format(
-                            values_automatic_unique[i]))
+                    # for i, value in enumerate(corrections_vib):
+                    logger.debug( " mirror correction found  @ {}".format(
+                            values_automatic_unique))
                 #
                 # if len(corrections)==0:
                 #     logger.info('no density correction found')
