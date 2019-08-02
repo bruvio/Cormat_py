@@ -1116,6 +1116,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     str(self.data.val_seq), self.data.KG1_data.correctedby))
 
             logger.info('pulse has disrupted? {}\n'.format(self.data.is_dis))
+            if self.data.is_dis:
+                logger.info(
+                    'pulse has disrupted at {}\n'.format(self.data.dis_time))
+
 
 
             [self.data.SF_ch1,
