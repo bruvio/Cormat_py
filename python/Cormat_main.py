@@ -6768,13 +6768,14 @@ def main():
     #width, height = [640,480]
     #width, height = [480,360]
     MainWindow = CORMAT_GUI()
-    #screenShape = QtGui.QDesktopWidget().screenGeometry()
+    screenShape = QtGui.QDesktopWidget().screenGeometry()
     #logger.debug( 'screen resolution is {} x {}'.format(screenShape.width(), screenShape.height()))
     # 1366x768 vnc viewer size
     # time.sleep(3.0)
-    MainWindow.resize(480, 360)
+
     MainWindow.show()
-    # MainWindow.resize(screenShape.width(), screenShape.height())
+    # MainWindow.resize(480, 360)
+    MainWindow.resize(screenShape.width(), screenShape.height())
 
     # MainWindow.showMaximized()
     app.exec_()
