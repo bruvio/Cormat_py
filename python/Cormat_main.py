@@ -2491,7 +2491,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
         logger.warning('On matplotlib 1.1.x, and probably earlier but untested, keypress events are not processed unless canvas is activated with a mouse click, even if the window has the focus.')
-        # self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(0)
 
 
 
@@ -2921,6 +2921,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.widget_LID1.raise_()
         self.widget_LID1.activateWindow()
         logger.warning('On matplotlib 1.1.x, and probably earlier but untested, keypress events are not processed unless canvas is activated with a mouse click, even if the window has the focus.')
+        self.tabWidget.setCurrentIndex(0)
     # -------------------------
     def handle_check_status(self, button_newpulse):
         """
@@ -3132,6 +3133,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.info("temporary solution resampling channel {} ".format(chan))
                 self.data.KG1_data.density[chan].data, self.data.KG1_data.density[chan].time = \
                 self.data.KG1_data.density[chan].resample_signal("zeropadding", time_kg1v)
+                if chan >4 and chan in self.data.KG1_data.vibration.keys():
+                    self.data.KG1_data.vibration[chan].data, self.data.KG1_data.vibration[chan].time = \
+                    self.data.KG1_data.vibration[chan].resample_signal("zeropadding", time_kg1v)
+
+
 
 
             write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_lid,
