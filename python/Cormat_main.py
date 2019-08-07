@@ -14,7 +14,8 @@ __email__ = "bruno.viola@ukaea.uk"
 __status__ = "Testing"
 # __status__ = "Production"
 
-
+import matplotlib
+matplotlib.use('QT4Agg')
 import argparse
 import logging
 from types import SimpleNamespace
@@ -30,6 +31,7 @@ import sys
 import time
 from pathlib import Path
 import CORMAT_GUI
+
 import matplotlib.pyplot as plt
 from PyQt4 import QtCore, QtGui
 
@@ -71,6 +73,7 @@ qm_permanent = QtGui.QMessageBox
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 myself = lambda: inspect.stack()[1][3]
 logger = logging.getLogger(__name__)
+
 # noinspection PyUnusedLocal
 class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  QPlainTextEditLogger):
@@ -2060,26 +2063,60 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
+        # for chan in self.data.KG1_data.fj_dcn.keys():
+        #     if chan >9:
+        #         pass
+        #     else:
+        #         ax_name = 'ax' + str(chan)
+        #         name = 'LID' + str(chan)
+        #         widget_name = 'widget_LID' + str(chan)
+        #         xposition = self.data.KG1_data.fj_dcn[chan].time
+        #         for xc in xposition:
+        #             vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+        # for chan in self.data.KG1_data.fj_met.keys():
+        #     if chan >9:
+        #         pass
+        #     else:
+        #         ax_name = 'ax' + str(chan)
+        #         name = 'LID' + str(chan)
+        #         widget_name = 'widget_LID' + str(chan)
+        #         xposition = self.data.KG1_data.fj_met[chan].time
+        #         for xc in xposition:
+        #             vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+
+
         for chan in self.data.KG1_data.fj_dcn.keys():
-            if chan >9:
-                pass
-            else:
+            if chan < 9:
                 ax_name = 'ax' + str(chan)
                 name = 'LID' + str(chan)
                 widget_name = 'widget_LID' + str(chan)
                 xposition = self.data.KG1_data.fj_dcn[chan].time
                 for xc in xposition:
                     vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
-        for chan in self.data.KG1_data.fj_met.keys():
-            if chan >9:
-                pass
             else:
-                ax_name = 'ax' + str(chan)
-                name = 'LID' + str(chan)
+                ax_name = 'ax' + str(chan - 4) + str(1)
+                name = 'LID' + str(chan-4)
                 widget_name = 'widget_LID' + str(chan)
-                xposition = self.data.KG1_data.fj_met[chan].time
+                xposition = self.data.KG1_data.fj_dcn[chan].time
                 for xc in xposition:
                     vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+        for chan in self.data.KG1_data.fj_met.keys():
+            if chan <5:
+                    ax_name = 'ax' + str(chan)
+                    name = 'LID' + str(chan)
+                    widget_name = 'widget_LID' + str(chan)
+                    xposition = self.data.KG1_data.fj_met[chan].time
+                    for xc in xposition:
+                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+
+            else:
+                ax_name1 = 'ax' + str(chan) + str(1)
+                widget_name1 = 'widget_LID' + str(chan) + str(1)
+
+                xposition = self.data.KG1_data.fj_met[chan].time
+                for xc in xposition:
+                    vars()[ax_name1].axvline(x=xc, color='y', linestyle='--')
+
 
 
         logger.info('plotting second trace {}\n'.format(self.data.s2ndtrace))
@@ -2446,6 +2483,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.button_normalize.setEnabled(True)
         self.button_restore.setEnabled(True)
         self.blockSignals(True)
+
+        self.widget_LID1.setFocusPolicy(Qt.ClickFocus)
+        self.widget_LID1.setFocus()
+        self.widget_LID1.raise_()
+        self.widget_LID1.activateWindow()
+
+
+        logger.warning('On matplotlib 1.1.x, and probably earlier but untested, keypress events are not processed unless canvas is activated with a mouse click, even if the window has the focus.')
+        # self.tabWidget.setCurrentIndex(0)
+
+
 
     # ------------------------
     # noinspection PyUnusedLocal,PyUnusedLocal
@@ -2868,6 +2916,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.widget_LID8.draw()
 
 
+        self.widget_LID1.setFocusPolicy(Qt.ClickFocus)
+        self.widget_LID1.setFocus()
+        self.widget_LID1.raise_()
+        self.widget_LID1.activateWindow()
+        logger.warning('On matplotlib 1.1.x, and probably earlier but untested, keypress events are not processed unless canvas is activated with a mouse click, even if the window has the focus.')
     # -------------------------
     def handle_check_status(self, button_newpulse):
         """
@@ -6775,7 +6828,7 @@ def main():
 
     MainWindow.show()
     # MainWindow.resize(480, 360)
-    MainWindow.resize(screenShape.width(), screenShape.height())
+    # MainWindow.resize(screenShape.width(), screenShape.height())
 
     # MainWindow.showMaximized()
     app.exec_()
