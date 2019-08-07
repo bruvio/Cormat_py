@@ -5483,24 +5483,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 if self.chan <5:
                     logger.info("automatic correction data {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic_unique]))
                 else:
-                    if self.data.KG1_data.type[self.chan] is not None:
-                        if self.chan in self.data.KG1_data.fj_met.keys():
-                            indexes_automatic_vib, values_automatic_vib = find_within_range(
-                                self.data.KG1_data.fj_met[self.chan].time,
-                                min_coord[0],
-                                max_coord[0])
+                    if len(self.data.KG1_data.type) !=0:
+                        if self.data.KG1_data.type[self.chan] is not None:
+                            if self.chan in self.data.KG1_data.fj_met.keys():
+                                indexes_automatic_vib, values_automatic_vib = find_within_range(
+                                    self.data.KG1_data.fj_met[self.chan].time,
+                                    min_coord[0],
+                                    max_coord[0])
 
 
 
-                            values_automatic_unique_vib, indexes_unique_vib = find_duplicate_w_index(
-                                values_automatic_vib)
-                            indexes_automatic_unique_vib = []
-                            for i in range(0, len(indexes_unique_vib)):
-                                indexes_automatic_unique_vib.append(
-                                    indexes_automatic_vib[indexes_unique_vib[i]])
+                                values_automatic_unique_vib, indexes_unique_vib = find_duplicate_w_index(
+                                    values_automatic_vib)
+                                indexes_automatic_unique_vib = []
+                                for i in range(0, len(indexes_unique_vib)):
+                                    indexes_automatic_unique_vib.append(
+                                        indexes_automatic_vib[indexes_unique_vib[i]])
 
 
-                            logger.info("automatic correction data {}, {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic_unique],self.data.KG1_data.fj_met[self.chan].data[indexes_automatic_unique_vib]))
+                                logger.info("automatic correction data {}, {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic_unique],self.data.KG1_data.fj_met[self.chan].data[indexes_automatic_unique_vib]))
 
 
                     #if chan+4 is in fj_dcn means there are automatic corrections for vibration channel
@@ -5512,8 +5513,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 max_coord[0])
                             values_automatic_unique_vib, indexes_unique_vib = find_duplicate_w_index(
                                 values_automatic_vib)
-                            indexes_automatic_unique_vib = indexes_automatic_vib[
-                                np.argmax(indexes_unique_vib)]
+                            indexes_automatic_unique_vib = []
+                            for i in range(0, len(indexes_unique_vib)):
+                                indexes_automatic_unique_vib.append(
+                                    indexes_automatic_vib[
+                                        indexes_unique_vib[i]])
+
 
                             logger.info("automatic correction data {}, {}\n ".format(self.data.KG1_data.fj_dcn[self.chan].data[indexes_automatic],self.data.KG1_data.fj_dcn[self.chan+4].data[indexes_automatic_vib]))
 
@@ -5540,8 +5545,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         indexes_automatic_unique_vib]
 
 
-                    for i, value in enumerate(corrections_vib):
-                        logger.debug(" mirror correction found  @ {}".format(
+                    # for i, value in enumerate(corrections_vib):
+                    logger.debug(" mirror correction found  @ {}".format(
                             values_automatic_unique[i]))
 
                 elif (self.chan >4) & (self.chan in self.data.KG1_data.fj_met.keys()):
@@ -5617,6 +5622,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                         i] = self.corr_vib
                                 else:
                                     self.corr_vib = 0
+
 
                         elif self.chan in self.data.KG1_data.fj_met.keys():
                             for j, value_vib in enumerate(self.data.KG1_data.fj_met[self.chan].time[indexes_automatic_unique_vib]):
@@ -6762,13 +6768,14 @@ def main():
     #width, height = [640,480]
     #width, height = [480,360]
     MainWindow = CORMAT_GUI()
-    #screenShape = QtGui.QDesktopWidget().screenGeometry()
+    screenShape = QtGui.QDesktopWidget().screenGeometry()
     #logger.debug( 'screen resolution is {} x {}'.format(screenShape.width(), screenShape.height()))
     # 1366x768 vnc viewer size
     # time.sleep(3.0)
-    MainWindow.resize(480, 360)
+
     MainWindow.show()
-    # MainWindow.resize(screenShape.width(), screenShape.height())
+    # MainWindow.resize(480, 360)
+    MainWindow.resize(screenShape.width(), screenShape.height())
 
     # MainWindow.showMaximized()
     app.exec_()
