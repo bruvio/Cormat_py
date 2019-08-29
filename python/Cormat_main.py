@@ -3822,28 +3822,50 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.warning('no corrections to save for ch. {}'.format(chan))
 
             elif len(self.data.KG1_data.density[chan].corrections.data) >0:
-            #check if the corrections applied are already stored, if so overwrite
-                for i, value in enumerate(self.data.KG1_data.density[chan].corrections.time):
-                    found, index = find_in_list_array(
-                        self.data.KG1_data.fj_dcn[chan].time, value)
-                    if found:
-                        self.data.KG1_data.fj_dcn[chan].data[index] = self.data.KG1_data.density[chan].corrections.data[i]
-                    else:
-                        self.data.KG1_data.fj_dcn[chan].time = np.append(self.data.KG1_data.fj_dcn[chan].time,self.data.KG1_data.density[chan].corrections.time)
-                        self.data.KG1_data.fj_dcn[chan].data = np.append(self.data.KG1_data.fj_dcn[chan].data,self.data.KG1_data.density[chan].corrections.data)
-                #emptying corrections
+                if chan in self.data.KG1_data.fj_dcn.keys():
+                #check if the corrections applied are already stored, if so overwrite
+                    for i, value in enumerate(self.data.KG1_data.density[chan].corrections.time):
+                        found, index = find_in_list_array(
+                            self.data.KG1_data.fj_dcn[chan].time, value)
+                        if found:
+                            self.data.KG1_data.fj_dcn[chan].data[index] = self.data.KG1_data.density[chan].corrections.data[i]
+                        else:
+                            self.data.KG1_data.fj_dcn[chan].time = np.append(self.data.KG1_data.fj_dcn[chan].time,self.data.KG1_data.density[chan].corrections.time)
+                            self.data.KG1_data.fj_dcn[chan].data = np.append(self.data.KG1_data.fj_dcn[chan].data,self.data.KG1_data.density[chan].corrections.data)
+                elif chan in self.data.KG1_data.fj_met.keys():
+                #check if the corrections applied are already stored, if so overwrite
+                    for i, value in enumerate(self.data.KG1_data.density[chan].corrections.time):
+                        found, index = find_in_list_array(
+                            self.data.KG1_data.fj_met[chan].time, value)
+                        if found:
+                            self.data.KG1_data.fj_met[chan].data[index] = self.data.KG1_data.density[chan].corrections.data[i]
+                        else:
+                            self.data.KG1_data.fj_met[chan].time = np.append(self.data.KG1_data.fj_met[chan].time,self.data.KG1_data.density[chan].corrections.time)
+                            self.data.KG1_data.fj_met[chan].data = np.append(self.data.KG1_data.fj_met[chan].data,self.data.KG1_data.density[chan].corrections.data)
+
+                    #emptying corrections
                 # self.data.KG1_data.density[chan].corrections = SignalBase(self.data.constants)
 
+                if chan in self.data.KG1_data.fj_dcn.keys():
+                    index = sorted(range(len(self.data.KG1_data.fj_dcn[chan].time)),key= lambda k: self.data.KG1_data.fj_dcn[chan].time[k])
+                    self.data.KG1_data.fj_dcn[chan].data = \
+                    self.data.KG1_data.fj_dcn[chan].data[index]
+                    self.data.KG1_data.fj_dcn[chan].time = \
+                    self.data.KG1_data.fj_dcn[chan].time[index]
 
-                index = sorted(range(len(self.data.KG1_data.fj_dcn[chan].time)),key= lambda k: self.data.KG1_data.fj_dcn[chan].time[k])
-                self.data.KG1_data.fj_dcn[chan].data = \
-                self.data.KG1_data.fj_dcn[chan].data[index]
-                self.data.KG1_data.fj_dcn[chan].time = \
-                self.data.KG1_data.fj_dcn[chan].time[index]
+                    # self.data.KG1_data.fj_dcn[chan].time[:] =
 
-                # self.data.KG1_data.fj_dcn[chan].time[:] =
+                    self.setcoord(self.chan, reset=True)
+                elif chan in self.data.KG1_data.fj_met.keys():
+                    index = sorted(range(len(self.data.KG1_data.fj_met[chan].time)),key= lambda k: self.data.KG1_data.fj_met[chan].time[k])
+                    self.data.KG1_data.fj_met[chan].data = \
+                    self.data.KG1_data.fj_met[chan].data[index]
+                    self.data.KG1_data.fj_met[chan].time = \
+                    self.data.KG1_data.fj_met[chan].time[index]
 
-                self.setcoord(self.chan, reset=True)
+                    # self.data.KG1_data.fj_dcn[chan].time[:] =
+
+                    self.setcoord(self.chan, reset=True)
         if chan >4:
             if chan + 4 in self.data.KG1_data.fj_dcn.keys():
                 for i, value in enumerate(self.data.KG1_data.density[chan].corrections.time):
@@ -5945,6 +5967,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
         if chan >4:
+            if self.data.KG1_data.density[chan].corrections.data is not None:
+                if self.data.KG1_data.density[chan].corrections.data.size > 0:
+                    total = int(round(
+                        np.sum(self.data.KG1_data.density[chan].corrections.data)))
+
+                    zeroing_time = self.data.KG1_data.density[chan].time[
+                        int(self.data.zeroing_start[chan - 1])]
+
+                    self.data.KG1_data.density[chan].corrections.data = np.append(self.data.KG1_data.density[chan].corrections.data,-total)
+                    self.data.KG1_data.density[chan].corrections.time = np.append(self.data.KG1_data.density[chan].corrections.time,
+                        zeroing_time)
             if self.data.KG1_data.vibration[chan].corrections.data is not None:
                 if self.data.KG1_data.vibration[chan].corrections.data.size > 0:
                     total = int(round(
