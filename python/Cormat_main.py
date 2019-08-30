@@ -566,9 +566,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             assert(exists)
             print(' \n' *45)
             logger.info( "The workspace contains data not saved to ppf\n")
-            self.data.data_changed =  np.full(8,True,dtype=bool)
-            self.data.statusflag_changed = np.full(8,True,dtype=bool)
-            self.data.saved = False
+            self.load_pickle()
+            # self.data.data_changed =  np.full(8,True,dtype=bool)
+            # self.data.statusflag_changed = np.full(8,True,dtype=bool)
+            # self.data.saved = False
 
         else:
             pass
@@ -745,8 +746,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         #now set
         self.data.saved = False
-        self.data.statusflag_changed = np.full(8,False,dtype=bool)
-        self.data.data_changed = np.full(8,False,dtype=bool)
+        # self.data.statusflag_changed = np.full(8,False,dtype=bool)
+        # self.data.data_changed = np.full(8,False,dtype=bool)
         logger.log(5, " {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
 
 
@@ -1145,8 +1146,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             # set saved status to False
             self.data.saved = False
-            self.data.data_changed = np.full(8,False,dtype=bool)
-            self.data.statusflag_changed = np.full(8,False,dtype=bool)
+            # self.data.data_changed = np.full(8,False,dtype=bool)
+            # self.data.statusflag_changed = np.full(8,False,dtype=bool)
             logger.log(5, "load_pickle - saved is {} - data changed is {} - status flags changed is {}".format(self.data.saved,self.data.data_changed, self.data.statusflag_changed))
         else:
             logger.log(5,'recovering KG1 data only')
@@ -2484,14 +2485,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.button_restore.setEnabled(True)
         self.blockSignals(True)
 
-        self.widget_LID1.setFocusPolicy(Qt.ClickFocus)
-        self.widget_LID1.setFocus()
-        self.widget_LID1.raise_()
-        self.widget_LID1.activateWindow()
+        self.tabWidget.setFocusPolicy(Qt.ClickFocus)
+        self.tabWidget.setFocus()
+        self.tabWidget.raise_()
+        self.tabWidget.activateWindow()
 
 
         logger.warning('On matplotlib 1.1.x, and probably earlier but untested, keypress events are not processed unless canvas is activated with a mouse click, even if the window has the focus.')
-        self.tabWidget.setCurrentIndex(0)
+        # self.tabWidget.setCurrentIndex(0)
 
 
 
@@ -2505,7 +2506,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :return:
         """
         # self.data.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
-        self.comboBox_2ndtrace.setCurrentIndex(0)
+        # self.comboBox_2ndtrace.setCurrentIndex(0)
         self.data.marker = self.comboBox_markers.currentText()
 
         # self.widget_LID8.draw()
@@ -2916,12 +2917,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.widget_LID8.draw()
 
 
-        self.widget_LID1.setFocusPolicy(Qt.ClickFocus)
-        self.widget_LID1.setFocus()
-        self.widget_LID1.raise_()
-        self.widget_LID1.activateWindow()
+        self.tabWidget.setFocusPolicy(Qt.ClickFocus)
+        self.tabWidget.setFocus()
+        self.tabWidget.raise_()
+        self.tabWidget.activateWindow()
         logger.warning('On matplotlib 1.1.x, and probably earlier but untested, keypress events are not processed unless canvas is activated with a mouse click, even if the window has the focus.')
-        self.tabWidget.setCurrentIndex(0)
+        # self.tabWidget.setCurrentIndex(0)
     # -------------------------
     def handle_check_status(self, button_newpulse):
         """
@@ -6692,7 +6693,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         logger.log(5, "resetting Canvas before reading data")
         # status flag groupbox is disabled
         self.groupBox_statusflag.setEnabled(False)
-        self.tabWidget.setCurrentIndex(0)
+        # self.tabWidget.setCurrentIndex(0)
 
         # disable "normalize" and "restore" buttons
         self.button_normalize.setEnabled(False)

@@ -281,3 +281,4 @@ shot: 94886 user: bviola date: 2019-08-29 seq: 80 written by: bviola
 shot: 94886 user: JETPPF date: 2019-08-29 seq: 86 written by: bviola
 shot: 94842 user: bviola date: 2019-08-29 seq: 69 written by: bviola
 shot: 94842 user: JETPPF date: 2019-08-29 seq: 74 written by: bviola
+shot: 94584 user: JETPPF date: 2019-08-30 seq: 87 written by: bviola
