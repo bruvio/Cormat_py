@@ -1790,6 +1790,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                             linestyle='--',
                                                 linewidth=0.25)
 
+        for chan in self.data.KG1_data.density.keys():
+            logger.log(5, 'enabling channel {}'.format(chan))
+            self.tabWidget.setTabEnabled(chan - 1, True)
+
+        logger.log(5, 'enabling tab {}'.format(9))
+        self.tabWidget.setTabEnabled(8, True)
+        logger.log(5, 'enabling tab {}'.format(10))
+        self.tabWidget.setTabEnabled(9, True)
+        logger.log(5, 'enabling tab {}'.format(11))
+        self.tabWidget.setTabEnabled(10, True)
+        logger.log(5, 'enabling tab {}'.format(12))
+        self.tabWidget.setTabEnabled(11, True)
+
         # update canvas
         self.widget_LID1.draw()
         self.widget_LID2.draw()
