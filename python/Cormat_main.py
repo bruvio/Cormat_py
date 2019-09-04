@@ -2751,7 +2751,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                 linewidth=2, color="green",label='flat-top')
 
                     vars()[ax_name].axvline(x= self.data.dis_time, ymin=0, ymax=1,
-                                                linewidth=2, color="brown",label='disruption time')
+                                                linewidth=3, color="brown",label='disruption time')
             else:
                 logger.info('No MAGNETICs marker\n')
 
@@ -4785,9 +4785,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 #                " removing line @ {}s".format(value))
                                 linestoberemoved.append(i)
                 dummy=set(linestoberemoved)
-                linestoberemoved = list(dummy)
-                for x in reversed(linestoberemoved):
-                        del vars()[ax_name].lines[x]
+                linestoberemoved = sorted(list(dummy))
+                if len(linestoberemoved)>0:
+                    if order(linestoberemoved):
+
+                        for x in reversed(linestoberemoved):
+                                del vars()[ax_name].lines[x]
+                    else:
+                        for x in linestoberemoved:
+                            del vars()[ax_name].lines[x]
+
+
                 # for i, line in enumerate(vars()[ax_name].lines):
                 #     for j, value in enumerate(values_manual):
                 #         if line.get_xydata()[0][0] == value:
@@ -4880,9 +4888,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 #                " removing line @ {}s".format(value))
                                 linestoberemoved.append(i)
                 dummy=set(linestoberemoved)
-                linestoberemoved = list(dummy)
-                for x in reversed(linestoberemoved):
-                        del vars()[ax_name].lines[x]
+
+                linestoberemoved = sorted(list(dummy))
+                if len(linestoberemoved) > 0:
+                    if order(linestoberemoved):
+
+                        for x in reversed(linestoberemoved):
+                            del vars()[ax_name].lines[x]
+                    else:
+                        for x in linestoberemoved:
+                            del vars()[ax_name].lines[x]
+
+
     # -------------------------------
     @QtCore.pyqtSlot()
     def zeroinginterval(self):
@@ -6648,8 +6665,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 if abs(line.get_xydata()[0][0] - value[0])<tstep:
                         logger.log(5, " removing line @ {}s".format(value))
                         linestoberemoved.append(i)
-        for x in reversed(linestoberemoved):
-            del vars()[ax_name].lines[x]
+        if len(linestoberemoved) >0:
+            for x in reversed(linestoberemoved):
+                del vars()[ax_name].lines[x]
 
 
         self.update_channel(int(self.chan))

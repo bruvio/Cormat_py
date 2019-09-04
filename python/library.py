@@ -110,6 +110,15 @@ def find_in_list_array(array,value):
         index =[]
         return found, index
 
+
+def order(lst):
+    """
+    checks if a list is ordered in descending or ascending way
+    :param lst:
+    :return:
+    """
+    return lst == sorted(lst) or lst == sorted(lst)[::-1]
+
 def find_listelements_in_otherlist2(list1,list2,tstep):
     """
 
