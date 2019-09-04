@@ -566,9 +566,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             assert(exists)
             print(' \n' *45)
             logger.info( "The workspace contains data not saved to ppf\n")
-            self.data.data_changed =  np.full(8,True,dtype=bool)
-            self.data.statusflag_changed = np.full(8,True,dtype=bool)
-            self.data.saved = False
+            self.load_pickle()
+            # self.data.data_changed =  np.full(8,True,dtype=bool)
+            # self.data.statusflag_changed = np.full(8,True,dtype=bool)
+            # self.data.saved = False
 
         else:
             pass
@@ -745,8 +746,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         #now set
         self.data.saved = False
-        self.data.statusflag_changed = np.full(8,False,dtype=bool)
-        self.data.data_changed = np.full(8,False,dtype=bool)
+        # self.data.statusflag_changed = np.full(8,False,dtype=bool)
+        # self.data.data_changed = np.full(8,False,dtype=bool)
         logger.log(5, " {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
 
 
@@ -1145,8 +1146,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             # set saved status to False
             self.data.saved = False
-            self.data.data_changed = np.full(8,False,dtype=bool)
-            self.data.statusflag_changed = np.full(8,False,dtype=bool)
+            # self.data.data_changed = np.full(8,False,dtype=bool)
+            # self.data.statusflag_changed = np.full(8,False,dtype=bool)
             logger.log(5, "load_pickle - saved is {} - data changed is {} - status flags changed is {}".format(self.data.saved,self.data.data_changed, self.data.statusflag_changed))
         else:
             logger.log(5,'recovering KG1 data only')
@@ -1788,6 +1789,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     vars()[ax_name].axvline(x=xc_max, color='r',
                                             linestyle='--',
                                                 linewidth=0.25)
+
+        for chan in self.data.KG1_data.density.keys():
+            logger.log(5, 'enabling channel {}'.format(chan))
+            self.tabWidget.setTabEnabled(chan - 1, True)
+
+        logger.log(5, 'enabling tab {}'.format(9))
+        self.tabWidget.setTabEnabled(8, True)
+        logger.log(5, 'enabling tab {}'.format(10))
+        self.tabWidget.setTabEnabled(9, True)
+        logger.log(5, 'enabling tab {}'.format(11))
+        self.tabWidget.setTabEnabled(10, True)
+        logger.log(5, 'enabling tab {}'.format(12))
+        self.tabWidget.setTabEnabled(11, True)
 
         # update canvas
         self.widget_LID1.draw()
@@ -2484,14 +2498,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.button_restore.setEnabled(True)
         self.blockSignals(True)
 
-        self.widget_LID1.setFocusPolicy(Qt.ClickFocus)
-        self.widget_LID1.setFocus()
-        self.widget_LID1.raise_()
-        self.widget_LID1.activateWindow()
+        self.tabWidget.setFocusPolicy(Qt.ClickFocus)
+        self.tabWidget.setFocus()
+        self.tabWidget.raise_()
+        self.tabWidget.activateWindow()
 
 
         logger.warning('On matplotlib 1.1.x, and probably earlier but untested, keypress events are not processed unless canvas is activated with a mouse click, even if the window has the focus.')
-        self.tabWidget.setCurrentIndex(0)
+        # self.tabWidget.setCurrentIndex(0)
 
 
 
@@ -2505,7 +2519,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         :return:
         """
         # self.data.s2ndtrace = self.comboBox_2ndtrace.itemText(i)
-        self.comboBox_2ndtrace.setCurrentIndex(0)
+        # self.comboBox_2ndtrace.setCurrentIndex(0)
         self.data.marker = self.comboBox_markers.currentText()
 
         # self.widget_LID8.draw()
@@ -2737,7 +2751,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                 linewidth=2, color="green",label='flat-top')
 
                     vars()[ax_name].axvline(x= self.data.dis_time, ymin=0, ymax=1,
-                                                linewidth=2, color="brown",label='disruption time')
+                                                linewidth=3, color="brown",label='disruption time')
             else:
                 logger.info('No MAGNETICs marker\n')
 
@@ -2916,12 +2930,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.widget_LID8.draw()
 
 
-        self.widget_LID1.setFocusPolicy(Qt.ClickFocus)
-        self.widget_LID1.setFocus()
-        self.widget_LID1.raise_()
-        self.widget_LID1.activateWindow()
+        self.tabWidget.setFocusPolicy(Qt.ClickFocus)
+        self.tabWidget.setFocus()
+        self.tabWidget.raise_()
+        self.tabWidget.activateWindow()
         logger.warning('On matplotlib 1.1.x, and probably earlier but untested, keypress events are not processed unless canvas is activated with a mouse click, even if the window has the focus.')
-        self.tabWidget.setCurrentIndex(0)
+        # self.tabWidget.setCurrentIndex(0)
     # -------------------------
     def handle_check_status(self, button_newpulse):
         """
@@ -4771,9 +4785,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 #                " removing line @ {}s".format(value))
                                 linestoberemoved.append(i)
                 dummy=set(linestoberemoved)
-                linestoberemoved = list(dummy)
-                for x in reversed(linestoberemoved):
-                        del vars()[ax_name].lines[x]
+                linestoberemoved = sorted(list(dummy))
+                if len(linestoberemoved)>0:
+                    if order(linestoberemoved):
+
+                        for x in reversed(linestoberemoved):
+                                del vars()[ax_name].lines[x]
+                    else:
+                        for x in linestoberemoved:
+                            del vars()[ax_name].lines[x]
+
+
                 # for i, line in enumerate(vars()[ax_name].lines):
                 #     for j, value in enumerate(values_manual):
                 #         if line.get_xydata()[0][0] == value:
@@ -4866,9 +4888,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 #                " removing line @ {}s".format(value))
                                 linestoberemoved.append(i)
                 dummy=set(linestoberemoved)
-                linestoberemoved = list(dummy)
-                for x in reversed(linestoberemoved):
-                        del vars()[ax_name].lines[x]
+
+                linestoberemoved = sorted(list(dummy))
+                if len(linestoberemoved) > 0:
+                    if order(linestoberemoved):
+
+                        for x in reversed(linestoberemoved):
+                            del vars()[ax_name].lines[x]
+                    else:
+                        for x in linestoberemoved:
+                            del vars()[ax_name].lines[x]
+
+
     # -------------------------------
     @QtCore.pyqtSlot()
     def zeroinginterval(self):
@@ -6634,8 +6665,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 if abs(line.get_xydata()[0][0] - value[0])<tstep:
                         logger.log(5, " removing line @ {}s".format(value))
                         linestoberemoved.append(i)
-        for x in reversed(linestoberemoved):
-            del vars()[ax_name].lines[x]
+        if len(linestoberemoved) >0:
+            for x in reversed(linestoberemoved):
+                del vars()[ax_name].lines[x]
 
 
         self.update_channel(int(self.chan))
@@ -6692,7 +6724,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         logger.log(5, "resetting Canvas before reading data")
         # status flag groupbox is disabled
         self.groupBox_statusflag.setEnabled(False)
-        self.tabWidget.setCurrentIndex(0)
+        # self.tabWidget.setCurrentIndex(0)
 
         # disable "normalize" and "restore" buttons
         self.button_normalize.setEnabled(False)

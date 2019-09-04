@@ -90,7 +90,7 @@ def find_nearest(array, value):
     """
     import numpy as np
     import math
-
+    array=np.sort(array)
     idx = np.searchsorted(array, value, side="left")
     if idx > 0 and (
             idx == len(array) or math.fabs(value - array[idx - 1]) < math.fabs(
@@ -109,6 +109,15 @@ def find_in_list_array(array,value):
     except ValueError:
         index =[]
         return found, index
+
+
+def order(lst):
+    """
+    checks if a list is ordered in descending or ascending way
+    :param lst:
+    :return:
+    """
+    return lst == sorted(lst) or lst == sorted(lst)[::-1]
 
 def find_listelements_in_otherlist2(list1,list2,tstep):
     """

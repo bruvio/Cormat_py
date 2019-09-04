@@ -184,3 +184,12 @@ class SignalKg1(SignalBase):
 
             if corr_met is not None:
                 self.correction_met = np.append(self.correction_met, corr_met)
+
+
+       #now sorting corrections
+        index = sorted(range(len(self.corrections.time)),
+                       key=lambda k: self.corrections.time[k])
+        self.corrections.data = \
+            self.corrections.data[index]
+        self.corrections.time = \
+            self.corrections.time[index]
