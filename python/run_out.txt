@@ -344,3 +344,9 @@ shot: 94894 user: bviola date: 2019-09-10 seq: 98 written by: bviola
 shot: 94894 user: JETPPF date: 2019-09-10 seq: 81 written by: bviola
 shot: 94897 user: bviola date: 2019-09-10 seq: 96 written by: bviola
 shot: 94897 user: JETPPF date: 2019-09-10 seq: 80 written by: bviola
+shot: 95128 user: bviola date: 2019-09-11 seq: 55 written by: bviola
+shot: 95128 user: JETPPF date: 2019-09-11 seq: 63 written by: bviola
+shot: 95099 user: bviola date: 2019-09-11 seq: 63 written by: bviola
+shot: 95099 user: JETPPF date: 2019-09-11 seq: 70 written by: bviola
+shot: 95100 user: bviola date: 2019-09-11 seq: 65 written by: bviola
+shot: 95100 user: JETPPF date: 2019-09-11 seq: 70 written by: bviola

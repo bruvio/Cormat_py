@@ -525,6 +525,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # -------------------------------
         self.data.pulse = self.lineEdit_jpn.text()
         self.data.sequence = self.lineEdit_jpn_seq.text()
+        # #disable tab as there is nothing plotted
+        self.tabWidget.setTabEnabled(0, False)
+        self.tabWidget.setTabEnabled(1, False)
+        self.tabWidget.setTabEnabled(2, False)
+        self.tabWidget.setTabEnabled(3, False)
+        self.tabWidget.setTabEnabled(4, False)
+        self.tabWidget.setTabEnabled(5, False)
+        self.tabWidget.setTabEnabled(6, False)
+        self.tabWidget.setTabEnabled(7, False)
+        self.tabWidget.setTabEnabled(8, False)
+        self.tabWidget.setTabEnabled(9, False)
+        self.tabWidget.setTabEnabled(10, False)
+        self.tabWidget.setTabEnabled(11, False)
 
 
         if self.data.pulse is '': #user has not entered a pulse number
@@ -1502,6 +1515,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.info(
                 '{} last public seq is {}\n'.format(str(self.data.pulse),
                                                             str(self.data.val_seq)))
+            if "Automatic Corrections" in self.data.KG1_data.mode:
+                pass
+            else:
+                try:
+                    self.data.KG1_data.correctedby = \
+                        self.data.KG1_data.mode.split(" ")[2]
+                    logger.info('{} corrected by {}\n \n'.format(
+                        str(self.data.pulse),
+                        self.data.KG1_data.correctedby))
+                except IndexError:
+                    logger.error('error!')
+
         else:
             if "Automatic Corrections" in self.data.KG1_data.mode:
                 self.data.KG1_data.correctedby = self.data.KG1_data.mode
@@ -1519,7 +1544,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         str(self.data.pulse),
                         str(self.data.val_seq), self.data.KG1_data.correctedby))
                 except IndexError:
-                    logger.error('no ')
+                    logger.error('error!')
         logger.info('pulse has disrupted? {}\n'.format(self.data.is_dis))
 
         # logger.info('unval_seq {}, val_seq {}'.format(str(self.data.unval_seq),str(self.data.val_seq)))
