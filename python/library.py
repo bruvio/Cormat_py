@@ -262,7 +262,7 @@ def get_min_max_seq(shot_no, dda="KG1V", read_uid="JETPPF"):
 
 
 
-def check_SF(read_uid,pulse):
+def check_SF(read_uid,pulse,seq):
     """
 
     :param read_uid:
@@ -271,7 +271,7 @@ def check_SF(read_uid,pulse):
     """
     logging.info('\n')
     logging.info('checking status FLAGS ')
-
+    ier = ppfgo(pulse, seq=seq)
     ppfuid(read_uid, "r")
 
     ppfssr([0, 1, 2, 3, 4])

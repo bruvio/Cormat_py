@@ -138,10 +138,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                             self.load_pickle()
                             pulse = self.data.pulse
+                            sequence = self.data.sequence
                             # logging.disable(logging.NOTSET)
                             logging.getLogger().disabled = False
                             logger.log(5,'checking pulse data in workspace')
-                            list_attr=['self.data.pulse', 'self.data.KG1_data',
+                            list_attr=['self.data.pulse', 'self.data.sequence' , 'self.data.KG1_data',
                      'self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data',
                      'self.data.ELM_data', 'self.data.HRTS_data',
                      'self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time',
@@ -153,11 +154,12 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                     delattr(self,attr)
                             self.setWindowTitle("CORMAT_py - {}".format(pulse))
                             self.lineEdit_jpn.setText(str(pulse))
+                            self.lineEdit_jpn_seq.setText(str(sequence))
+
                         except:
                             logger.error('failed to read data from workspace!')
 
-
-
+            self.lineEdit_jpn_seq.setText(str(0))
             # -------------------------------
             # backup for kg1 data
             self.data.kg1_original = {}
@@ -374,7 +376,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # -------------------------------
             # list of the second trace signal use to be compared with KG1
             # -------------------------------
-            othersignallist = ['None', 'HRTS', 'Lidar', 'BremS', 'Far', 'CM',
+            othersignallist = ['None', 'HRTS', 'Lidar', 'BremS', 'Far', 'KG4R', 'CM',
                                'KG1_RT','LID1','LID2','LID3','LID4','LID5','LID6','LID7','LID8']
 
             self.comboBox_2ndtrace.addItems(othersignallist)
@@ -522,6 +524,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # reading pulse from GUI
         # -------------------------------
         self.data.pulse = self.lineEdit_jpn.text()
+        self.data.sequence = self.lineEdit_jpn_seq.text()
+        # #disable tab as there is nothing plotted
+        self.tabWidget.setTabEnabled(0, False)
+        self.tabWidget.setTabEnabled(1, False)
+        self.tabWidget.setTabEnabled(2, False)
+        self.tabWidget.setTabEnabled(3, False)
+        self.tabWidget.setTabEnabled(4, False)
+        self.tabWidget.setTabEnabled(5, False)
+        self.tabWidget.setTabEnabled(6, False)
+        self.tabWidget.setTabEnabled(7, False)
+        self.tabWidget.setTabEnabled(8, False)
+        self.tabWidget.setTabEnabled(9, False)
+        self.tabWidget.setTabEnabled(10, False)
+        self.tabWidget.setTabEnabled(11, False)
 
 
         if self.data.pulse is '': #user has not entered a pulse number
@@ -547,7 +563,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-        self.data.pulse = int(self.lineEdit_jpn.text())
+        # self.data.pulse = int(self.lineEdit_jpn.text())
+        # self.data.sequence = self.lineEdit_jpn_seq.text()
 
 
 
@@ -567,6 +584,34 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             print(' \n' *45)
             logger.info( "The workspace contains data not saved to ppf\n")
             self.load_pickle()
+
+            #restore channel from saved pickle file (to be used in debug mode)
+            # if True:
+            #
+            #     channel = 4
+            #     logger.info('loading data fro ch {}'.format(channel))
+            #     with open('./saved/den_chan' + str(channel) + '.pkl',
+            #               'rb') as f:  # Python 3: open(..., 'rb')
+            #         [self.data.KG1_data.density[channel]] = pickle.load(f)
+            #     f.close()
+            #     if chan >4:
+            #         with open('./saved/vib_chan' + str(channel) + '.pkl',
+            #                   'rb') as f:  # Python 3: open(..., 'rb')
+            #             [self.data.KG1_data.vibration[channel]] = pickle.load(f)
+            #         f.close()
+            #     with open('./saved/fj_dcn_chan' + str(channel) + '.pkl',
+            #               'rb') as f:  # Python 3: open(..., 'rb')
+            #         [self.data.KG1_data.fj_dcn[channel]] = pickle.load(f)
+            #     f.close()
+            #
+            #     with open('./saved/fj_met_chan' + str(channel) + '.pkl',
+            #               'rb') as f:  # Python 3: open(..., 'rb')
+            #         [self.data.KG1_data.fj_met[channel]] = pickle.load(f)
+            #     f.close()
+            #
+            #     self.save_kg1('scratch')
+
+
             # self.data.data_changed =  np.full(8,True,dtype=bool)
             # self.data.statusflag_changed = np.full(8,True,dtype=bool)
             # self.data.saved = False
@@ -603,7 +648,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
                     self.read_uid = str(self.comboBox_readuid.currentText())
-                    logger.info("Reading data for pulse {}\n".format(str(self.data.pulse)))
+                    logger.info("Reading data for pulse {} / sequence {}\n".format(str(self.data.pulse),str(self.data.sequence)))
                     logger.info('reading data with uid -  {}\n'.format((str(self.read_uid))))
                     success = self.readdata()
                     # self.tabWidget.setCurrentIndex(0)
@@ -636,6 +681,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.log(5, "data or status flag have NOT been saved to PPF")
 
                 if (self.checkBox_newpulse.isChecked()):
+                    self.data.pulse = self.lineEdit_jpn.text()
+                    self.data.sequence = self.lineEdit_jpn_seq.text()
                     assert ((any(self.data.data_changed) | any(self.data.statusflag_changed)) & (
                         not self.data.saved) & (
                                 self.checkBox_newpulse.isChecked()))
@@ -670,7 +717,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     self.data.old_pulse = self.data.pulse
 
-                    self.data.pulse = int(self.lineEdit_jpn.text())
+                    # self.data.pulse = int(self.lineEdit_jpn.text())
+                    # self.data.sequence = self.lineEdit_jpn_seq.text()
                     # pyqt_set_trace()
                     list_attr=['self.data.KG1_data','self.data.KG4_data', 'self.data.MAG_data', 'self.data.PELLETS_data','self.data.ELM_data', 'self.data.HRTS_data','self.data.NBI_data', 'self.data.is_dis', 'self.data.dis_time','self.data.LIDAR_data']
                     for attr in list_attr:
@@ -727,6 +775,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         pass
         else:
             if (self.checkBox_newpulse.isChecked()):
+                self.data.pulse = self.lineEdit_jpn.text()
+                self.data.sequence = self.lineEdit_jpn_seq.text()
                 logger.log(5, ' {} is  checked'.format(self.checkBox_newpulse.objectName()))
                 # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
                 #logger.info(' pulse data already downloaded - you are requesting to download again')
@@ -751,7 +801,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         logger.log(5, " {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
 
 
-        # pyqt_set_trace()
+
+
+    # pyqt_set_trace()
 
 
 # ----------------------------
@@ -1091,7 +1143,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # Python 3: open(..., 'rb')
             with open('./saved/data.pkl',
                       'rb') as f:
-                [self.data.pulse, self.data.KG1_data,
+                [self.data.pulse, self.data.sequence, self.data.KG1_data,
                  self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
                  self.data.ELM_data, self.data.HRTS_data,
                  self.data.NBI_data, self.data.is_dis, self.data.dis_time,
@@ -1115,7 +1167,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             else:
                 self.data.KG1_data.correctedby = \
                 self.data.KG1_data.mode.split(" ")[2]
-                logger.info('{} last validated seq is {} by {}\n'.format(
+                logger.info('{} last seq is {} by {}\n'.format(
                     str(self.data.pulse),
                     str(self.data.val_seq), self.data.KG1_data.correctedby))
 
@@ -1170,7 +1222,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         logger.info(' saving pulse data to {}\n'.format(folder))
         with open('./' + folder + '/data.pkl', 'wb') as f:
             pickle.dump(
-                [self.data.pulse, self.data.KG1_data,
+                [self.data.pulse, self.data.sequence, self.data.KG1_data,
                  self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
                  self.data.ELM_data, self.data.HRTS_data,
                  self.data.NBI_data, self.data.is_dis, self.data.dis_time,
@@ -1263,7 +1315,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                       self.ui_areyousure.pushButton_YES.text())
 
         self.read_uid = self.comboBox_readuid.currentText()
-        logger.info("Reading data for pulse {}\n".format(str(self.data.pulse)))
+        logger.info("Reading data for pulse {} / sequence {}\n".format(str(self.data.pulse),str(self.data.sequence)))
         success = self.readdata()
 
         if success:
@@ -1353,7 +1405,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # 2. Read in KG1 data
         # -------------------------------
         logger.info("             Reading in KG1 data.\n")
-        self.data.KG1_data = Kg1PPFData(self.data.constants,self.data.pulse)
+        self.data.KG1_data = Kg1PPFData(self.data.constants,self.data.pulse,self.data.sequence)
 
 
         self.read_uid = self.comboBox_readuid.currentText()
@@ -1430,7 +1482,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         # read status flag
 
-        self.data.SF_list = check_SF(self.read_uid, self.data.pulse)
+        self.data.SF_list = check_SF(self.read_uid, self.data.pulse,self.data.sequence)
 
         [self.data.SF_ch1,
          self.data.SF_ch2,
@@ -1463,6 +1515,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.info(
                 '{} last public seq is {}\n'.format(str(self.data.pulse),
                                                             str(self.data.val_seq)))
+            if "Automatic Corrections" in self.data.KG1_data.mode:
+                pass
+            else:
+                try:
+                    self.data.KG1_data.correctedby = \
+                        self.data.KG1_data.mode.split(" ")[2]
+                    logger.info('{} corrected by {}\n \n'.format(
+                        str(self.data.pulse),
+                        self.data.KG1_data.correctedby))
+                except IndexError:
+                    logger.error('error!')
+
         else:
             if "Automatic Corrections" in self.data.KG1_data.mode:
                 self.data.KG1_data.correctedby = self.data.KG1_data.mode
@@ -1480,7 +1544,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         str(self.data.pulse),
                         str(self.data.val_seq), self.data.KG1_data.correctedby))
                 except IndexError:
-                    logger.error('no ')
+                    logger.error('error!')
         logger.info('pulse has disrupted? {}\n'.format(self.data.is_dis))
 
         # logger.info('unval_seq {}, val_seq {}'.format(str(self.data.unval_seq),str(self.data.val_seq)))
@@ -1522,6 +1586,39 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.tabWidget.setTabEnabled(10, True)
         logger.log(5, 'enabling tab {}'.format(12))
         self.tabWidget.setTabEnabled(11, True)
+
+
+
+        #backup of channel data to single files
+        #density
+        for chan in self.data.KG1_data.density.keys():
+            vars()['den_chan' + str(chan)] = self.data.KG1_data.density[chan]
+
+            with open('./saved/den_chan' + str(chan)+'.pkl', 'wb') as f:
+                pickle.dump([vars()['den_chan' + str(chan)]],f)
+            f.close()
+        #     fj_fcn
+        for chan in self.data.KG1_data.fj_dcn.keys():
+            vars()['fj_dcn_chan' + str(chan)] = self.data.KG1_data.fj_dcn[chan]
+
+            with open('./saved/fj_dcn_chan' + str(chan)+'.pkl', 'wb') as f:
+                pickle.dump([vars()['fj_dcn_chan' + str(chan)]], f)
+            f.close()
+        #     fj_met
+        for chan in self.data.KG1_data.fj_met.keys():
+            vars()['fj_met_chan' + str(chan)] = self.data.KG1_data.fj_met[chan]
+
+            with open('./saved/fj_met_chan' + str(chan)+'.pkl', 'wb') as f:
+                pickle.dump([vars()['fj_met_chan' + str(chan)]], f)
+            f.close()
+
+        #     vibration
+        for chan in sorted(self.data.KG1_data.vibration.keys()):
+            vars()['vib_chan' + str(chan)] = self.data.KG1_data.vibration[
+                chan]
+            with open('./saved/vib_chan' + str(chan)+'.pkl', 'wb') as f:
+                pickle.dump([vars()['vib_chan' + str(chan)]],f)
+            f.close()
 
 
         return True
@@ -2216,7 +2313,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     logging.warning('no {} data'.format(self.data.s2ndtrace))
                 else:
                     for chan in self.data.KG4_data.faraday.keys():
-                        if chan in self.data.KG1_data.density.keys():
+                        if chan in self.data.KG1_data.faraday.keys():
                             ax_name = 'ax' + str(chan)
                             name = 'Far ch.' + str(chan)
 
@@ -2244,6 +2341,40 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             else:
                 logging.warning('no {} data'.format(self.data.s2ndtrace))
 
+        elif self.data.s2ndtrace == 'KG4R':
+            if self.data.KG4_data.density is not None:
+                if len(self.data.KG4_data.density) == 0:
+
+                    logging.warning('no {} data'.format(self.data.s2ndtrace))
+                else:
+                    for chan in self.data.KG4_data.density.keys():
+                        if chan in self.data.KG1_data.density.keys():
+                            ax_name = 'ax' + str(chan)
+                            name = 'Far ch.' + str(chan)
+
+                            self.data.secondtrace_original[chan] = SignalBase(self.data.constants)
+                            self.data.secondtrace_norm[chan] = SignalBase(self.data.constants)
+
+                            self.data.secondtrace_original[chan].time = \
+                                self.data.KG4_data.density[
+                                    chan].time
+                            self.data.secondtrace_original[chan].data = \
+                                self.data.KG4_data.density[
+                                    chan].data
+                            # self.data.secondtrace_norm[chan].data = norm(self.data.KG4_data.faraday[chan].data)
+                            self.data.secondtrace_norm[chan].data = normalise(
+                                self.data.KG4_data.density[chan],
+                                self.data.KG1_data.density[chan],
+                                self.data.dis_time)
+
+                            vars()[ax_name].plot(self.data.KG4_data.density[chan].time,
+                                                 self.data.KG4_data.density[chan].data,
+                                                 label=name, marker='o', color='black')
+                            vars()[ax_name].legend()
+
+
+            else:
+                logging.warning('no {} data'.format(self.data.s2ndtrace))
 
         elif self.data.s2ndtrace == 'CM':
             if self.data.KG4_data.xg_ell_signal is not None:
@@ -3563,6 +3694,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 color = 'green'
             if self.data.s2ndtrace == 'Far':
                 color = 'red'
+            if self.data.s2ndtrace == 'KG4R':
+                color = 'black'
             if self.data.s2ndtrace == 'CM':
                 color = 'purple'
             if self.data.s2ndtrace == 'KG1_RT':
@@ -3729,6 +3862,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 color = 'green'
             if self.data.s2ndtrace == 'Far':
                 color = 'red'
+            if self.data.s2ndtrace == 'KG4R':
+                color = 'black'
             if self.data.s2ndtrace == 'CM':
                 color = 'purple'
             if self.data.s2ndtrace == 'KG1_RT':
@@ -5366,7 +5501,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         ax6 = self.ax6
         ax7 = self.ax7
         ax8 = self.ax8
+        ax51 = self.ax51
+        ax61 = self.ax61
+        ax71 = self.ax71
+        ax81 = self.ax81
+
+
+
         ax_name = 'ax' + str(self.chan)
+        ax_name1 = 'ax' + str(self.chan) + str(1)
+
+
 
         if str(self.chan).isdigit() == True: # if chan is 1-8 then
             self.chan = int(self.chan)
@@ -5456,7 +5601,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                         if int(self.chan) > 4: #if is a lateral channel
                             if self.chan+4 in self.data.KG1_data.fj_dcn.keys(): # if there are automatic corrections in the vibration signal
-                                self.corr_vib = -int(round(self.data.KG1_data.density[self.chan+4].corrections.data[i]))
+                                self.corr_vib = int(round(self.data.KG1_data.density[self.chan+4].corrections.data[i]))
+                            elif self.chan in self.data.KG1_data.fj_met.keys():
+                                self.corr_vib = int(round(
+                                    self.data.KG1_data.vibration[
+                                        self.chan].corrections.data[i]))
                             else:
                                 self.corr_vib = 0
 
@@ -5792,7 +5941,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.pushButton_undo.clicked.connect(
                 self.discard_neutralise_corrections)
 
-            pass
+            # pass
         self.kb.apply_pressed_signal.disconnect(
             self.neutralisatecorrections)
         self.disconnnet_multiplecorrectionpointswidget()
@@ -6146,8 +6295,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # if x.lower() == "y":
                     self.corr_den = suggested_den
                     self.lineEdit_mancorr.setText(str(self.corr_den))
-                else:
-                    pass
+
+
+                #     pass
         elif  int(self.chan) > 4:
             suggested_den, suggested_vib = self.suggestcorrection()
             try:
@@ -6175,8 +6325,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.error('use numerical values')
                 self.lineEdit_mancorr.setText("")
                 self.update_channel(self.chan)
-                logger.info('applying this correction {} \n'.format(
-                    (self.correction_to_be_applied)))
+                # logger.info('applying this correction {} \n'.format(
+                #     (self.corr_den)))
+                # logger.info('applying this correction {} \n'.format(
+                #     (self.correction_to_be_applied)))
 
                 # self.pushButton_undo.disconnect()
                 self.gettotalcorrections()
@@ -6198,8 +6350,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     corr_vib=self.corr_vib
 
                     self.lineEdit_mancorr.setText(str(suggested_den)+', '+ str(suggested_vib))
-                else:
-                    pass
+                # else:
+                    # pass
 
 
         index, value = find_nearest(time, coord[0][0]) # finds nearest data point to selected point on canvas
@@ -6227,11 +6379,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.corr_vib ,
                     index=index,lid=corr_vib)
 
-                vars()[ax_name].axvline(x=time[index], color='m',
+                vars()[ax_name1].axvline(x=time[index], color='m',
                                         linestyle='--', linewidth=0.25)
                 vars()[ax_name1].plot(time[index], data[index], 'mo',
                                      linewidth=0.25)
 
+                logger.info('applying this correction {},{} \n'.format(
+                    (corr_den),corr_vib))
+        else:
+            logger.info('applying this correction {} \n'.format(
+                (corr_den)))
 
             # except AttributeError:
             #     logger.error('insert a correction for the mirror')
@@ -6246,8 +6403,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             #     self.blockSignals(False)
             #     return
 
-        logger.info('applying this correction {} \n'.format(
-            (self.correction_to_be_applied)))
+
 
 
 
@@ -6496,6 +6652,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             ax6 = self.ax6
             ax7 = self.ax7
             ax8 = self.ax8
+            ax51 = self.ax51
+            ax61 = self.ax61
+            ax71 = self.ax71
+            ax81 = self.ax81
+
+            ax_name = 'ax' + str(self.chan)
+            ax_name1 = 'ax' + str(self.chan) + str(1)
 
             if str(self.chan).isdigit() == True:
                 chan = int(self.chan)
@@ -6909,7 +7072,7 @@ def main():
     ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
 
     ps.dump_stats('stats.dmp')  # dump the stats to a file named stats.dmp
-    # ps.print_stats(sort='time')
+    #ps.print_stats(sort='time')
     return
 
 if __name__ == '__main__':

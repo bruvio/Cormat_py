@@ -108,7 +108,7 @@ class SignalBase():
 
 
     # ------------------------
-    def read_data_ppf(self, dda, dtype, shot_no, read_bad=False, read_uid="JETPPF", seq=0):
+    def read_data_ppf(self, dda, dtype, shot_no, read_bad=False, read_uid="JETPPF", seq=None):
         """
         Read in and store PPF data
         :param dda: DDA
@@ -119,6 +119,11 @@ class SignalBase():
         :param seq: sequence number to read in
         """
         logger.debug( "Reading in PPF signal {}/{} with uid {}".format(dda, dtype, read_uid))
+
+        if seq is None:
+            seq =0
+        else:
+            seq=seq
 
         if dda == "" or dtype == "":
             return 0

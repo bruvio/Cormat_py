@@ -23,7 +23,7 @@ __author__ = "B. Viola"
 class Kg1PPFData(SignalBase):
 
     # ------------------------
-    def __init__(self, constants,pulse):
+    def __init__(self, constants,pulse,sequence):
         """
         Init function
         :param constants: instance of Kg1Consts class
@@ -33,6 +33,7 @@ class Kg1PPFData(SignalBase):
 
         self.constants = constants
         self.pulse = pulse
+        self.sequence = sequence
         self.dda = "KG1V"
         self.density = {}
         self.vibration = {}
@@ -65,14 +66,14 @@ class Kg1PPFData(SignalBase):
         :param read_uid: read UID
         :return: True if data was read in successfully, False otherwise
         """
-        dummy = check_SF(read_uid, shot_no)
+        dummy = check_SF(read_uid, shot_no,self.sequence)
         for chan in self.constants.kg1v.keys():
             nodename = self.constants.kg1v[chan]
             density = SignalKg1(self.constants,self.pulse)
             # corrections = SignalBase(self.constants)
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
-            status = density.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
+            status = density.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid,seq=self.sequence)
 
             # We are only interested in keeping the data if it has already been validated
             # if density.data is not None and (0 < status < 4) and not all_status:
@@ -112,7 +113,7 @@ class Kg1PPFData(SignalBase):
             vibration = SignalKg1(self.constants,self.pulse)
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
-            status = vibration.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
+            status = vibration.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid,seq=self.sequence)
 
             if vibration.data is not None:
                 self.vibration[chan] = vibration
@@ -130,7 +131,7 @@ class Kg1PPFData(SignalBase):
 
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
-            status = fj.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
+            status = fj.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid,seq=self.sequence)
 
             if fj.data is not None:
                 self.fj_dcn[chan] = fj
@@ -141,7 +142,7 @@ class Kg1PPFData(SignalBase):
 
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
-            status = fj.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
+            status = fj.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid,seq=self.sequence)
 
             if fj.data is not None:
                 self.fj_met[chan] = fj
@@ -152,7 +153,7 @@ class Kg1PPFData(SignalBase):
 
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
-            status = bp.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
+            status = bp.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid,seq=self.sequence)
 
             if bp.data is not None:
                 self.bp_dcn[chan] = bp
@@ -163,7 +164,7 @@ class Kg1PPFData(SignalBase):
 
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
-            status = bp.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
+            status = bp.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid,seq=self.sequence)
 
             if bp.data is not None:
                 self.bp_met[chan] = bp
@@ -173,7 +174,7 @@ class Kg1PPFData(SignalBase):
             jxb = SignalBase(self.constants)
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
-            status = jxb.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
+            status = jxb.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid,seq=self.sequence)
 
             if jxb.data is not None:
                 self.jxb[chan] = jxb
@@ -183,7 +184,7 @@ class Kg1PPFData(SignalBase):
             sig_type = SignalBase(self.constants)
             dda = nodename[:nodename.find('/')]
             dtype = nodename[nodename.find('/')+1:]
-            status = sig_type.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid)
+            status = sig_type.read_data_ppf(dda, dtype, shot_no, read_bad=True, read_uid=read_uid,seq=self.sequence)
 
             if sig_type.data is not None:
                 ind_type = sig_type.ihdata.find("SIG TYPE:")+len("SIG TYPE:")+1
@@ -195,7 +196,7 @@ class Kg1PPFData(SignalBase):
 
         signal_mode = SignalBase(self.constants)
         
-        signal_mode.read_data_ppf('KG1V', 'MODE', shot_no, read_bad=False, read_uid=read_uid)
+        signal_mode.read_data_ppf('KG1V', 'MODE', shot_no, read_bad=False, read_uid=read_uid,seq=self.sequence)
         try:
             self.mode = signal_mode.ihdata[36:]
         except TypeError:
