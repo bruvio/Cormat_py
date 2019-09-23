@@ -3178,11 +3178,21 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                             self.handle_save_data_statusflag)
                         self.ui_areyousure.pushButton_NO.clicked.connect(
                             self.handle_no)
+
+
                     else:
-                        self.ui_areyousure.pushButton_YES.clicked.connect(
-                            self.handle_save_statusflag)
-                        self.ui_areyousure.pushButton_NO.clicked.connect(
-                            self.handle_no)
+                        if self.checkBox_DS.isChecked():
+                            self.ui_areyousure.pushButton_YES.clicked.connect(
+                                self.handle_save_data_statusflag)
+                            self.ui_areyousure.pushButton_NO.clicked.connect(
+                                self.handle_no)
+
+
+                        else:
+                            self.ui_areyousure.pushButton_YES.clicked.connect(
+                                self.handle_save_statusflag)
+                            self.ui_areyousure.pushButton_NO.clicked.connect(
+                                self.handle_no)
 
             else:
                 if any(self.data.data_changed):

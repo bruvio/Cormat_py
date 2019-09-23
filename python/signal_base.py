@@ -79,7 +79,7 @@ def decimate_ZP(x, q, n=None, ftype='iir', axis=-1, zero_phase=False):
 
     sl = [slice(None)] * y.ndim
     sl[axis] = slice(None, None, q)
-    return y[sl]
+    return y[tuple(sl)]
 
 def gcd(a, b):
     """Compute the greatest common divisor of a and b"""
