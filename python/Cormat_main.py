@@ -790,12 +790,68 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
             else:
                 logger.log(5, '{} is NOT checked'.format(self.checkBox_newpulse.objectName()))
-                logging.error(' no action performed')
+                logger.info('loading workspace data')
+
+                self.init_read()
+
+                self.load_pickle()
+
+                # logging.disable(logging.NOTSET)
+                # logging.getLogger().disabled = False
+                logger.log(5, 'checking pulse data in workspace')
+                # pyqt_set_trace()
+
+                self.data.old_pulse = self.data.pulse
+
+                # self.data.pulse = int(self.lineEdit_jpn.text())
+                # self.data.sequence = self.lineEdit_jpn_seq.text()
+                # pyqt_set_trace()
+                list_attr = ['self.data.KG1_data', 'self.data.KG4_data',
+                             'self.data.MAG_data', 'self.data.PELLETS_data',
+                             'self.data.ELM_data', 'self.data.HRTS_data',
+                             'self.data.NBI_data', 'self.data.is_dis',
+                             'self.data.dis_time', 'self.data.LIDAR_data']
+                for attr in list_attr:
+                    # pyqt_set_trace()
+                    if hasattr(self, attr):
+                        delattr(self, attr)
+                # pyqt_set_trace()
+
+                # if (self.data.old_pulse is None) | (self.data.old_pulse == self.data.pulse):
+                if (self.data.old_pulse == self.data.pulse):
+                    # -------------------------------
+                    # READ self.data.
+                    # -------------------------------
+                    self.read_uid = str(self.comboBox_readuid.currentText())
+                    logger.info('reading data with uid -  {}\n'.format(
+                        (str(self.read_uid))))
+                    self.load_pickle()
+
+
+                    # self.tabWidget.setCurrentIndex(0)
+                    # self.tabSelected(arg=0)
+                    # -------------------------------
+                    # PLOT KG1 self.data.
+                    # -------------------------------
+
+                    self.plot_data()
+
+                    # -------------------------------
+                    # update GUI after plot
+                    # -------------------------------
+
+                    self.GUI_refresh()
+                    self.setWindowTitle(
+                        "CORMAT_py - {}".format(self.data.pulse))
+                    self.data.old_pulse = self.data.pulse
+
+
+                # logging.error(' no action performed')
 
 
 
         #now set
-        self.data.saved = False
+        # self.data.saved = False
         # self.data.statusflag_changed = np.full(8,False,dtype=bool)
         # self.data.data_changed = np.full(8,False,dtype=bool)
         logger.log(5, " {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
@@ -1372,8 +1428,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         logger.log(5, 'old pulse is {}, new pulse is {}'.format(self.data.old_pulse, self.data.pulse))
         # now set
         self.data.saved = False
-        self.data.statusflag_changed = np.full(8,False,dtype=bool)
-        self.data.data_changed = np.full(8,False,dtype=bool)
+        # self.data.statusflag_changed = np.full(8,False,dtype=bool)
+        # self.data.data_changed = np.full(8,False,dtype=bool)
         self.gettotalcorrections()
         logger.log(5, 'data saved is {} - status flag saved is - data changed is {}'.format(self.data.saved,self.data.statusflag_changed, self.data.data_changed))
 #-------------------------
@@ -1451,11 +1507,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         #    Within this time window the code will not make corrections.
         # -------------------------------
         logger.info("             Find disruption.\n")
-        is_dis, dis_time = find_disruption(self.data.pulse, self.data.constants,
+        is_dis,dis_window, dis_time = find_disruption(self.data.pulse, self.data.constants,
                                            self.data.KG1_data)
         self.data.is_dis = is_dis
-        self.data.dis_time = dis_time[0]
-        logger.info("Time of disruption {}\n".format(dis_time[0]))
+        self.data.dis_time = dis_time
+        logger.info("Time of disruption {}\n".format(dis_time))
 
 
 
@@ -1463,7 +1519,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         # 8. Read in Be-II signals, and find ELMs
         # -------------------------------
         logger.info("             Reading in ELMs data.\n")
-        self.data.ELM_data = ElmsData(self.data.constants, self.data.pulse, dis_time=dis_time[0])
+        self.data.ELM_data = ElmsData(self.data.constants, self.data.pulse, dis_time=dis_time)
 
         # -------------------------------
         # 9. Read HRTS data
@@ -3108,80 +3164,105 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         """
 
-        self.write_uid = self.comboBox_writeuid.currentText()
+        chan_now = self.chan
+        total_corrections_den = []
+        total_corrections_vib = []
 
-        # -------------------------------
-        # 13. Write data to PPF
-        # -------------------------------
-        if self.radioButton_storeData.isChecked():
-            logger.info(
-                ' Requesting to change ppf data\n')
-            self.areyousure_window = QtGui.QMainWindow()
-            self.ui_areyousure = Ui_areyousure_window()
-            self.ui_areyousure.setupUi(self.areyousure_window)
-            self.areyousure_window.show()
+        for chann in self.data.KG1_data.density.keys():
+            self.chan = chann
+            total_corr_den, total_corr_vib = self.gettotalcorrections()
+            total_corrections_den.append(total_corr_den)
+            total_corrections_vib.append(total_corr_vib)
 
-            # ###temporary solution
-            # logger.warning(
-            #     'writing a new ppf until ppf library is fixed - 20 may 2019\n')
-            # self.ui_areyousure.pushButton_YES.clicked.connect(
-            #     self.handle_save_data_statusflag)
-            # self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-            # ###end of temporary solution
+        if (any(total_corrections_den) != 0 or any(total_corrections_vib) != 0):
+            for i in range(0,len(total_corrections_den)):
 
-
-            if any(self.data.data_changed) is False:
-                self.ui_areyousure.pushButton_YES.clicked.connect(
-                    self.handle_save_statusflag)
-                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-            else:
-                self.ui_areyousure.pushButton_YES.clicked.connect(
-                    self.handle_save_data_statusflag)
-                self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+                if i+1<5:
+                    if total_corrections_den[i] !=0:
+                        logger.error(
+                    '\n total correction for chan. {} is not zero \n \n'.format(i+1))
+                if i+1>4:
+                    if ((total_corrections_den[i] !=0) or(total_corrections_vib[i] !=0)):
+                        logger.error(
+                            '\n total correction for chan. {} is not zero \n \n'.format(i+1))
 
 
+            self.totalcorrection = False
+            return
 
-        if self.radioButton_storeSF.isChecked():
-            logger.info(
-                ' Requesting to change ppf data\n')
-            self.areyousure_window = QtGui.QMainWindow()
-            self.ui_areyousure = Ui_areyousure_window()
-            self.ui_areyousure.setupUi(self.areyousure_window)
-            self.areyousure_window.show()
+        else:
+            self.totalcorrection = True
 
-            # ###temporary solution
-            # logger.warning(
-            #     'writing a new ppf until ppf library is fixed - 20 may 2019\n')
-            # self.ui_areyousure.pushButton_YES.clicked.connect(
-            #     self.handle_save_data_statusflag)
-            # self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
-            # ###end of temporary solution
+            self.chan = chan_now
 
-            if self.read_uid != self.write_uid:
-                logger.info('read_uid different from write_uid')
-                logger.info('retrieving sequence numbers for {}'.format(self.write_uid))
 
-                self.data.unval_seq, self.data.val_seq = get_min_max_seq(self.data.pulse, dda="KG1V",
-                                                       read_uid=self.write_uid)
-                if self.data.val_seq <0:
-                    logger.warning('no validated data for user {}\n'.format(self.write_uid))
-                    logger.info('writing new PPF')
 
+            self.write_uid = self.comboBox_writeuid.currentText()
+
+            # -------------------------------
+            # 13. Write data to PPF
+            # -------------------------------
+            if self.radioButton_storeData.isChecked():
+                logger.info(
+                    ' Requesting to change ppf data\n')
+                self.areyousure_window = QtGui.QMainWindow()
+                self.ui_areyousure = Ui_areyousure_window()
+                self.ui_areyousure.setupUi(self.areyousure_window)
+                self.areyousure_window.show()
+
+                # ###temporary solution
+                # logger.warning(
+                #     'writing a new ppf until ppf library is fixed - 20 may 2019\n')
+                # self.ui_areyousure.pushButton_YES.clicked.connect(
+                #     self.handle_save_data_statusflag)
+                # self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+                # ###end of temporary solution
+
+
+                if any(self.data.data_changed) is False:
+                    self.ui_areyousure.pushButton_YES.clicked.connect(
+                        self.handle_save_statusflag)
+                    self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+                else:
                     self.ui_areyousure.pushButton_YES.clicked.connect(
                         self.handle_save_data_statusflag)
-                    self.ui_areyousure.pushButton_NO.clicked.connect(
-                        self.handle_no)
-                else:
+                    self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
 
-                    if any(self.data.data_changed):
+
+
+            if self.radioButton_storeSF.isChecked():
+                logger.info(
+                    ' Requesting to change ppf data\n')
+                self.areyousure_window = QtGui.QMainWindow()
+                self.ui_areyousure = Ui_areyousure_window()
+                self.ui_areyousure.setupUi(self.areyousure_window)
+                self.areyousure_window.show()
+
+                # ###temporary solution
+                # logger.warning(
+                #     'writing a new ppf until ppf library is fixed - 20 may 2019\n')
+                # self.ui_areyousure.pushButton_YES.clicked.connect(
+                #     self.handle_save_data_statusflag)
+                # self.ui_areyousure.pushButton_NO.clicked.connect(self.handle_no)
+                # ###end of temporary solution
+
+                if self.read_uid != self.write_uid:
+                    logger.info('read_uid different from write_uid')
+                    logger.info('retrieving sequence numbers for {}'.format(self.write_uid))
+
+                    self.data.unval_seq, self.data.val_seq = get_min_max_seq(self.data.pulse, dda="KG1V",
+                                                           read_uid=self.write_uid)
+                    if self.data.val_seq <0:
+                        logger.warning('no validated data for user {}\n'.format(self.write_uid))
+                        logger.info('writing new PPF')
+
                         self.ui_areyousure.pushButton_YES.clicked.connect(
                             self.handle_save_data_statusflag)
                         self.ui_areyousure.pushButton_NO.clicked.connect(
                             self.handle_no)
-
-
                     else:
-                        if self.checkBox_DS.isChecked():
+
+                        if any(self.data.data_changed):
                             self.ui_areyousure.pushButton_YES.clicked.connect(
                                 self.handle_save_data_statusflag)
                             self.ui_areyousure.pushButton_NO.clicked.connect(
@@ -3189,25 +3270,33 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
                         else:
-                            self.ui_areyousure.pushButton_YES.clicked.connect(
-                                self.handle_save_statusflag)
-                            self.ui_areyousure.pushButton_NO.clicked.connect(
-                                self.handle_no)
+                            if self.checkBox_DS.isChecked():
+                                self.ui_areyousure.pushButton_YES.clicked.connect(
+                                    self.handle_save_data_statusflag)
+                                self.ui_areyousure.pushButton_NO.clicked.connect(
+                                    self.handle_no)
 
-            else:
-                if any(self.data.data_changed):
-                    self.ui_areyousure.pushButton_YES.clicked.connect(
-                        self.handle_save_data_statusflag)
-                    self.ui_areyousure.pushButton_NO.clicked.connect(
-                        self.handle_no)
+
+                            else:
+                                self.ui_areyousure.pushButton_YES.clicked.connect(
+                                    self.handle_save_statusflag)
+                                self.ui_areyousure.pushButton_NO.clicked.connect(
+                                    self.handle_no)
+
                 else:
-                    self.ui_areyousure.pushButton_YES.clicked.connect(
-                        self.handle_save_statusflag)
-                    self.ui_areyousure.pushButton_NO.clicked.connect(
-                        self.handle_no)
+                    if any(self.data.data_changed):
+                        self.ui_areyousure.pushButton_YES.clicked.connect(
+                            self.handle_save_data_statusflag)
+                        self.ui_areyousure.pushButton_NO.clicked.connect(
+                            self.handle_no)
+                    else:
+                        self.ui_areyousure.pushButton_YES.clicked.connect(
+                            self.handle_save_statusflag)
+                        self.ui_areyousure.pushButton_NO.clicked.connect(
+                            self.handle_no)
 
-        elif (self.radioButton_storeSF.isChecked() & self.radioButton_storeData.isChecked()):
-            logging.error(' please select action! \n')
+            elif (self.radioButton_storeSF.isChecked() & self.radioButton_storeData.isChecked()):
+                logging.error(' please select action! \n')
 
 
     # ------------------------
@@ -6202,6 +6291,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     total = int(round(np.sum(self.data.KG1_data.density[chan].corrections.data)))
 
                 self.lineEdit_totcorr.setText(str(total) )
+                return total,0
+
 
             elif chan > 4:
                 if self.data.KG1_data.density[chan].corrections.data is None:
@@ -6229,9 +6320,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     total2 = int(round(np.sum(self.data.KG1_data.vibration[chan].corrections.data)))
                 self.lineEdit_totcorr.setText(
                         str(total1) + ',' + str(total2))
+
+                return total1,total2
                 #
         else:
             self.lineEdit_totcorr.setEnabled(False)
+            return 0,0
+
+
 
     @QtCore.pyqtSlot()
     def singlecorrection(self):
@@ -7098,7 +7194,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run CORMAT_py')
     parser.add_argument("-d", "--debug", type=int,
                         help="Debug level. 0: Info, 1: Warning, 2: Debug,"
-                             " 3: Error, 4: Debug Plus; \n default level is INFO", default=0)
+                             " 3: Error, 4: Debug Plus; \n default level is INFO", default=4)
     parser.add_argument("-doc", "--documentation", type=str,
                         help="Make documentation. yes/no", default='no')
 

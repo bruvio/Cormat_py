@@ -38,7 +38,7 @@ def find_disruption(shot_no, constants, kg1_signals=None):
     disruption_signal.read_data_jpf_1D(dis_node, shot_no)
 
     if disruption_signal.data is None:
-        return False, [-1.0,-1.0]
+        return False, [-1.0,-1.0],-1
 
     # Set the disruption window
     dis_window = [disruption_signal.data[0] - constants.dis_window,
@@ -55,4 +55,4 @@ def find_disruption(shot_no, constants, kg1_signals=None):
 
 
 
-    return True, dis_window
+    return True, dis_window,disruption_signal.data[0]
