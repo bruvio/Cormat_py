@@ -2369,7 +2369,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     logging.warning('no {} data'.format(self.data.s2ndtrace))
                 else:
                     for chan in self.data.KG4_data.faraday.keys():
-                        if chan in self.data.KG1_data.faraday.keys():
+                        if chan in self.data.KG1_data.density.keys():
                             ax_name = 'ax' + str(chan)
                             name = 'Far ch.' + str(chan)
 
@@ -7194,7 +7194,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run CORMAT_py')
     parser.add_argument("-d", "--debug", type=int,
                         help="Debug level. 0: Info, 1: Warning, 2: Debug,"
-                             " 3: Error, 4: Debug Plus; \n default level is INFO", default=4)
+                             " 3: Error, 4: Debug Plus; \n default level is INFO", default=0)
     parser.add_argument("-doc", "--documentation", type=str,
                         help="Make documentation. yes/no", default='no')
 
