@@ -1789,16 +1789,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         marker='x', linestyle='None')
             ax_all.legend()
             if chan < 5:
-                ax_14.plot(self.data.KG1_data.density[chan].time,
-                           self.data.KG1_data.density[chan].data, label=name,
-                           marker='x', linestyle='None')
-                ax_14.legend()
+                if self.data.SF_list[chan - 1] <4:
+                    ax_14.plot(self.data.KG1_data.density[chan].time,
+                               self.data.KG1_data.density[chan].data, label=name,
+                               marker='x', linestyle='None')
+                    ax_14.legend()
 
             if chan > 4:
-                ax_58.plot(self.data.KG1_data.density[chan].time,
-                           self.data.KG1_data.density[chan].data, label=name,
-                           marker='x', linestyle='None')
-                ax_58.legend()
+                if self.data.SF_list[chan - 1] <4:
+                    ax_58.plot(self.data.KG1_data.density[chan].time,
+                               self.data.KG1_data.density[chan].data, label=name,
+                               marker='x', linestyle='None')
+                    ax_58.legend()
 
 
 
@@ -2071,22 +2073,24 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         data = self.data.KG1_data.density[chan].data
         # autoscale_data(vars()[ax_name],data)
         if chan<5:
-            self.ax_14.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
-            self.ax_all.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
-            self.widget_LID_14.draw()
-            self.widget_LID_14.flush_events()
+            if self.data.SF_list[chan - 1] < 4:
+                self.ax_14.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
+                self.ax_all.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
+                self.widget_LID_14.draw()
+                self.widget_LID_14.flush_events()
 
 
         if chan>4:
-            self.ax_58.lines[chan-1-4].set_ydata(self.data.KG1_data.density[chan].data)
-            self.ax_all.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
-            vars()[ax_name1].lines[0].set_ydata(self.data.KG1_data.vibration[chan].data * 1e6)
-            # autoscale_data(vars()[ax_name1], self.data.KG1_data.vibration[chan].data * 1e6)
-            vars()[ax_name1].lines[0].set_color('blue')
-            self.ax_mir.lines[0].set_ydata(
-                self.data.KG1_data.vibration[chan].data * 1e6)
-            self.widget_LID_58.draw()
-            self.widget_LID_58.flush_events()
+            if self.data.SF_list[chan - 1] < 4:
+                self.ax_58.lines[chan-1-4].set_ydata(self.data.KG1_data.density[chan].data)
+                self.ax_all.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
+                vars()[ax_name1].lines[0].set_ydata(self.data.KG1_data.vibration[chan].data * 1e6)
+                # autoscale_data(vars()[ax_name1], self.data.KG1_data.vibration[chan].data * 1e6)
+                vars()[ax_name1].lines[0].set_color('blue')
+                self.ax_mir.lines[0].set_ydata(
+                    self.data.KG1_data.vibration[chan].data * 1e6)
+                self.widget_LID_58.draw()
+                self.widget_LID_58.flush_events()
 
         self.widget_LID_ALL.draw()
         self.widget_LID_ALL.flush_events()
