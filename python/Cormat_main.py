@@ -586,31 +586,39 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.load_pickle()
 
             #restore channel from saved pickle file (to be used in debug mode)
-            # if True:
-            #
-            #     channel = 4
-            #     logger.info('loading data fro ch {}'.format(channel))
-            #     with open('./saved/den_chan' + str(channel) + '.pkl',
-            #               'rb') as f:  # Python 3: open(..., 'rb')
-            #         [self.data.KG1_data.density[channel]] = pickle.load(f)
-            #     f.close()
-            #     if chan >4:
-            #         with open('./saved/vib_chan' + str(channel) + '.pkl',
-            #                   'rb') as f:  # Python 3: open(..., 'rb')
-            #             [self.data.KG1_data.vibration[channel]] = pickle.load(f)
-            #         f.close()
-            #     with open('./saved/fj_dcn_chan' + str(channel) + '.pkl',
-            #               'rb') as f:  # Python 3: open(..., 'rb')
-            #         [self.data.KG1_data.fj_dcn[channel]] = pickle.load(f)
-            #     f.close()
-            #
-            #     with open('./saved/fj_met_chan' + str(channel) + '.pkl',
-            #               'rb') as f:  # Python 3: open(..., 'rb')
-            #         [self.data.KG1_data.fj_met[channel]] = pickle.load(f)
-            #     f.close()
-            #
-            #     self.save_kg1('scratch')
 
+
+            if args.restore_channel.lower() =='yes':
+                channel = 8
+
+                with open('/u/bviola/work/Python/Cormat_py/python/saved/den_chan' + str(channel) + '.pkl',
+                          'rb') as f:  # Python 3: open(..., 'rb')
+                    [self.data.KG1_data.density[channel]] = pickle.load(f)
+                f.close()
+                if channel > 4:
+                    with open(
+                            '/u/bviola/work/Python/Cormat_py/python/saved/vib_chan' + str(channel) + '.pkl',
+                            'rb') as f:  # Python 3: open(..., 'rb')
+                        [self.data.KG1_data.vibration[channel]] = pickle.load(f)
+                    f.close()
+                if os.path.isfile('/u/bviola/work/Python/Cormat_py/python/saved/fj_dcn_chan' + str(channel) + '.pkl'):
+                    with open(
+                            '/u/bviola/work/Python/Cormat_py/python/saved/fj_dcn_chan' + str(channel) + '.pkl',
+                            'rb') as f:  # Python 3: open(..., 'rb')
+                        [self.data.KG1_data.fj_dcn[channel]] = pickle.load(f)
+                    f.close()
+                if os.path.isfile('/u/bviola/work/Python/Cormat_py/python/saved/fj_met_chan' + str(channel) + '.pkl'):
+                    with open(
+                            '/u/bviola/work/Python/Cormat_py/python/saved/fj_met_chan' + str(channel) + '.pkl',
+                            'rb') as f:  # Python 3: open(..., 'rb')
+                        [self.data.KG1_data.fj_met[channel]] = pickle.load(f)
+                    f.close()
+                self.data.SF_ch8 = 0
+                self.data.data_changed[channel - 1] = False
+                self.data.statusflag_changed[channel - 1] = False
+                # self.update_channel(channel)
+                self.save_kg1('scratch')
+                raise SystemExit
 
             # self.data.data_changed =  np.full(8,True,dtype=bool)
             # self.data.statusflag_changed = np.full(8,True,dtype=bool)
@@ -6336,7 +6344,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             chan = int(self.chan)
             if chan < 5:
                 #temporary (not marked as permanent) corrections set by user during validation
-                if chan in self.data.KG1_data.keys():
+                if chan in self.data.KG1_data.density.keys():
                     if self.data.KG1_data.density[chan].corrections.data is None:
                         total = 0
                     elif self.data.KG1_data.density[chan].corrections.data.size==0:
@@ -6354,7 +6362,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
             elif chan > 4:
-                if chan in self.data.KG1_data.keys():
+                if chan in self.data.KG1_data.density.keys():
                     if self.data.KG1_data.density[chan].corrections.data is None:
                         total1 = 0
                     elif self.data.KG1_data.density[chan].corrections.data.size==0:
@@ -7267,6 +7275,8 @@ if __name__ == '__main__':
                              " 3: Error, 4: Debug Plus; \n default level is INFO", default=0)
     parser.add_argument("-doc", "--documentation", type=str,
                         help="Make documentation. yes/no", default='no')
+
+    parser.add_argument("-r", "--restore_channel",type=str,help=" restore channel to original value. yes/no",default='no')
 
     args = parser.parse_args(sys.argv[1:])
 
