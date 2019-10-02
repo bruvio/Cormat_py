@@ -4189,7 +4189,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.info('suggest correction mode\n')
             self.lineEdit_mancorr.setText("")
             self.getcorrectionpointwidget()
-            self.kb.apply_pressed_signal.connect(self.suggestcorrection)
+            self.kb.apply_pressed_signal.connect(self.suggest_corrections)
+
 
         elif event.key() == Qt.Key_M:
             widget.blockSignals(False)
@@ -4482,6 +4483,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.kb.apply_pressed_signal.disconnect(self.multiplecorrections)
         self.disconnnet_multiplecorrectionpointswidget()
         self.data.data_changed[self.chan - 1] = True
+        self.lineEdit_mancorr.setText("")
         self.blockSignals(False)
 
 # # -------------------------------
@@ -6117,6 +6119,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         module that suggests correction to apply on selected point
         :return:
         """
+
+        next_point = 1
+
+
         if str(self.chan).isdigit() == True:
             # if current channel is a number (1-8 allowed values)
             #then we assign to time and data the values of density for the current channel
@@ -6129,7 +6135,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 if int(self.chan) <5: # vertical channels
                     if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                         diff = self.data.KG1_data.density[self.chan].data[
-                                   index + 1] - \
+                                   index + next_point] - \
                                self.data.KG1_data.density[self.chan].data[
                                    index]  # difference between two consecutive points
                         logger.info('difference between points is {}'.format(
@@ -6142,7 +6148,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     # else 'kg1r' in self.data.KG1_data.type[self.chan]:
                     else:
                         diff = self.data.KG1_data.density[self.chan].data[
-                                   index + 1] - \
+                                   index + next_point] - \
                                self.data.KG1_data.density[self.chan].data[
                                    index]  # difference between two consecutive points
                         logger.info('difference between points is {}'.format(
@@ -6152,11 +6158,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         logger.info('\n suggested correction is {}\n'.format(
                             suggest_correction))
 
+
+
                     return suggest_correction,-1
 
                 elif int(self.chan) > 4: # lateral channels
-                    diff_den =  self.data.KG1_data.density[self.chan].data[index+1] - self.data.KG1_data.density[self.chan].data[index]
-                    diff_vib =  self.data.KG1_data.vibration[self.chan].data[index+1] - self.data.KG1_data.vibration[self.chan].data[index]
+                    diff_den =  self.data.KG1_data.density[self.chan].data[index+next_point] - self.data.KG1_data.density[self.chan].data[index]
+                    diff_vib =  self.data.KG1_data.vibration[self.chan].data[index+next_point] - self.data.KG1_data.vibration[self.chan].data[index]
                     logger.info('difference between points is {}/{}'.format(diff_den/1e19,diff_vib*1e6))
 
 
@@ -6168,7 +6176,96 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     suggested_vib = int((suggest_correction[1]))
 
                     logger.info('\n suggested correction is {} , {}\n'.format(suggested_den,suggested_vib))
+
+
                     return suggested_den,  suggested_vib
+
+    # -------------------------------
+    @QtCore.pyqtSlot()
+    def suggest_corrections(self):
+        """
+        module that suggests correction to apply on selected point
+        to be used for suggest correction events
+        :return:
+        """
+        self.blockSignals(True)
+
+        if self.lineEdit_mancorr.text() == "":
+            next_point = 1
+        else:
+            try:
+                next_point = int(self.lineEdit_mancorr.text())
+            except ValueError:
+                next_point = 1
+
+        if str(self.chan).isdigit() == True:
+            # if current channel is a number (1-8 allowed values)
+            # then we assign to time and data the values of density for the current channel
+            self.chan = int(self.chan)
+            time = self.data.KG1_data.density[self.chan].time
+            data = self.data.KG1_data.density[self.chan].data
+            coord = self.setcoord(
+                self.chan)  # get the points selected by the user
+            index, value = find_nearest(time, coord[0][
+                0])  # get nearest point close to selected point in the time array
+
+            if int(self.chan) < 5:  # vertical channels
+                if ('kg1c' in self.data.KG1_data.type[
+                    self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
+                    diff = self.data.KG1_data.density[self.chan].data[
+                               index + next_point] - \
+                           self.data.KG1_data.density[self.chan].data[
+                               index]  # difference between two consecutive points
+                    logger.info('difference between points is {}'.format(
+                        diff / 1e19))
+                    suggest_correction = int(round((
+                            diff / self.data.constants.DFR_MET)))  # check if diff is a fringe jump
+                    logger.info('\n suggested correction is {}\n'.format(
+                        suggest_correction))
+
+                # else 'kg1r' in self.data.KG1_data.type[self.chan]:
+                else:
+                    diff = self.data.KG1_data.density[self.chan].data[
+                               index + next_point] - \
+                           self.data.KG1_data.density[self.chan].data[
+                               index]  # difference between two consecutive points
+                    logger.info('difference between points is {}'.format(
+                        diff / 1e19))
+                    suggest_correction = int(round((
+                            diff / self.data.constants.DFR_DCN)))  # check if diff is a fringe jump
+                    logger.info('\n suggested correction is {}\n'.format(
+                        suggest_correction))
+
+                self.lineEdit_mancorr.setText("")
+                self.kb.apply_pressed_signal.disconnect(self.suggest_corrections)
+                self.blockSignals(False)
+                return
+
+            elif int(self.chan) > 4:  # lateral channels
+                diff_den = self.data.KG1_data.density[self.chan].data[
+                               index + next_point] - \
+                           self.data.KG1_data.density[self.chan].data[index]
+                diff_vib = self.data.KG1_data.vibration[self.chan].data[
+                               index + next_point] - \
+                           self.data.KG1_data.vibration[self.chan].data[index]
+                logger.info(
+                    'difference between points is {}/{}'.format(diff_den / 1e19,
+                                                                diff_vib * 1e6))
+
+                suggest_correction = self.data.Minv.dot(np.array([diff_den,
+                                                                  diff_vib]))  # get suggested correction by solving linear problem Ax=b
+                suggest_correction = np.around(suggest_correction)
+                suggested_den = int((suggest_correction[0]))
+                suggested_vib = int((suggest_correction[1]))
+
+                logger.info(
+                    '\n suggested correction is {} , {}\n'.format(suggested_den,
+                                                                  suggested_vib))
+
+                self.lineEdit_mancorr.setText("")
+                self.kb.apply_pressed_signal.disconnect(self.suggest_corrections)
+                self.blockSignals(False)
+                return
     # -------------------------------
     # @QtCore.pyqtSlot()
     # def stopaction(self):
@@ -6626,6 +6723,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.gettotalcorrections()
         self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
         self.data.data_changed[self.chan - 1] = True
+        self.lineEdit_mancorr.setText("")
         self.blockSignals(False)
 
     # -------------------------------.
