@@ -4182,6 +4182,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.getcorrectionpointwidget()
             self.kb.apply_pressed_signal.connect(self.singlecorrection)
 
+        if event.key() == Qt.Key_S:
+            widget.blockSignals(False) #
+
+            logger.debug( "{} has been pressed".format(event.text()))
+            logger.info('suggest correction mode\n')
+            self.lineEdit_mancorr.setText("")
+            self.getcorrectionpointwidget()
+            self.kb.apply_pressed_signal.connect(self.suggestcorrection)
+
         elif event.key() == Qt.Key_M:
             widget.blockSignals(False)
             logger.debug( "{} has been pressed".format(event.text()))
@@ -6123,9 +6132,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                    index + 1] - \
                                self.data.KG1_data.density[self.chan].data[
                                    index]  # difference between two consecutive points
+                        logger.info('difference between points is {}'.format(
+                            diff/1e19))
                         suggest_correction = int(round((
                                                                    diff / self.data.constants.DFR_MET)))  # check if diff is a fringe jump
-                        logger.info('suggested correction is {}\n'.format(
+                        logger.info('\n suggested correction is {}\n'.format(
                             suggest_correction))
 
                     # else 'kg1r' in self.data.KG1_data.type[self.chan]:
@@ -6134,17 +6145,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                    index + 1] - \
                                self.data.KG1_data.density[self.chan].data[
                                    index]  # difference between two consecutive points
+                        logger.info('difference between points is {}'.format(
+                            diff/1e19))
                         suggest_correction = int(round((
                                 diff / self.data.constants.DFR_DCN)))  # check if diff is a fringe jump
-                        logger.info('suggested correction is {}\n'.format(
+                        logger.info('\n suggested correction is {}\n'.format(
                             suggest_correction))
 
-                    return suggest_correction
+                    return suggest_correction,-1
 
                 elif int(self.chan) > 4: # lateral channels
                     diff_den =  self.data.KG1_data.density[self.chan].data[index+1] - self.data.KG1_data.density[self.chan].data[index]
                     diff_vib =  self.data.KG1_data.vibration[self.chan].data[index+1] - self.data.KG1_data.vibration[self.chan].data[index]
-
+                    logger.info('difference between points is {}/{}'.format(diff_den/1e19,diff_vib*1e6))
 
 
 
@@ -6154,7 +6167,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     suggested_den = int((suggest_correction[0]))
                     suggested_vib = int((suggest_correction[1]))
 
-                    logger.info('suggested correction is {} , {}\n'.format(suggested_den,suggested_vib))
+                    logger.info('\n suggested correction is {} , {}\n'.format(suggested_den,suggested_vib))
                     return suggested_den,  suggested_vib
     # -------------------------------
     # @QtCore.pyqtSlot()
