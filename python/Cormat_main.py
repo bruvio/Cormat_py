@@ -3421,14 +3421,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         del self.data.KG1_data.fj_dcn[chan]
 
             # Corrected FJs for vertical channels
-            if chan <= 4 and chan in self.data.KG1_data.fj_dcn.keys():
+            if chan in self.data.KG1_data.fj_dcn.keys():
 
 
 
                 # DCN fringes
-                if self.data.KG1_data.fj_dcn is not None:
+                # if self.data.KG1_data.fj_dcn is not None:
                     dtype_fc = "FC{}".format(chan)
-                    comment = "DCN FRINGE CORRECTIONS CH.{}".format(chan)
+                    comment = "DCN FRINGE CORR CH.{}".format(chan)
                     write_err, itref_written = write_ppf(self.data.pulse, dda,
                                                          dtype_fc,
                                                          self.data.KG1_data.fj_dcn[
@@ -3453,7 +3453,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         # break
 
             # Vibration data and JXB for lateral channels, and corrected FJ
-            elif chan > 4 and chan in self.data.KG1_data.vibration.keys():
+            if chan > 4 and chan in self.data.KG1_data.vibration.keys():
                 if self.data.KG1_data.vibration is not None:
                     # Vibration
                     dtype_vib = "MIR{}".format(chan)
@@ -3511,18 +3511,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     if self.data.KG1_data.fj_met[chan].data.size == 0:
                         del self.data.KG1_data.fj_met[chan]
 
-            elif chan > 4 and chan in self.data.KG1_data.fj_met.keys():
+            if chan in self.data.KG1_data.fj_met.keys():
 
 
                 # MET fringes
-                if self.data.KG1_data.fj_met is not None:
+                # if self.data.KG1_data.fj_met is not None:
                     dtype_fc = "MC{} ".format(chan)
-                    comment = "MET FRINGE CORRECTIONS CH.{}".format(chan)
+                    comment = "MET FRINGE CORR CH.{}".format(chan)
                     write_err, itref_written = write_ppf(self.data.pulse, dda,
                                                          dtype_fc,
                                                          self.data.KG1_data.fj_met[
                                                              chan].data,
-                                                         time=self.fj_met[
+                                                         time=self.data.KG1_data.fj_met[
                                                              chan].time,
                                                          comment=comment,
                                                          unitd=" ", unitt="SEC",
@@ -4297,7 +4297,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.blockSignals(False)
             return
         if int(self.chan) <5:
-            suggested_den = self.suggestcorrection() # computes suggested correction
+            suggested_den,dummy = self.suggestcorrection() # computes suggested correction
             try:
                 if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                     self.corr_den = int(
@@ -6463,7 +6463,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.blockSignals(False)
             return
         if int(self.chan) <5:
-            suggested_den = self.suggestcorrection() # compute correction based on fringe jump on selected point
+            suggested_den,dummy = self.suggestcorrection() # compute correction based on fringe jump on selected point
             try:
                 corr_den = int(self.lineEdit_mancorr.text())
                 if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():

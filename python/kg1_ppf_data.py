@@ -194,6 +194,9 @@ class Kg1PPFData(SignalBase):
                     self.density[chan].dcn_or_met = 'met'
                 else:
                     self.density[chan].dcn_or_met = 'dcn'
+            else:
+                self.type[chan] = 'kg1v'
+
 
         nodename_mode = self.constants.mode
 
