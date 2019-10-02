@@ -4293,7 +4293,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                     self.corr_den = int(
                         self.lineEdit_mancorr.text()) * self.data.constants.DFR_MET  # convert fringe jump into density
-                elif 'kg1r' in self.data.KG1_data.type[self.chan]:
+                else:
+                # elif 'kg1r' in self.data.KG1_data.type[self.chan]:
                     self.corr_den = int(
                         self.lineEdit_mancorr.text()) * self.data.constants.DFR_DCN  # convert fringe jump into density
             except ValueError:
@@ -6127,7 +6128,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         logger.info('suggested correction is {}\n'.format(
                             suggest_correction))
 
-                    elif 'kg1r' in self.data.KG1_data.type[self.chan]:
+                    # else 'kg1r' in self.data.KG1_data.type[self.chan]:
+                    else:
                         diff = self.data.KG1_data.density[self.chan].data[
                                    index + 1] - \
                                self.data.KG1_data.density[self.chan].data[
@@ -6454,7 +6456,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                     self.corr_den = int(
                         self.lineEdit_mancorr.text()) * self.data.constants.DFR_MET  # convert fringe jump into density
-                elif 'kg1r' in self.data.KG1_data.type[self.chan]:
+                # elif 'kg1r' in self.data.KG1_data.type[self.chan]:
+                else:
                     self.corr_den = int(
                         self.lineEdit_mancorr.text()) * self.data.constants.DFR_DCN  # convert fringe jump into density
 
