@@ -190,7 +190,10 @@ class Kg1PPFData(SignalBase):
                 ind_type = sig_type.ihdata.find("SIG TYPE:")+len("SIG TYPE:")+1
                 ind_chan = sig_type.ihdata.find("CH.")-1
                 self.type[chan] = sig_type.ihdata[ind_type:ind_chan]
-        
+                if 'kg1c' in sig_type.ihdata[ind_type:ind_chan]:
+                    self.density[chan].dcn_or_met = 'met'
+                else:
+                    self.density[chan].dcn_or_met = 'dcn'
 
         nodename_mode = self.constants.mode
 

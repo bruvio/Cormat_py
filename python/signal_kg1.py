@@ -46,6 +46,7 @@ class SignalKg1(SignalBase):
         super(SignalKg1, self).__init__(constants)
 
         self.dfr = self.constants.DFR_DCN
+        self.dfr_met = self.constants.DFR_MET
 
     # ------------------------
     def __deepcopy__(self, memo):
@@ -150,7 +151,10 @@ class SignalKg1(SignalBase):
 
         # Store correction in terms of number of fringes
         if lid is None:
-            corr_store = int(corr / self.constants.DFR_DCN)
+            if self.dcn_or_met =='met':
+                corr_store = int(corr / self.constants.DFR_MET)
+            else:
+                corr_store = int(corr / self.constants.DFR_DCN)
         else:
             corr_store = lid
 
@@ -179,10 +183,10 @@ class SignalKg1(SignalBase):
 
 
             # Also store corresponding correction for the DCN & MET lasers (for use with lateral channels only)
-            if corr_dcn is not None:
+            if self.dcn_or_met is 'dcn':
                 self.correction_dcn = np.append(self.correction_dcn, corr_dcn)
 
-            if corr_met is not None:
+            if self.dcn_or_met is 'met':
                 self.correction_met = np.append(self.correction_met, corr_met)
 
 
