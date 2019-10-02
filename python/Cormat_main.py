@@ -4290,7 +4290,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if int(self.chan) <5:
             suggested_den = self.suggestcorrection() # computes suggested correction
             try:
-                if 'kg1c' in self.data.KG1_data.type[self.chan]:
+                if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                     self.corr_den = int(
                         self.lineEdit_mancorr.text()) * self.data.constants.DFR_MET  # convert fringe jump into density
                 elif 'kg1r' in self.data.KG1_data.type[self.chan]:
@@ -4641,7 +4641,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                          self.chan].data)):
                     diff = self.data.KG1_data.density[self.chan].data[
                         idx]  # difference between two consecutive points
-                    if 'kg1c' in self.data.KG1_data.type[self.chan]:
+                    if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                         zeroing_correction = int(round((
                                                                diff / self.data.constants.DFR_MET)))  # check if diff is a fringe jump
                     else:
@@ -4651,7 +4651,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     # logger.log(5,'zeroing correction is {}'.format(zeroing_correction))
                     self.data.zeroingbackup_den[self.chan-1].append(
                         self.data.KG1_data.density[self.chan].data[idx])
-                    if 'kg1c' in self.data.KG1_data.type[self.chan]:
+                    if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                         self.data.KG1_data.density[self.chan].data[idx] = \
                         self.data.KG1_data.density[self.chan].data[
                             idx] - zeroing_correction * self.data.constants.DFR_MET
@@ -5256,7 +5256,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             for idx in range(index_start,index_stop):
 
                 diff =  self.data.KG1_data.density[self.chan].data[idx] # difference between two consecutive points
-                if 'kg1c' in self.data.KG1_data.type[self.chan]:
+                if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                     zeroing_correction = int(round((
                                                                diff / self.data.constants.DFR_MET)))  # check if diff is a fringe jump
                 else:
@@ -5726,7 +5726,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                        value,
                                        index))
                         #apply correction
-                        if 'kg1c' in self.data.KG1_data.type[self.chan]:
+                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys() :
                             self.data.KG1_data.density[self.chan].uncorrect_fj(
                                 self.corr_den * self.data.constants.DFR_MET, index=index
                             )
@@ -5806,12 +5806,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         #
         #     self.blockSignals(False)
         #     return
-        if 'kg1c' in self.data.KG1_data.type[self.chan]:
+        if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
             size_fj =self.data.KG1_data.fj_met[self.chan].data.size
             fj = self.data.KG1_data.fj_met[self.chan]
         elif 'kg1r' in self.data.KG1_data.type[self.chan]:
             size_fj = self.data.KG1_data.fj_dcn[self.chan].data.size
             fj = self.data.KG1_data.fj_dcn[self.chan]
+        else:
+            size_fj = self.data.KG1_data.fj_dcn[self.chan].data.size
+            fj = self.data.KG1_data.fj_dcn[self.chan]
+
 
         if  size_fj == 0:
                 # if there are not automatic correction updated channel and close event
@@ -6113,7 +6117,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 index, value = find_nearest(time, coord[0][0]) #get nearest point close to selected point in the time array
 
                 if int(self.chan) <5: # vertical channels
-                    if 'kg1c' in self.data.KG1_data.type[self.chan]:
+                    if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                         diff = self.data.KG1_data.density[self.chan].data[
                                    index + 1] - \
                                self.data.KG1_data.density[self.chan].data[
@@ -6447,7 +6451,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             suggested_den = self.suggestcorrection() # compute correction based on fringe jump on selected point
             try:
                 corr_den = int(self.lineEdit_mancorr.text())
-                if 'kg1c' in self.data.KG1_data.type[self.chan]:
+                if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                     self.corr_den = int(
                         self.lineEdit_mancorr.text()) * self.data.constants.DFR_MET  # convert fringe jump into density
                 elif 'kg1r' in self.data.KG1_data.type[self.chan]:
@@ -6927,7 +6931,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                             self.chan].uncorrect_fj(self.corr_vib,
                             index=index,fringe_vib=restored_vib)
                 else:
-                    if 'kg1c' in self.data.KG1_data.type[self.chan]:
+                    if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                         self.data.KG1_data.density[chan].uncorrect_fj(
                             self.corr_den * self.data.constants.DFR_MET,
                             index=index)
