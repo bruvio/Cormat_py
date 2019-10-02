@@ -146,7 +146,8 @@ class SignalKg1(SignalBase):
 
             index = np.min(index)
 
-
+        if index == len(self.data):
+            index = index-1
         self.data[index:] = self.data[index:] - corr
 
         # Store correction in terms of number of fringes
