@@ -6073,10 +6073,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                         self.data.KG1_data.vibration[self.chan].correct_fj(self.mir,index=index,lid=self.corr_vib)
                     else:
-                        if 'kg1r' in self.data.KG1_data.type[self.chan]:
-                            self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_DCN,index=index)
+                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
+                            self.data.KG1_data.density[self.chan].correct_fj(
+                                self.corr_den * self.data.constants.DFR_MET,
+                                index=index )
+
+                        # if 'kg1r' in self.data.KG1_data.type[self.chan]:
                         else:
-                            self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_MET,index=index+1)
+                            self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_DCN,index=index)
+
+
                         fj.data[i] = self.corr_den
                     vars()[ax_name].axvline(x=value, color='g',
                                             linestyle='--',linewidth=0.25)
