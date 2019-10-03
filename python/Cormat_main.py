@@ -5746,7 +5746,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         else:
 
                             self.data.KG1_data.density[self.chan].uncorrect_fj(
-                                self.corr_den * self.data.constants.DFR_DCN, index=index
+                                self.corr_den * self.data.constants.DFR_DCN, index=index +1
                             )
 
                         if int(self.chan) > 4: #if is a lateral channel
@@ -6080,7 +6080,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                         # if 'kg1r' in self.data.KG1_data.type[self.chan]:
                         else:
-                            self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_DCN,index=index)
+                            self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_DCN,index=index +1)
 
 
                         fj.data[i] = self.corr_den
