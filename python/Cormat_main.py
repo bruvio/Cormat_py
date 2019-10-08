@@ -4127,23 +4127,29 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.setcoord(self.chan, reset=True)
         if chan >4:
             if chan + 4 in self.data.KG1_data.fj_dcn.keys():
-                for i, value in enumerate(self.data.KG1_data.density[chan].corrections.time):
-                    found, index = find_in_list_array(self.data.KG1_data.fj_dcn[chan].time, value)
-                    if found:
-                        self.data.KG1_data.fj_dcn[chan].data[index] = \
-                        self.data.KG1_data.density[chan].corrections.data[i]
+                if self.data.KG1_data.density[chan].corrections is not None:
+                    if self.data.KG1_data.density[
+                        chan].corrections.data is None:
+                        logger.warning(
+                            'no corrections to save for ch. {}'.format(chan))
                     else:
-                        self.data.KG1_data.fj_dcn[chan+4].time = np.append(self.data.KG1_data.fj_dcn[chan+4].time,self.data.KG1_data.density[chan+4].corrections.time)
-                        self.data.KG1_data.fj_dcn[chan+4].data = np.append(self.data.KG1_data.fj_dcn[chan+4].data,self.data.KG1_data.density[chan].corrections.data)
-                # self.data.KG1_data.density[chan+4].corrections = SignalBase(
-                #     self.data.constants)
-                # self.data.KG1_data.density[chan + 4].corrections.time = []
-                # self.data.KG1_data.density[chan + 4].corrections.data = []
+                        for i, value in enumerate(self.data.KG1_data.density[chan].corrections.time):
+                            found, index = find_in_list_array(self.data.KG1_data.fj_dcn[chan].time, value)
+                            if found:
+                                self.data.KG1_data.fj_dcn[chan].data[index] = \
+                                self.data.KG1_data.density[chan].corrections.data[i]
+                            else:
+                                self.data.KG1_data.fj_dcn[chan+4].time = np.append(self.data.KG1_data.fj_dcn[chan+4].time,self.data.KG1_data.density[chan+4].corrections.time)
+                                self.data.KG1_data.fj_dcn[chan+4].data = np.append(self.data.KG1_data.fj_dcn[chan+4].data,self.data.KG1_data.density[chan].corrections.data)
+                        # self.data.KG1_data.density[chan+4].corrections = SignalBase(
+                        #     self.data.constants)
+                        # self.data.KG1_data.density[chan + 4].corrections.time = []
+                        # self.data.KG1_data.density[chan + 4].corrections.data = []
 
-                index = sorted(range(len(self.data.KG1_data.fj_dcn[chan+4].time)),key=lambda k:self.data.KG1_data.fj_dcn[chan+4].time[k])
-                self.data.KG1_data.fj_dcn[chan+4].data = self.data.KG1_data.fj_dcn[chan+4].data[index]
+                        index = sorted(range(len(self.data.KG1_data.fj_dcn[chan+4].time)),key=lambda k:self.data.KG1_data.fj_dcn[chan+4].time[k])
+                        self.data.KG1_data.fj_dcn[chan+4].data = self.data.KG1_data.fj_dcn[chan+4].data[index]
 
-            logger.info('marking correction as permanent\n')
+                        logger.info('marking correction as permanent\n')
     # --------------------------
     def check_current_tab(self):
         """
@@ -5909,8 +5915,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 if self.chan <5:
                     logger.info("automatic correction data {}\n ".format(fj.data[indexes_automatic_unique]))
                 else:
-                    if len(self.data.KG1_data.type) !=0:
-                        if self.data.KG1_data.type[self.chan] is not None:
+                    if not self.data.KG1_data.type[self.chan] == 'kg1v':
                             if self.chan in self.data.KG1_data.fj_met.keys():
                                 indexes_automatic_vib, values_automatic_vib = find_within_range(
                                     self.data.KG1_data.fj_met[self.chan].time,
