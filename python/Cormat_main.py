@@ -589,31 +589,31 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
             if args.restore_channel.lower() =='yes':
-                channel = 8
+                channel = 4
 
-                with open('/u/bviola/work/Python/Cormat_py/python/saved/den_chan' + str(channel) + '.pkl',
+                with open('/u/bviola/work/Python/cormat_restore_data/den_chan' + str(channel) + '.pkl',
                           'rb') as f:  # Python 3: open(..., 'rb')
                     [self.data.KG1_data.density[channel]] = pickle.load(f)
                 f.close()
                 if channel > 4:
                     with open(
-                            '/u/bviola/work/Python/Cormat_py/python/saved/vib_chan' + str(channel) + '.pkl',
+                            '/u/bviola/work/Python/cormat_restore_data/saved/vib_chan' + str(channel) + '.pkl',
                             'rb') as f:  # Python 3: open(..., 'rb')
                         [self.data.KG1_data.vibration[channel]] = pickle.load(f)
                     f.close()
-                if os.path.isfile('/u/bviola/work/Python/Cormat_py/python/saved/fj_dcn_chan' + str(channel) + '.pkl'):
+                if os.path.isfile('/u/bviola/work/Python/cormat_restore_data/fj_dcn_chan' + str(channel) + '.pkl'):
                     with open(
-                            '/u/bviola/work/Python/Cormat_py/python/saved/fj_dcn_chan' + str(channel) + '.pkl',
+                            '/u/bviola/work/Python/cormat_restore_data/fj_dcn_chan' + str(channel) + '.pkl',
                             'rb') as f:  # Python 3: open(..., 'rb')
                         [self.data.KG1_data.fj_dcn[channel]] = pickle.load(f)
                     f.close()
-                if os.path.isfile('/u/bviola/work/Python/Cormat_py/python/saved/fj_met_chan' + str(channel) + '.pkl'):
+                if os.path.isfile('/u/bviola/work/Python/cormat_restore_data/fj_met_chan' + str(channel) + '.pkl'):
                     with open(
-                            '/u/bviola/work/Python/Cormat_py/python/saved/fj_met_chan' + str(channel) + '.pkl',
+                            '/u/bviola/work/Python/cormat_restore_data/fj_met_chan' + str(channel) + '.pkl',
                             'rb') as f:  # Python 3: open(..., 'rb')
                         [self.data.KG1_data.fj_met[channel]] = pickle.load(f)
                     f.close()
-                self.data.SF_ch8 = 0
+                self.data.SF_ch4 = 0
                 self.data.data_changed[channel - 1] = False
                 self.data.statusflag_changed[channel - 1] = False
                 # self.update_channel(channel)
@@ -2963,7 +2963,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     for vert in [self.data.NBI_data.start_nbi,
                                  self.data.NBI_data.end_nbi]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
-                                                linewidth=2, color="red")
+                                                linewidth=2, color="r")
             else:
                 logger.info('No NBI marker\n')
 
@@ -2976,7 +2976,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     for vert in [self.data.PELLETS_data.time_pellets]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
-                                                linewidth=2, color="red")
+                                                linewidth=2, color="r")
             else:
                 logger.info('No PELLET marker\n')
         #
@@ -3421,14 +3421,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         del self.data.KG1_data.fj_dcn[chan]
 
             # Corrected FJs for vertical channels
-            if chan <= 4 and chan in self.data.KG1_data.fj_dcn.keys():
+            if chan in self.data.KG1_data.fj_dcn.keys():
 
 
 
                 # DCN fringes
-                if self.data.KG1_data.fj_dcn is not None:
+                # if self.data.KG1_data.fj_dcn is not None:
                     dtype_fc = "FC{}".format(chan)
-                    comment = "DCN FRINGE CORRECTIONS CH.{}".format(chan)
+                    comment = "DCN FRINGE CORR CH.{}".format(chan)
                     write_err, itref_written = write_ppf(self.data.pulse, dda,
                                                          dtype_fc,
                                                          self.data.KG1_data.fj_dcn[
@@ -3453,7 +3453,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         # break
 
             # Vibration data and JXB for lateral channels, and corrected FJ
-            elif chan > 4 and chan in self.data.KG1_data.vibration.keys():
+            if chan > 4 and chan in self.data.KG1_data.vibration.keys():
                 if self.data.KG1_data.vibration is not None:
                     # Vibration
                     dtype_vib = "MIR{}".format(chan)
@@ -3511,18 +3511,18 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     if self.data.KG1_data.fj_met[chan].data.size == 0:
                         del self.data.KG1_data.fj_met[chan]
 
-            elif chan > 4 and chan in self.data.KG1_data.fj_met.keys():
+            if chan in self.data.KG1_data.fj_met.keys():
 
 
                 # MET fringes
-                if self.data.KG1_data.fj_met is not None:
+                # if self.data.KG1_data.fj_met is not None:
                     dtype_fc = "MC{} ".format(chan)
-                    comment = "MET FRINGE CORRECTIONS CH.{}".format(chan)
+                    comment = "MET FRINGE CORR CH.{}".format(chan)
                     write_err, itref_written = write_ppf(self.data.pulse, dda,
                                                          dtype_fc,
                                                          self.data.KG1_data.fj_met[
                                                              chan].data,
-                                                         time=self.fj_met[
+                                                         time=self.data.KG1_data.fj_met[
                                                              chan].time,
                                                          comment=comment,
                                                          unitd=" ", unitt="SEC",
@@ -4127,23 +4127,29 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     self.setcoord(self.chan, reset=True)
         if chan >4:
             if chan + 4 in self.data.KG1_data.fj_dcn.keys():
-                for i, value in enumerate(self.data.KG1_data.density[chan].corrections.time):
-                    found, index = find_in_list_array(self.data.KG1_data.fj_dcn[chan].time, value)
-                    if found:
-                        self.data.KG1_data.fj_dcn[chan].data[index] = \
-                        self.data.KG1_data.density[chan].corrections.data[i]
+                if self.data.KG1_data.density[chan].corrections is not None:
+                    if self.data.KG1_data.density[
+                        chan].corrections.data is None:
+                        logger.warning(
+                            'no corrections to save for ch. {}'.format(chan))
                     else:
-                        self.data.KG1_data.fj_dcn[chan+4].time = np.append(self.data.KG1_data.fj_dcn[chan+4].time,self.data.KG1_data.density[chan+4].corrections.time)
-                        self.data.KG1_data.fj_dcn[chan+4].data = np.append(self.data.KG1_data.fj_dcn[chan+4].data,self.data.KG1_data.density[chan].corrections.data)
-                # self.data.KG1_data.density[chan+4].corrections = SignalBase(
-                #     self.data.constants)
-                # self.data.KG1_data.density[chan + 4].corrections.time = []
-                # self.data.KG1_data.density[chan + 4].corrections.data = []
+                        for i, value in enumerate(self.data.KG1_data.density[chan].corrections.time):
+                            found, index = find_in_list_array(self.data.KG1_data.fj_dcn[chan].time, value)
+                            if found:
+                                self.data.KG1_data.fj_dcn[chan].data[index] = \
+                                self.data.KG1_data.density[chan].corrections.data[i]
+                            else:
+                                self.data.KG1_data.fj_dcn[chan+4].time = np.append(self.data.KG1_data.fj_dcn[chan+4].time,self.data.KG1_data.density[chan+4].corrections.time)
+                                self.data.KG1_data.fj_dcn[chan+4].data = np.append(self.data.KG1_data.fj_dcn[chan+4].data,self.data.KG1_data.density[chan].corrections.data)
+                        # self.data.KG1_data.density[chan+4].corrections = SignalBase(
+                        #     self.data.constants)
+                        # self.data.KG1_data.density[chan + 4].corrections.time = []
+                        # self.data.KG1_data.density[chan + 4].corrections.data = []
 
-                index = sorted(range(len(self.data.KG1_data.fj_dcn[chan+4].time)),key=lambda k:self.data.KG1_data.fj_dcn[chan+4].time[k])
-                self.data.KG1_data.fj_dcn[chan+4].data = self.data.KG1_data.fj_dcn[chan+4].data[index]
+                        index = sorted(range(len(self.data.KG1_data.fj_dcn[chan+4].time)),key=lambda k:self.data.KG1_data.fj_dcn[chan+4].time[k])
+                        self.data.KG1_data.fj_dcn[chan+4].data = self.data.KG1_data.fj_dcn[chan+4].data[index]
 
-            logger.info('marking correction as permanent\n')
+                        logger.info('marking correction as permanent\n')
     # --------------------------
     def check_current_tab(self):
         """
@@ -4189,7 +4195,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.info('suggest correction mode\n')
             self.lineEdit_mancorr.setText("")
             self.getcorrectionpointwidget()
-            self.kb.apply_pressed_signal.connect(self.suggestcorrection)
+            self.kb.apply_pressed_signal.connect(self.suggest_corrections)
+
 
         elif event.key() == Qt.Key_M:
             widget.blockSignals(False)
@@ -4297,7 +4304,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.blockSignals(False)
             return
         if int(self.chan) <5:
-            suggested_den = self.suggestcorrection() # computes suggested correction
+            suggested_den,dummy = self.suggestcorrection() # computes suggested correction
             try:
                 if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                     self.corr_den = int(
@@ -4482,6 +4489,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.kb.apply_pressed_signal.disconnect(self.multiplecorrections)
         self.disconnnet_multiplecorrectionpointswidget()
         self.data.data_changed[self.chan - 1] = True
+        self.lineEdit_mancorr.setText("")
         self.blockSignals(False)
 
 # # -------------------------------
@@ -5736,7 +5744,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                        value,
                                        index))
                         #apply correction
-                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys() :
+                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()) :
                             self.data.KG1_data.density[self.chan].uncorrect_fj(
                                 self.corr_den * self.data.constants.DFR_MET, index=index
                             )
@@ -5744,7 +5752,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         else:
 
                             self.data.KG1_data.density[self.chan].uncorrect_fj(
-                                self.corr_den * self.data.constants.DFR_DCN, index=index
+                                self.corr_den * self.data.constants.DFR_DCN, index=index +1
                             )
 
                         if int(self.chan) > 4: #if is a lateral channel
@@ -5816,13 +5824,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         #
         #     self.blockSignals(False)
         #     return
-        if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
+        if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()):
             size_fj =self.data.KG1_data.fj_met[self.chan].data.size
             fj = self.data.KG1_data.fj_met[self.chan]
+        elif ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_dcn.keys()):
+            size_fj =self.data.KG1_data.fj_dcn[self.chan].data.size
+            fj = self.data.KG1_data.fj_dcn[self.chan]
         elif 'kg1r' in self.data.KG1_data.type[self.chan]:
             size_fj = self.data.KG1_data.fj_dcn[self.chan].data.size
             fj = self.data.KG1_data.fj_dcn[self.chan]
-        else:
+        elif 'kg1v' in self.data.KG1_data.type[self.chan]:
+            size_fj = self.data.KG1_data.fj_dcn[self.chan].data.size
+            fj = self.data.KG1_data.fj_dcn[self.chan]
+        elif '' in self.data.KG1_data.type[self.chan]:
             size_fj = self.data.KG1_data.fj_dcn[self.chan].data.size
             fj = self.data.KG1_data.fj_dcn[self.chan]
 
@@ -5907,8 +5921,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 if self.chan <5:
                     logger.info("automatic correction data {}\n ".format(fj.data[indexes_automatic_unique]))
                 else:
-                    if len(self.data.KG1_data.type) !=0:
-                        if self.data.KG1_data.type[self.chan] is not None:
+                    if not self.data.KG1_data.type[self.chan] == 'kg1v':
                             if self.chan in self.data.KG1_data.fj_met.keys():
                                 indexes_automatic_vib, values_automatic_vib = find_within_range(
                                     self.data.KG1_data.fj_met[self.chan].time,
@@ -6071,10 +6084,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                         self.data.KG1_data.vibration[self.chan].correct_fj(self.mir,index=index,lid=self.corr_vib)
                     else:
-                        if 'kg1r' in self.data.KG1_data.type[self.chan]:
-                            self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_DCN,index=index)
+                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()):
+                            self.data.KG1_data.density[self.chan].correct_fj(
+                                self.corr_den * self.data.constants.DFR_MET,
+                                index=index )
+                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_dcn.keys()):
+                            self.data.KG1_data.density[self.chan].correct_fj(
+                                self.corr_den * self.data.constants.DFR_DCN,
+                                index=index )
+                        # if 'kg1r' in self.data.KG1_data.type[self.chan]:
                         else:
-                            self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_MET,index=index+1)
+                            self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_DCN,index=index +1)
+
+
                         fj.data[i] = self.corr_den
                     vars()[ax_name].axvline(x=value, color='g',
                                             linestyle='--',linewidth=0.25)
@@ -6117,6 +6139,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         module that suggests correction to apply on selected point
         :return:
         """
+
+        next_point = 1
+
+
         if str(self.chan).isdigit() == True:
             # if current channel is a number (1-8 allowed values)
             #then we assign to time and data the values of density for the current channel
@@ -6127,9 +6153,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 index, value = find_nearest(time, coord[0][0]) #get nearest point close to selected point in the time array
 
                 if int(self.chan) <5: # vertical channels
-                    if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
+                    if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()):
                         diff = self.data.KG1_data.density[self.chan].data[
-                                   index + 1] - \
+                                   index + next_point] - \
                                self.data.KG1_data.density[self.chan].data[
                                    index]  # difference between two consecutive points
                         logger.info('difference between points is {}'.format(
@@ -6142,7 +6168,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     # else 'kg1r' in self.data.KG1_data.type[self.chan]:
                     else:
                         diff = self.data.KG1_data.density[self.chan].data[
-                                   index + 1] - \
+                                   index + next_point] - \
                                self.data.KG1_data.density[self.chan].data[
                                    index]  # difference between two consecutive points
                         logger.info('difference between points is {}'.format(
@@ -6152,11 +6178,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         logger.info('\n suggested correction is {}\n'.format(
                             suggest_correction))
 
+
+
                     return suggest_correction,-1
 
                 elif int(self.chan) > 4: # lateral channels
-                    diff_den =  self.data.KG1_data.density[self.chan].data[index+1] - self.data.KG1_data.density[self.chan].data[index]
-                    diff_vib =  self.data.KG1_data.vibration[self.chan].data[index+1] - self.data.KG1_data.vibration[self.chan].data[index]
+                    diff_den =  self.data.KG1_data.density[self.chan].data[index+next_point] - self.data.KG1_data.density[self.chan].data[index]
+                    diff_vib =  self.data.KG1_data.vibration[self.chan].data[index+next_point] - self.data.KG1_data.vibration[self.chan].data[index]
                     logger.info('difference between points is {}/{}'.format(diff_den/1e19,diff_vib*1e6))
 
 
@@ -6168,7 +6196,96 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     suggested_vib = int((suggest_correction[1]))
 
                     logger.info('\n suggested correction is {} , {}\n'.format(suggested_den,suggested_vib))
+
+
                     return suggested_den,  suggested_vib
+
+    # -------------------------------
+    @QtCore.pyqtSlot()
+    def suggest_corrections(self):
+        """
+        module that suggests correction to apply on selected point
+        to be used for suggest correction events
+        :return:
+        """
+        self.blockSignals(True)
+
+        if self.lineEdit_mancorr.text() == "":
+            next_point = 1
+        else:
+            try:
+                next_point = int(self.lineEdit_mancorr.text())
+            except ValueError:
+                next_point = 1
+
+        if str(self.chan).isdigit() == True:
+            # if current channel is a number (1-8 allowed values)
+            # then we assign to time and data the values of density for the current channel
+            self.chan = int(self.chan)
+            time = self.data.KG1_data.density[self.chan].time
+            data = self.data.KG1_data.density[self.chan].data
+            coord = self.setcoord(
+                self.chan)  # get the points selected by the user
+            index, value = find_nearest(time, coord[0][
+                0])  # get nearest point close to selected point in the time array
+
+            if int(self.chan) < 5:  # vertical channels
+                if ('kg1c' in self.data.KG1_data.type[
+                    self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
+                    diff = self.data.KG1_data.density[self.chan].data[
+                               index + next_point] - \
+                           self.data.KG1_data.density[self.chan].data[
+                               index]  # difference between two consecutive points
+                    logger.info('difference between points is {}'.format(
+                        diff / 1e19))
+                    suggest_correction = int(round((
+                            diff / self.data.constants.DFR_MET)))  # check if diff is a fringe jump
+                    logger.info('\n suggested correction is {}\n'.format(
+                        suggest_correction))
+
+                # else 'kg1r' in self.data.KG1_data.type[self.chan]:
+                else:
+                    diff = self.data.KG1_data.density[self.chan].data[
+                               index + next_point] - \
+                           self.data.KG1_data.density[self.chan].data[
+                               index]  # difference between two consecutive points
+                    logger.info('difference between points is {}'.format(
+                        diff / 1e19))
+                    suggest_correction = int(round((
+                            diff / self.data.constants.DFR_DCN)))  # check if diff is a fringe jump
+                    logger.info('\n suggested correction is {}\n'.format(
+                        suggest_correction))
+
+                self.lineEdit_mancorr.setText("")
+                self.kb.apply_pressed_signal.disconnect(self.suggest_corrections)
+                self.blockSignals(False)
+                return
+
+            elif int(self.chan) > 4:  # lateral channels
+                diff_den = self.data.KG1_data.density[self.chan].data[
+                               index + next_point] - \
+                           self.data.KG1_data.density[self.chan].data[index]
+                diff_vib = self.data.KG1_data.vibration[self.chan].data[
+                               index + next_point] - \
+                           self.data.KG1_data.vibration[self.chan].data[index]
+                logger.info(
+                    'difference between points is {}/{}'.format(diff_den / 1e19,
+                                                                diff_vib * 1e6))
+
+                suggest_correction = self.data.Minv.dot(np.array([diff_den,
+                                                                  diff_vib]))  # get suggested correction by solving linear problem Ax=b
+                suggest_correction = np.around(suggest_correction)
+                suggested_den = int((suggest_correction[0]))
+                suggested_vib = int((suggest_correction[1]))
+
+                logger.info(
+                    '\n suggested correction is {} , {}\n'.format(suggested_den,
+                                                                  suggested_vib))
+
+                self.lineEdit_mancorr.setText("")
+                self.kb.apply_pressed_signal.disconnect(self.suggest_corrections)
+                self.blockSignals(False)
+                return
     # -------------------------------
     # @QtCore.pyqtSlot()
     # def stopaction(self):
@@ -6463,7 +6580,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.blockSignals(False)
             return
         if int(self.chan) <5:
-            suggested_den = self.suggestcorrection() # compute correction based on fringe jump on selected point
+            suggested_den,dummy = self.suggestcorrection() # compute correction based on fringe jump on selected point
             try:
                 corr_den = int(self.lineEdit_mancorr.text())
                 if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
@@ -6626,6 +6743,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         self.gettotalcorrections()
         self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
         self.data.data_changed[self.chan - 1] = True
+        self.lineEdit_mancorr.setText("")
         self.blockSignals(False)
 
     # -------------------------------.
