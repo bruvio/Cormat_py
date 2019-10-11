@@ -589,31 +589,31 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
             if args.restore_channel.lower() =='yes':
-                channel = 8
+                channel = 4
 
-                with open('/u/bviola/work/Python/Cormat_py/python/saved/den_chan' + str(channel) + '.pkl',
+                with open('/u/bviola/work/Python/cormat_restore_data/den_chan' + str(channel) + '.pkl',
                           'rb') as f:  # Python 3: open(..., 'rb')
                     [self.data.KG1_data.density[channel]] = pickle.load(f)
                 f.close()
                 if channel > 4:
                     with open(
-                            '/u/bviola/work/Python/Cormat_py/python/saved/vib_chan' + str(channel) + '.pkl',
+                            '/u/bviola/work/Python/cormat_restore_data/saved/vib_chan' + str(channel) + '.pkl',
                             'rb') as f:  # Python 3: open(..., 'rb')
                         [self.data.KG1_data.vibration[channel]] = pickle.load(f)
                     f.close()
-                if os.path.isfile('/u/bviola/work/Python/Cormat_py/python/saved/fj_dcn_chan' + str(channel) + '.pkl'):
+                if os.path.isfile('/u/bviola/work/Python/cormat_restore_data/fj_dcn_chan' + str(channel) + '.pkl'):
                     with open(
-                            '/u/bviola/work/Python/Cormat_py/python/saved/fj_dcn_chan' + str(channel) + '.pkl',
+                            '/u/bviola/work/Python/cormat_restore_data/fj_dcn_chan' + str(channel) + '.pkl',
                             'rb') as f:  # Python 3: open(..., 'rb')
                         [self.data.KG1_data.fj_dcn[channel]] = pickle.load(f)
                     f.close()
-                if os.path.isfile('/u/bviola/work/Python/Cormat_py/python/saved/fj_met_chan' + str(channel) + '.pkl'):
+                if os.path.isfile('/u/bviola/work/Python/cormat_restore_data/fj_met_chan' + str(channel) + '.pkl'):
                     with open(
-                            '/u/bviola/work/Python/Cormat_py/python/saved/fj_met_chan' + str(channel) + '.pkl',
+                            '/u/bviola/work/Python/cormat_restore_data/fj_met_chan' + str(channel) + '.pkl',
                             'rb') as f:  # Python 3: open(..., 'rb')
                         [self.data.KG1_data.fj_met[channel]] = pickle.load(f)
                     f.close()
-                self.data.SF_ch8 = 0
+                self.data.SF_ch4 = 0
                 self.data.data_changed[channel - 1] = False
                 self.data.statusflag_changed[channel - 1] = False
                 # self.update_channel(channel)
@@ -2963,7 +2963,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     for vert in [self.data.NBI_data.start_nbi,
                                  self.data.NBI_data.end_nbi]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
-                                                linewidth=2, color="red")
+                                                linewidth=2, color="r")
             else:
                 logger.info('No NBI marker\n')
 
@@ -2976,7 +2976,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     for vert in [self.data.PELLETS_data.time_pellets]:
                         vars()[ax_name].axvline(x=vert, ymin=0, ymax=1,
-                                                linewidth=2, color="red")
+                                                linewidth=2, color="r")
             else:
                 logger.info('No PELLET marker\n')
         #
@@ -5744,7 +5744,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                        value,
                                        index))
                         #apply correction
-                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys() :
+                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()) :
                             self.data.KG1_data.density[self.chan].uncorrect_fj(
                                 self.corr_den * self.data.constants.DFR_MET, index=index
                             )
@@ -5824,13 +5824,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         #
         #     self.blockSignals(False)
         #     return
-        if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
+        if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()):
             size_fj =self.data.KG1_data.fj_met[self.chan].data.size
             fj = self.data.KG1_data.fj_met[self.chan]
+        elif ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_dcn.keys()):
+            size_fj =self.data.KG1_data.fj_dcn[self.chan].data.size
+            fj = self.data.KG1_data.fj_dcn[self.chan]
         elif 'kg1r' in self.data.KG1_data.type[self.chan]:
             size_fj = self.data.KG1_data.fj_dcn[self.chan].data.size
             fj = self.data.KG1_data.fj_dcn[self.chan]
-        else:
+        elif 'kg1v' in self.data.KG1_data.type[self.chan]:
+            size_fj = self.data.KG1_data.fj_dcn[self.chan].data.size
+            fj = self.data.KG1_data.fj_dcn[self.chan]
+        elif '' in self.data.KG1_data.type[self.chan]:
             size_fj = self.data.KG1_data.fj_dcn[self.chan].data.size
             fj = self.data.KG1_data.fj_dcn[self.chan]
 
@@ -6078,11 +6084,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                         self.data.KG1_data.vibration[self.chan].correct_fj(self.mir,index=index,lid=self.corr_vib)
                     else:
-                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
+                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()):
                             self.data.KG1_data.density[self.chan].correct_fj(
                                 self.corr_den * self.data.constants.DFR_MET,
                                 index=index )
-
+                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_dcn.keys()):
+                            self.data.KG1_data.density[self.chan].correct_fj(
+                                self.corr_den * self.data.constants.DFR_DCN,
+                                index=index )
                         # if 'kg1r' in self.data.KG1_data.type[self.chan]:
                         else:
                             self.data.KG1_data.density[self.chan].correct_fj(self.corr_den * self.data.constants.DFR_DCN,index=index +1)
@@ -6144,7 +6153,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 index, value = find_nearest(time, coord[0][0]) #get nearest point close to selected point in the time array
 
                 if int(self.chan) <5: # vertical channels
-                    if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
+                    if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()):
                         diff = self.data.KG1_data.density[self.chan].data[
                                    index + next_point] - \
                                self.data.KG1_data.density[self.chan].data[
