@@ -30,6 +30,7 @@ class Canvas(FigureCanvas):
         self.ys = {}
         self.cid = self.figure.canvas.mpl_connect('button_press_event', self)
 
+
     def __call__(self, event):
         if event.button == 3:  # right button
             # print('click', event)
