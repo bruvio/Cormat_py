@@ -186,7 +186,7 @@ def pyqt_set_trace():
 def norm(data):
     return (data)/(max(data)-min(data))
 
-def normalise(signal, kg1_signal, dis_time):
+def normalise(signal, kg1_signal, dis_time,xlim1,xlim2):
         """
 
         :param signal:  second trace
@@ -194,16 +194,29 @@ def normalise(signal, kg1_signal, dis_time):
         :param dis_time: disruption time
         :return: Use ratio of maximum of signal - kg1 as the normalisation factor. Exclude region around the disruption.
         """
-        if dis_time > 0:
-                ind_dis, = np.where((kg1_signal.time < dis_time - 1))
 
-                max_kg1 = max(kg1_signal.data[ind_dis])
-        else:
-                max_kg1 = max(kg1_signal.data)
+
+        if (dis_time >0) & (dis_time > xlim2):
+            ind_dis, = np.where((kg1_signal.time < dis_time) & (kg1_signal.time > xlim1) & (kg1_signal.time < xlim2) )
+            max_kg1 = max(kg1_signal.data[ind_dis])
+        elif dis_time <0:
+            ind_dis, = np.where((kg1_signal.time > xlim1) & (
+                            kg1_signal.time < xlim2))
+            max_kg1 = max(kg1_signal.data[ind_dis])
+        elif (dis_time >0) & (dis_time < xlim2) & (dis_time > xlim1):
+            ind_dis, = np.where((kg1_signal.time < dis_time - 1))
+
+            max_kg1 = max(kg1_signal.data[ind_dis])
+        elif (dis_time > 0) & (dis_time < xlim2) & (dis_time < xlim1):
+            ind_dis, = np.where((kg1_signal.time < dis_time - 1))
+
+            max_kg1 = max(kg1_signal.data[ind_dis])
+
+
+
 
         max_signal = max(signal.data)
 
-        #    print("max kg1 {} max signal {}".format(max_kg1, max_signal))
 
         if max_signal == 0:
             logger.warning('divide by 0 ')
@@ -211,9 +224,8 @@ def normalise(signal, kg1_signal, dis_time):
 
 
         norm_factor = max_kg1 / max_signal
-        dummy = np.multiply(signal.data,norm_factor)
 
-        return dummy
+        return norm_factor
 
 def get_seq(shot_no, dda, read_uid="JETPPF"):
     """
@@ -462,4 +474,12 @@ def delete_files_in_folder(folder):
     except:
         return False
     
-                
+# Declare and register callbacks
+def on_xlims_change(ax):
+
+    print("updated xlims: ", ax.get_xlim())
+    return ax.get_xlim()
+
+def on_ylims_change(ax):
+    print("updated ylims: ", ax.get_ylim())
+    return ax.get_ylim()

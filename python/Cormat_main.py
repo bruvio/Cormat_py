@@ -2323,9 +2323,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 self.data.HRTS_data.density[chan].data
                             # self.data.secondtrace_norm[chan].data = norm(self.data.HRTS_data.density[chan].data)
                             try:
-                                self.data.secondtrace_norm[chan].data = normalise(
-                                self.data.HRTS_data.density[chan],
-                                self.data.KG1_data.density[chan], self.data.dis_time)
+                                # self.data.secondtrace_norm[chan].data = normalise(
+                                # self.data.HRTS_data.density[chan],
+                                # self.data.KG1_data.density[chan], self.data.dis_time)
 
                                 vars()[ax_name].plot(self.data.HRTS_data.density[chan].time,
                                                  self.data.HRTS_data.density[chan].data,
@@ -2359,9 +2359,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                             self.data.secondtrace_original[chan].data = \
                                 self.data.LIDAR_data.density[chan].data
                             # self.data.secondtrace_norm[chan].data = norm(self.data.LIDAR_data.density[chan].data)
-                            self.data.secondtrace_norm[chan].data = normalise(
-                                self.data.LIDAR_data.density[chan],
-                                self.data.KG1_data.density[chan], self.data.dis_time)
+                            # self.data.secondtrace_norm[chan].data = normalise(
+                            #     self.data.LIDAR_data.density[chan],
+                            #     self.data.KG1_data.density[chan], self.data.dis_time)
 
                             vars()[ax_name].plot(self.data.LIDAR_data.density[chan].time,
                                                  self.data.LIDAR_data.density[chan].data,
@@ -2394,10 +2394,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 self.data.KG4_data.faraday[
                                     chan].data
                             # self.data.secondtrace_norm[chan].data = norm(self.data.KG4_data.faraday[chan].data)
-                            self.data.secondtrace_norm[chan].data = normalise(
-                                self.data.KG4_data.faraday[chan],
-                                self.data.KG1_data.density[chan],
-                                self.data.dis_time)
+                            # self.data.secondtrace_norm[chan].data = normalise(
+                            #     self.data.KG4_data.faraday[chan],
+                            #     self.data.KG1_data.density[chan],
+                            #     self.data.dis_time)
 
                             vars()[ax_name].plot(self.data.KG4_data.faraday[chan].time,
                                                  self.data.KG4_data.faraday[chan].data,
@@ -2429,10 +2429,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 self.data.KG4_data.density[
                                     chan].data
                             # self.data.secondtrace_norm[chan].data = norm(self.data.KG4_data.faraday[chan].data)
-                            self.data.secondtrace_norm[chan].data = normalise(
-                                self.data.KG4_data.density[chan],
-                                self.data.KG1_data.density[chan],
-                                self.data.dis_time)
+                            # self.data.secondtrace_norm[chan].data = normalise(
+                            #     self.data.KG4_data.density[chan],
+                            #     self.data.KG1_data.density[chan],
+                            #     self.data.dis_time)
 
                             vars()[ax_name].plot(self.data.KG4_data.density[chan].time,
                                                  self.data.KG4_data.density[chan].data,
@@ -2465,10 +2465,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                     chan].data
                             # self.data.secondtrace_norm[chan].data = norm(
                             #     self.data.KG4_data.xg_ell_signal[chan].data)
-                            self.data.secondtrace_norm[chan].data = normalise(
-                                self.data.KG4_data.xg_ell_signal[chan],
-                                self.data.KG1_data.density[chan],
-                                self.data.dis_time)
+                            # self.data.secondtrace_norm[chan].data = normalise(
+                            #     self.data.KG4_data.xg_ell_signal[chan],
+                            #     self.data.KG1_data.density[chan],
+                            #     self.data.dis_time)
 
                             vars()[ax_name].plot(self.data.KG4_data.xg_ell_signal[chan].time,
                                                  self.data.KG4_data.xg_ell_signal[chan].data,
@@ -2499,9 +2499,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                 chan].data
                             # self.data.secondtrace_norm[chan].data = norm(
                             #     self.data.KG1_data.kg1rt[chan].data)
-                            self.data.secondtrace_norm[chan].data = normalise(
-                                self.data.KG1_data.kg1rt[chan], self.data.KG1_data.density[chan],
-                                self.data.dis_time)
+                            # self.data.secondtrace_norm[chan].data = normalise(
+                            #     self.data.KG1_data.kg1rt[chan], self.data.KG1_data.density[chan],
+                            #     self.data.dis_time)
 
                             vars()[ax_name].plot(self.data.KG1_data.kg1rt[chan].time,
                                                  self.data.KG1_data.kg1rt[chan].data,
@@ -2529,10 +2529,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     chan].data
                 # self.data.secondtrace_norm[chan].data = norm(
                 #     self.data.KG1_data.kg1rt[chan].data)
-                self.data.secondtrace_norm[channel].data = normalise(
-                    self.data.KG1_data.density[chan],
-                    self.data.KG1_data.density[channel],
-                    self.data.dis_time)
+                # self.data.secondtrace_norm[channel].data = normalise(
+                #     self.data.KG1_data.density[chan],
+                #     self.data.KG1_data.density[channel],
+                #     self.data.dis_time)
 
                 vars()[ax_name].plot(self.data.KG1_data.density[chan].time,
                                      self.data.KG1_data.density[chan].data,
@@ -3743,54 +3743,102 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.info(' Normalizing\n')
             snd = self.sender()
 
-            self.widget_LID1.figure.clear()
-            self.widget_LID1.draw()
+            xlim1_ax1, xlim2_ax1 =self.widget_LID1.figure.axes[0].get_xlim()
+            ylim1_ax1, ylim2_ax1 =self.widget_LID1.figure.axes[0].get_ylim()
 
-            self.widget_LID2.figure.clear()
-            self.widget_LID2.draw()
+            xlim1_ax2, xlim2_ax2 =self.widget_LID2.figure.axes[0].get_xlim()
+            ylim1_ax2, ylim2_ax2 =self.widget_LID2.figure.axes[0].get_ylim()
 
-            self.widget_LID3.figure.clear()
-            self.widget_LID3.draw()
+            xlim1_ax3, xlim2_ax3 =self.widget_LID3.figure.axes[0].get_xlim()
+            ylim1_ax3, ylim2_ax3 =self.widget_LID3.figure.axes[0].get_ylim()
 
-            self.widget_LID4.figure.clear()
-            self.widget_LID4.draw()
+            xlim1_ax4, xlim2_ax4 =self.widget_LID4.figure.axes[0].get_xlim()
+            ylim1_ax4, ylim2_ax4 =self.widget_LID4.figure.axes[0].get_ylim()
 
-            self.widget_LID5.figure.clear()
-            self.widget_LID5.draw()
+            xlim1_ax5, xlim2_ax5 =self.widget_LID5.figure.axes[0].get_xlim()
+            ylim1_ax5, ylim2_ax5 =self.widget_LID5.figure.axes[0].get_ylim()
 
-            self.widget_LID6.figure.clear()
-            self.widget_LID6.draw()
+            xlim1_ax6, xlim2_ax6 =self.widget_LID6.figure.axes[0].get_xlim()
+            ylim1_ax6, ylim2_ax6 =self.widget_LID6.figure.axes[0].get_ylim()
 
-            self.widget_LID7.figure.clear()
-            self.widget_LID7.draw()
+            xlim1_ax7, xlim2_ax7 =self.widget_LID7.figure.axes[0].get_xlim()
+            ylim1_ax7, ylim2_ax7 =self.widget_LID7.figure.axes[0].get_ylim()
 
-            self.widget_LID8.figure.clear()
-            self.widget_LID8.draw()
+            xlim1_ax8, xlim2_ax8 =self.widget_LID8.figure.axes[0].get_xlim()
+            ylim1_ax8, ylim2_ax8 =self.widget_LID8.figure.axes[0].get_ylim()
 
-            heights = [4]
-            gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
-            heights1 = [3, 3]
-            gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
+            widget1 = self.widget_LID1
+            widget2 = self.widget_LID2
+            widget3 = self.widget_LID3
+            widget4 = self.widget_LID4
+            widget5 = self.widget_LID5
+            widget6 = self.widget_LID6
+            widget7 = self.widget_LID7
+            widget8 = self.widget_LID8
 
-            ax1 = self.widget_LID1.figure.add_subplot(gs[0])
+            # ax_name = 'ax' + str(chan)
+            # ax_name1 = 'ax' + str(chan) + str(1)
+            ax1 = self.ax1
+            ax2 = self.ax2
+            ax3 = self.ax3
+            ax4 = self.ax4
+            ax5 = self.ax5
+            ax6 = self.ax6
+            ax7 = self.ax7
+            ax8 = self.ax8
 
-            ax2 = self.widget_LID2.figure.add_subplot(gs[0])
 
-            ax3 = self.widget_LID3.figure.add_subplot(gs[0])
+            # self.widget_LID1.figure.clear()
+            # self.widget_LID1.draw()
+            #
+            # self.widget_LID2.figure.clear()
+            # self.widget_LID2.draw()
+            #
+            # self.widget_LID3.figure.clear()
+            # self.widget_LID3.draw()
+            #
+            # self.widget_LID4.figure.clear()
+            # self.widget_LID4.draw()
+            #
+            # self.widget_LID5.figure.clear()
+            # self.widget_LID5.draw()
+            #
+            # self.widget_LID6.figure.clear()
+            # self.widget_LID6.draw()
+            #
+            # self.widget_LID7.figure.clear()
+            # self.widget_LID7.draw()
+            #
+            # self.widget_LID8.figure.clear()
+            # self.widget_LID8.draw()
+            #
+            # heights = [4]
+            # gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
+            # heights1 = [3, 3]
+            # gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
+            #
+            # ax1 = self.widget_LID1.figure.add_subplot(gs[0])
+            #
+            # ax2 = self.widget_LID2.figure.add_subplot(gs[0])
+            #
+            # ax3 = self.widget_LID3.figure.add_subplot(gs[0])
+            #
+            # ax4 = self.widget_LID4.figure.add_subplot(gs[0])
+            #
+            # ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
+            # ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
+            #
+            # ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
+            # ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
+            #
+            # ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
+            # ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
+            #
+            # ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
+            # ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
 
-            ax4 = self.widget_LID4.figure.add_subplot(gs[0])
 
-            ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
-            ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
 
-            ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
-            ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
-
-            ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
-            ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
-
-            ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
-            ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
 
             # ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
             # ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
@@ -3798,106 +3846,110 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             #
             # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
             # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
-            if self.data.s2ndtrace == 'HRTS':
+            if self.data.s2ndtrace == 'None':
+                logger.info('no second trace selected\n')
+            elif self.data.s2ndtrace == 'HRTS':
                 color = 'orange'
-            if self.data.s2ndtrace == 'Lidar':
+                name = 'HRTS ch.' + str(self.chan)
+                data = self.data.HRTS_data.density
+            elif self.data.s2ndtrace == 'Lidar':
                 color = 'green'
-            if self.data.s2ndtrace == 'Far':
+                name = 'Lidar ch.' + str(self.chan)
+                data = self.data.LIDAR_data.density
+            elif self.data.s2ndtrace == 'Far':
                 color = 'red'
-            if self.data.s2ndtrace == 'KG4R':
+                name = 'Far ch.' + str(self.chan)
+                data = self.data.KG4_data.faraday
+            elif self.data.s2ndtrace == 'KG4R':
                 color = 'black'
-            if self.data.s2ndtrace == 'CM':
+                name = 'KG4R ch.' + str(self.chan)
+                data = self.data.KG4_data.density
+            elif self.data.s2ndtrace == 'CM':
                 color = 'purple'
-            if self.data.s2ndtrace == 'KG1_RT':
+                name = 'CM ch.' + str(self.chan)
+                data = self.data.KG4_data.xg_ell_signal
+            elif self.data.s2ndtrace == 'KG1_RT':
                 color = 'brown'
-            if self.data.s2ndtrace == 'BremS':
+                name = 'KG1_RT ch.' + str(self.chan)
+                data = self.data.KG1_data.kg1rt
+            elif self.data.s2ndtrace == 'BremS':
                 color = 'grey'
-            if self.data.s2ndtrace[0:3] == 'LID':
+                name = 'HRTS ch.' + str(self.chan)
+                return
+            elif self.data.s2ndtrace[0:3] == 'LID':
                 color = 'cyan'
+                name = 'LID ch.' + str(self.chan)
+                data = self.data.KG1_data.density
 
 
-            # for every channel in KG1 (8 channels)
 
-            for chan in self.data.KG1_data.density.keys():
-                ax_name = 'ax' + str(chan)
-                name = 'LID' + str(chan)
-                vars()[ax_name].plot(self.data.KG1_data.density[chan].time,
-                                     self.data.KG1_data.density[chan].data,
-                                     # kg1_norm
-                                     label=name, marker='x', color='b',
-                                     linestyle='None')
-                vars()[ax_name].legend()
+            # check second trace data exists
+            if data is not None:
+                if len(data) == 0:
 
-                if self.data.s2ndtrace[0:3] == 'LID':
-                    name = self.data.s2ndtrace
+                    logging.warning(
+                        'no {} data'.format(self.data.s2ndtrace))
                 else:
-                    name = self.data.s2ndtrace + ' ch.' + str(chan)
-                vars()[ax_name].plot(self.data.secondtrace_original[chan].time,
-                                     self.data.secondtrace_norm[chan].data,
-                                     label=name, marker='o',
-                                     color=color)
-                vars()[ax_name].legend()
+                    # for chan in self.data.HRTS_data.density.keys():
+                        if self.chan in data.keys():
+                            widget_name = 'widget' + str(self.chan)
+                            lim1 = 'xlim1_ax' + str(self.chan)
+                            lim2 = 'xlim2_ax' + str(self.chan)
+
+                            ax_name = 'ax' + str(self.chan)
+
+                            # noinspection PyUnusedLocal
 
 
-                if chan > 4:
-                    # channels 5-8 have mirror movement
-                    name1 = 'MIR' + str(chan)
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    vars()[ax_name1].plot(self.data.KG1_data.vibration[chan].time,
-                                          self.data.KG1_data.vibration[
-                                              chan].data * 1e6,
-                                          marker='x', label=name1, color='b',
-                                          linestyle='None')
-                    vars()[ax_name1].legend()
+                            self.data.secondtrace_original[
+                                self.chan] = SignalBase(
+                                self.data.constants)
+                            self.data.secondtrace_norm[self.chan] = SignalBase(
+                                self.data.constants)
 
-            for chan in self.data.KG1_data.fj_dcn.keys():
-                if chan < 9:
-                    ax_name = 'ax' + str(chan)
-                    name = 'LID' + str(chan)
-                    widget_name = 'widget_LID' + str(chan)
-                    xposition = self.data.KG1_data.fj_dcn[chan].time
-                    for xc in xposition:
-                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
-                else:
-                    ax_name = 'ax' + str(chan - 4) + str(1)
-                    name = 'LID' + str(chan - 4)
-                    widget_name = 'widget_LID' + str(chan)
-                    xposition = self.data.KG1_data.fj_dcn[chan].time
-                    for xc in xposition:
-                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
-            for chan in self.data.KG1_data.fj_met.keys():
-                if chan < 5:
-                    ax_name = 'ax' + str(chan)
-                    name = 'LID' + str(chan)
-                    widget_name = 'widget_LID' + str(chan)
-                    xposition = self.data.KG1_data.fj_met[chan].time
-                    for xc in xposition:
-                        vars()[ax_name].axvline(x=xc, color='c', linestyle='--')
+                            self.data.secondtrace_original[self.chan].time = \
+                                data[self.chan].time
+                            self.data.secondtrace_original[self.chan].data = \
+                                data[self.chan].data
+                            # self.data.secondtrace_norm[chan].data = norm(self.data.HRTS_data.density[chan].data)
+                            try:
+                                norm_factor = normalise(
+                                    data[self.chan],
+                                    self.data.KG1_data.density[self.chan],
+                                    self.data.dis_time, vars()[lim1], vars()[lim2])
 
-                else:
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                                # del vars()[ax_name].lines[:-1]
+                                count = 0
+                                for line in vars()[ax_name].lines:
 
-                    xposition = self.data.KG1_data.fj_met[chan].time
-                    for xc in xposition:
-                        vars()[ax_name1].axvline(x=xc, color='c',
-                                                 linestyle='--')
+                                    # print(count, line.get_label())
+                                    if line.get_label() == name:
 
+                                        del     vars()[ax_name].lines[count]
+                                    count = count + 1
+                                self.data.secondtrace_norm[
+                                    self.chan].data = np.multiply(data[self.chan].data,norm_factor)
+                                vars()[ax_name].plot(self.data.secondtrace_original[self.chan].time,
+                                    self.data.secondtrace_norm[self.chan].data,
+                                             label=name, marker='o',
+                                             color=color)
 
-            # update canvas
-            self.widget_LID1.draw()
-            self.widget_LID2.draw()
-            self.widget_LID3.draw()
-            self.widget_LID4.draw()
-            self.widget_LID5.draw()
-            self.widget_LID6.draw()
-            self.widget_LID7.draw()
-            self.widget_LID8.draw()
-            # self.widget_LID_14.draw()
-            # self.widget_LID_ALL.draw()
-            # self.widget_LID_58.draw()
-            # self.widget_MIR.draw()
-            logger.info(' signals have been normalized\n')
+                                # vars()[ax_name].lines[1].set_color(color)
+                                # vars()[ax_name].legend()
+
+                                vars()[widget_name].draw()
+                                vars()[widget_name].flush_events()
+                                # vars()[widget_name].blockSignals(True)
+
+                            except:
+                                logger.error(
+                                    'is not possible to plot HRTS for channel {}'.format(
+                                        self.chan))
+
+            else:
+                logging.warning('no {} data'.format(self.data.s2ndtrace))
+
+        logger.info(' signals have been normalized\n')
 
     # ------------------------
     def handle_button_restore(self):
