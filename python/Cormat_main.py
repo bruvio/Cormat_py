@@ -6139,7 +6139,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()):
                             self.data.KG1_data.density[self.chan].correct_fj(
                                 self.corr_den * self.data.constants.DFR_MET,
-                                index=index )
+                                index=index+1 )
                         if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_dcn.keys()):
                             self.data.KG1_data.density[self.chan].correct_fj(
                                 self.corr_den * self.data.constants.DFR_DCN,
@@ -6283,7 +6283,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             if int(self.chan) < 5:  # vertical channels
                 if ('kg1c' in self.data.KG1_data.type[
-                    self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
+                    self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()):
                     diff = self.data.KG1_data.density[self.chan].data[
                                index + next_point] - \
                            self.data.KG1_data.density[self.chan].data[
@@ -6292,6 +6292,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         diff / 1e19))
                     suggest_correction = int(round((
                             diff / self.data.constants.DFR_MET)))  # check if diff is a fringe jump
+                    logger.info('\n suggested correction is {}\n'.format(
+                        suggest_correction))
+                elif ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_dcn.keys()):
+                    diff = self.data.KG1_data.density[self.chan].data[
+                               index + next_point] - \
+                           self.data.KG1_data.density[self.chan].data[
+                               index]  # difference between two consecutive points
+                    logger.info('difference between points is {}'.format(
+                        diff / 1e19))
+                    suggest_correction = int(round((
+                            diff / self.data.constants.DFR_DCN)))  # check if diff is a fringe jump
                     logger.info('\n suggested correction is {}\n'.format(
                         suggest_correction))
 
