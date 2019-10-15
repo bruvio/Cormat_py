@@ -6140,7 +6140,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                             self.data.KG1_data.density[self.chan].correct_fj(
                                 self.corr_den * self.data.constants.DFR_MET,
                                 index=index+1 )
-                        if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_dcn.keys()):
+                        elif ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_dcn.keys()):
                             self.data.KG1_data.density[self.chan].correct_fj(
                                 self.corr_den * self.data.constants.DFR_DCN,
                                 index=index )
@@ -7446,7 +7446,7 @@ def main():
     # time.sleep(3.0)
 
     MainWindow.show()
-    # MainWindow.resize(480, 360)
+    #MainWindow.resize(480, 360)
     # MainWindow.resize(screenShape.width(), screenShape.height())
 
     # MainWindow.showMaximized()
