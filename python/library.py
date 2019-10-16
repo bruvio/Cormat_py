@@ -197,25 +197,28 @@ def normalise(signal, kg1_signal, dis_time,xlim1,xlim2):
 
 
         if (dis_time >0) & (dis_time > xlim2):
+            ind_dis_signal, = np.where((signal.time < dis_time) & (signal.time > xlim1) & (signal.time < xlim2) )
             ind_dis, = np.where((kg1_signal.time < dis_time) & (kg1_signal.time > xlim1) & (kg1_signal.time < xlim2) )
-            max_kg1 = max(kg1_signal.data[ind_dis])
+
         elif dis_time <0:
             ind_dis, = np.where((kg1_signal.time > xlim1) & (
                             kg1_signal.time < xlim2))
-            max_kg1 = max(kg1_signal.data[ind_dis])
+            ind_dis_signal, = np.where((signal.time > xlim1) & (
+                    signal.time < xlim2))
+
         elif (dis_time >0) & (dis_time < xlim2) & (dis_time > xlim1):
             ind_dis, = np.where((kg1_signal.time < dis_time - 1))
+            ind_dis_signal, = np.where((signal.time < dis_time - 1))
 
-            max_kg1 = max(kg1_signal.data[ind_dis])
+
         elif (dis_time > 0) & (dis_time < xlim2) & (dis_time < xlim1):
             ind_dis, = np.where((kg1_signal.time < dis_time - 1))
-
-            max_kg1 = max(kg1_signal.data[ind_dis])
-
+            ind_dis_signal, = np.where((signal.time < dis_time - 1))
 
 
 
-        max_signal = max(signal.data)
+        max_kg1 = max(kg1_signal.data[ind_dis])
+        max_signal = max(signal.data[ind_dis_signal])
 
 
         if max_signal == 0:
