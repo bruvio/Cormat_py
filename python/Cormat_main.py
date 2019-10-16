@@ -3957,158 +3957,107 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         function that restores signals to original amplitude
         :return:
         """
+        widget1 = self.widget_LID1
+        widget2 = self.widget_LID2
+        widget3 = self.widget_LID3
+        widget4 = self.widget_LID4
+        widget5 = self.widget_LID5
+        widget6 = self.widget_LID6
+        widget7 = self.widget_LID7
+        widget8 = self.widget_LID8
+
+        # ax_name = 'ax' + str(chan)
+        # ax_name1 = 'ax' + str(chan) + str(1)
+        ax1 = self.ax1
+        ax2 = self.ax2
+        ax3 = self.ax3
+        ax4 = self.ax4
+        ax5 = self.ax5
+        ax6 = self.ax6
+        ax7 = self.ax7
+        ax8 = self.ax8
 
         if self.data.s2ndtrace == 'None':
             pass
         else:
             logger.info('restoring signals to original amplitude\n')
-            snd = self.sender()
 
-            self.widget_LID1.figure.clear()
-            self.widget_LID1.draw()
 
-            self.widget_LID2.figure.clear()
-            self.widget_LID2.draw()
-
-            self.widget_LID3.figure.clear()
-            self.widget_LID3.draw()
-
-            self.widget_LID4.figure.clear()
-            self.widget_LID4.draw()
-
-            self.widget_LID5.figure.clear()
-            self.widget_LID5.draw()
-
-            self.widget_LID6.figure.clear()
-            self.widget_LID6.draw()
-
-            self.widget_LID7.figure.clear()
-            self.widget_LID7.draw()
-
-            self.widget_LID8.figure.clear()
-            self.widget_LID8.draw()
-
-            heights = [4]
-            gs = gridspec.GridSpec(ncols=1, nrows=1, height_ratios=heights)
-            heights1 = [3, 3]
-            gs1 = gridspec.GridSpec(ncols=1, nrows=2, height_ratios=heights1)
-
-            ax1 = self.widget_LID1.figure.add_subplot(gs[0])
-
-            ax2 = self.widget_LID2.figure.add_subplot(gs[0])
-
-            ax3 = self.widget_LID3.figure.add_subplot(gs[0])
-
-            ax4 = self.widget_LID4.figure.add_subplot(gs[0])
-
-            ax5 = self.widget_LID5.figure.add_subplot(gs1[0])
-            ax51 = self.widget_LID5.figure.add_subplot(gs1[1], sharex=ax5)
-
-            ax6 = self.widget_LID6.figure.add_subplot(gs1[0])
-            ax61 = self.widget_LID6.figure.add_subplot(gs1[1], sharex=ax6)
-
-            ax7 = self.widget_LID7.figure.add_subplot(gs1[0])
-            ax71 = self.widget_LID7.figure.add_subplot(gs1[1], sharex=ax7)
-
-            ax8 = self.widget_LID8.figure.add_subplot(gs1[0])
-            ax81 = self.widget_LID8.figure.add_subplot(gs1[1], sharex=ax8)
-
-            # ax_all = self.widget_LID_ALL.figure.add_subplot(gs[0])
-            # ax_14 = self.widget_LID_14.figure.add_subplot(gs[0])
-            # ax_58 = self.widget_LID_58.figure.add_subplot(gs[0])
-            #
-            # ax_mir = self.widget_MIR.figure.add_subplot(gs[0])
             if self.data.s2ndtrace == 'HRTS':
                 color = 'orange'
-            if self.data.s2ndtrace == 'Lidar':
+                name = 'HRTS ch.' + str(self.chan)
+                data = self.data.HRTS_data.density
+            elif self.data.s2ndtrace == 'Lidar':
                 color = 'green'
-            if self.data.s2ndtrace == 'Far':
+                name = 'Lidar ch.' + str(self.chan)
+                data = self.data.LIDAR_data.density
+            elif self.data.s2ndtrace == 'Far':
                 color = 'red'
-            if self.data.s2ndtrace == 'KG4R':
+                name = 'Far ch.' + str(self.chan)
+                data = self.data.KG4_data.faraday
+            elif self.data.s2ndtrace == 'KG4R':
                 color = 'black'
-            if self.data.s2ndtrace == 'CM':
+                name = 'KG4R ch.' + str(self.chan)
+                data = self.data.KG4_data.density
+            elif self.data.s2ndtrace == 'CM':
                 color = 'purple'
-            if self.data.s2ndtrace == 'KG1_RT':
+                name = 'CM ch.' + str(self.chan)
+                data = self.data.KG4_data.xg_ell_signal
+            elif self.data.s2ndtrace == 'KG1_RT':
                 color = 'brown'
-            if self.data.s2ndtrace == 'BremS':
+                name = 'KG1_RT ch.' + str(self.chan)
+                data = self.data.KG1_data.kg1rt
+            elif self.data.s2ndtrace == 'BremS':
                 color = 'grey'
-            # for every channel in KG1 (8 channels)
+                name = 'HRTS ch.' + str(self.chan)
+                return
+            elif self.data.s2ndtrace[0:3] == 'LID':
+                color = 'cyan'
+                name = 'LID ch.' + str(self.chan)
+                data = self.data.KG1_data.density
 
-            for chan in self.data.KG1_data.density.keys():
-                ax_name = 'ax' + str(chan)
-                name = 'LID' + str(chan)
-                vars()[ax_name].plot(self.data.KG1_data.density[chan].time,
-                                     self.data.KG1_data.density[chan].data,
-                                     label=name, marker='x', color='b',
-                                     linestyle='None')
-                vars()[ax_name].legend()
+            if data is not None:
+                if len(data) == 0:
 
-                name = self.data.s2ndtrace + ' ch.' + str(chan)
-                vars()[ax_name].plot(self.data.secondtrace_original[chan].time,
-                                     self.data.secondtrace_original[chan].data,
-                                     label=name, marker='o',
-                                     color=color)
-                vars()[ax_name].legend()
-                # self.widget_LID1.draw()
-
-                if chan > 4:
-                    # channels 5-8 have mirror movement
-                    name1 = 'MIR' + str(chan)
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    vars()[ax_name1].plot(self.data.KG1_data.vibration[chan].time,
-                                          self.data.KG1_data.vibration[
-                                              chan].data * 1e6,
-                                          marker='x', label=name1, color='b',
-                                          linestyle='None')
-                    vars()[ax_name1].legend()
-
-            for chan in self.data.KG1_data.fj_dcn.keys():
-                if chan < 9:
-                    ax_name = 'ax' + str(chan)
-                    name = 'LID' + str(chan)
-                    widget_name = 'widget_LID' + str(chan)
-                    xposition = self.data.KG1_data.fj_dcn[chan].time
-                    for xc in xposition:
-                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
+                    logging.warning(
+                        'no {} data'.format(self.data.s2ndtrace))
                 else:
-                    ax_name = 'ax' + str(chan - 4) + str(1)
-                    name = 'LID' + str(chan - 4)
-                    widget_name = 'widget_LID' + str(chan)
-                    xposition = self.data.KG1_data.fj_dcn[chan].time
-                    for xc in xposition:
-                        vars()[ax_name].axvline(x=xc, color='y', linestyle='--')
-            for chan in self.data.KG1_data.fj_met.keys():
-                if chan < 5:
-                    ax_name = 'ax' + str(chan)
-                    name = 'LID' + str(chan)
-                    widget_name = 'widget_LID' + str(chan)
-                    xposition = self.data.KG1_data.fj_met[chan].time
-                    for xc in xposition:
-                        vars()[ax_name].axvline(x=xc, color='c', linestyle='--')
+                    # for chan in self.data.HRTS_data.density.keys():
+                    try:
+                        if self.chan in data.keys():
+                            widget_name = 'widget' + str(self.chan)
+                            ax_name = 'ax' + str(self.chan)
+                            count = 0
+                            for line in vars()[ax_name].lines:
 
-                else:
-                    ax_name1 = 'ax' + str(chan) + str(1)
-                    widget_name1 = 'widget_LID' + str(chan) + str(1)
+                                # print(count, line.get_label())
+                                if line.get_label() == name:
+                                    del vars()[ax_name].lines[count]
+                                count = count + 1
 
-                    xposition = self.data.KG1_data.fj_met[chan].time
-                    for xc in xposition:
-                        vars()[ax_name1].axvline(x=xc, color='c',
-                                                 linestyle='--')
+                            vars()[ax_name].plot(
+                                self.data.secondtrace_original[self.chan].time,
+                                self.data.secondtrace_original[self.chan].data,
+                                label=name, marker='o',
+                                color=color)
 
-            # update canvas
-            self.widget_LID1.draw()
-            self.widget_LID2.draw()
-            self.widget_LID3.draw()
-            self.widget_LID4.draw()
-            self.widget_LID5.draw()
-            self.widget_LID6.draw()
-            self.widget_LID7.draw()
-            self.widget_LID8.draw()
-            # self.widget_LID_14.draw()
-            # self.widget_LID_ALL.draw()
-            # self.widget_LID_58.draw()
-            # self.widget_MIR.draw()
-            logger.info('signals have been restored\n')
+                            # vars()[ax_name].lines[1].set_color(color)
+                            # vars()[ax_name].legend()
+
+                            vars()[widget_name].draw()
+                            vars()[widget_name].flush_events()
+                            # vars()[widget_name].blockSignals(True)
+
+                    except:
+                        logger.error(
+                            'is not possible to plot HRTS for channel {}'.format(
+                                self.chan))
+
+            else:
+                logging.warning('no {} data'.format(self.data.s2ndtrace))
+
+            logger.info(' signals have been restored\n')
+
 
 
 
