@@ -127,6 +127,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             self.data = SimpleNamespace() # dictionary object that contains all data
 
+            #checking if user asked to
+            # delete data from scratch and saved folder
+            if args.erase_data.lower() == 'yes':
+                folders=['scratch','saved']
+                for folder in folders:
+                    for the_file in os.listdir(folder):
+                        file_path = os.path.join(folder, the_file)
+                        try:
+                            if os.path.isfile(file_path):
+                                os.unlink(file_path)
+                            elif os.path.isdir(file_path): shutil.rmtree(file_path)
+                        except Exception as e:
+                            logger.error('error while deleting file(s) \n {} \n'.format(e))
+
             # -------------------------------
             # check if kg1 is stored in workspace
             # -------------------------------
@@ -589,37 +603,36 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
             if args.restore_channel.lower() =='yes':
-                channel = 4
-
-                with open('/u/bviola/work/Python/cormat_restore_data/den_chan' + str(channel) + '.pkl',
-                          'rb') as f:  # Python 3: open(..., 'rb')
-                    [self.data.KG1_data.density[channel]] = pickle.load(f)
-                f.close()
-                if channel > 4:
-                    with open(
-                            '/u/bviola/work/Python/cormat_restore_data/saved/vib_chan' + str(channel) + '.pkl',
-                            'rb') as f:  # Python 3: open(..., 'rb')
-                        [self.data.KG1_data.vibration[channel]] = pickle.load(f)
-                    f.close()
-                if os.path.isfile('/u/bviola/work/Python/cormat_restore_data/fj_dcn_chan' + str(channel) + '.pkl'):
-                    with open(
-                            '/u/bviola/work/Python/cormat_restore_data/fj_dcn_chan' + str(channel) + '.pkl',
-                            'rb') as f:  # Python 3: open(..., 'rb')
-                        [self.data.KG1_data.fj_dcn[channel]] = pickle.load(f)
-                    f.close()
-                if os.path.isfile('/u/bviola/work/Python/cormat_restore_data/fj_met_chan' + str(channel) + '.pkl'):
-                    with open(
-                            '/u/bviola/work/Python/cormat_restore_data/fj_met_chan' + str(channel) + '.pkl',
-                            'rb') as f:  # Python 3: open(..., 'rb')
-                        [self.data.KG1_data.fj_met[channel]] = pickle.load(f)
-                    f.close()
-                self.data.SF_ch4 = 0
-                self.data.data_changed[channel - 1] = False
-                self.data.statusflag_changed[channel - 1] = False
-                # self.update_channel(channel)
-                self.save_kg1('scratch')
-                raise SystemExit
-
+                channel = int(args.channel)
+                if (channel>0) & (channel<9) & (channel in self.data.KG1_data.density.keys()):
+                    try:
+                        with open('/u/'+self.owner+'/work/Python/saved/den_chan' + str(channel) + '.pkl',
+                                  'rb') as f:  # Python 3: open(..., 'rb')
+                            [self.data.KG1_data.density[channel]] = pickle.load(f)
+                        f.close()
+                        if channel > 4:
+                            # with open('/u/'+self.owner+'/work/Python/cormat_restore_data/saved/vib_chan' + str(channel) + '.pkl',[self.data.KG1_data.vibration[channel]] = pickle.load(f)
+                            with open('/u/'+self.owner+'/work/Python/saved/vib_chan' + str(channel) + '.pkl','rb') as f:
+                                [self.data.KG1_data.vibration[channel]] = pickle.load(f)
+                            f.close()
+                        if os.path.isfile('/u/'+self.owner+'/work/Python/saved/fj_dcn_chan' + str(channel) + '.pkl'):
+                            # with open('/u/'+self.owner+'/work/Python/cormat_restore_data/fj_dcn_chan' + str(channel) + '.pkl','rb') as f:  # Python 3: open(..., 'rb')
+                            with open('/u/'+self.owner+'/work/Python/saved/fj_dcn_chan' + str(channel) + '.pkl','rb') as f:  # Python 3: open(..., 'rb')
+                                [self.data.KG1_data.fj_dcn[channel]] = pickle.load(f)
+                            f.close()
+                        if os.path.isfile('/u/'+self.owner+'/work/Python/saved/fj_met_chan' + str(channel) + '.pkl'):
+                            # with open('/u/'+self.owner+'/work/Python/cormat_restore_data/fj_met_chan' + str(channel) + '.pkl','rb') as f:  # Python 3: open(..., 'rb')
+                            with open('/u/'+self.owner+'/work/Python/saved/fj_met_chan' + str(channel) + '.pkl','rb') as f:  # Python 3: open(..., 'rb')
+                                [self.data.KG1_data.fj_met[channel]] = pickle.load(f)
+                            f.close()
+                        self.data.SF_ch4 = 0
+                        self.data.data_changed[channel - 1] = False
+                        self.data.statusflag_changed[channel - 1] = False
+                        # self.update_channel(channel)
+                        self.save_kg1('scratch')
+                        raise SystemExit
+                    except:
+                        logger.error('check folders where you stored data to be used.')
             # self.data.data_changed =  np.full(8,True,dtype=bool)
             # self.data.statusflag_changed = np.full(8,True,dtype=bool)
             # self.data.saved = False
@@ -6595,7 +6608,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             suggested_den,dummy = self.suggestcorrection() # compute correction based on fringe jump on selected point
             try:
                 corr_den = int(self.lineEdit_mancorr.text())
-                if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
+                if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()):
                     self.corr_den = int(
                         self.lineEdit_mancorr.text()) * self.data.constants.DFR_MET  # convert fringe jump into density
                 # elif 'kg1r' in self.data.KG1_data.type[self.chan]:
@@ -7427,7 +7440,8 @@ if __name__ == '__main__':
                         help="Make documentation. yes/no", default='no')
 
     parser.add_argument("-r", "--restore_channel",type=str,help=" restore channel to original value. yes/no",default='no')
-
+    parser.add_argument("-c","--channel",type=int,help='channel to be restored', default=0)
+    parser.add_argument("-e","--erase_data",type=str,help=" remove stored data from scratch and saved folders. yes/no",default='no')
     args = parser.parse_args(sys.argv[1:])
 
 
