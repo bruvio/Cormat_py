@@ -120,15 +120,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
         """
-        try:
 
+        try:
             super(CORMAT_GUI, self).__init__(parent)
             self.setupUi(self)
+            self.data = SimpleNamespace()  # dictionary object that contains all data
+        except:
+            logger.error('error in super init')
+            raise SystemExit('Exiting')
 
-            self.data = SimpleNamespace() # dictionary object that contains all data
 
             #checking if user asked to
             # delete data from scratch and saved folder
+        try:
+
             if args.erase_data.lower() == 'yes':
                 folders=['scratch','saved']
                 for folder in folders:
@@ -140,10 +145,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                             elif os.path.isdir(file_path): shutil.rmtree(file_path)
                         except Exception as e:
                             logger.error('error while deleting file(s) \n {} \n'.format(e))
-
+        except:
+            logger.errro('Error in erase data')
+            raise SystemExit('Exiting')
             # -------------------------------
             # check if kg1 is stored in workspace
             # -------------------------------
+        try:
             exists = os.path.isfile('./scratch/kg1_data.pkl')
 
             if exists :
@@ -172,7 +180,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                         except:
                             logger.error('failed to read data from workspace!')
+        except:
+            logger.error('Error loading data from workspace')
+            raise SystemExit('Exiting')
 
+        try:
             self.lineEdit_jpn_seq.setText(str(0))
             # -------------------------------
             # backup for kg1 data
@@ -287,6 +299,23 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # set tabwidget index to 0 - lid1 is the tab shown at startup
             # self.tabWidget.setCurrentWidget(self.tabWidget.findChild(tabWidget, 'tab_LID1'))
             self.tabWidget.setCurrentIndex(0)
+
+            # setting up correction matrix
+            self.data.poss_ne_corr = np.array([self.data.constants.CORR_NE]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_NE)).transpose()
+            self.data.poss_vib_corr = np.array([self.data.constants.CORR_VIB]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_VIB)).transpose()
+            self.data.poss_dcn_corr = np.array([self.data.constants.FJ_DCN]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_DCN)).transpose()
+            self.data.poss_met_corr = np.array([self.data.constants.FJ_MET]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_MET)).transpose()
+
+            # matrix for converting DCN & MET signals into density & mirror movement
+            self.data.matrix_lat_channels = np.array([[self.data.constants.MAT11 , self.data.constants.MAT12 ],[self.data.constants.MAT21 , self.data.constants.MAT22 ]])
+            self.data.Minv= np.linalg.inv(self.data.matrix_lat_channels)  # invert correction matrix for lateral channels
+
+
+            self.data.sign_vib_corr = np.array(np.zeros(self.data.poss_vib_corr.shape) + 1)
+            self.data.sign_vib_corr[np.where(self.data.poss_vib_corr < 0.0)] = -1
+
+
+
             # -------------------------------
             # initialising folders
             # -------------------------------
@@ -315,6 +344,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.info(' copying to local user profile \n')
             logger.log(5, 'we are in %s', cwd)
 
+        except:
+            logger.error('Error in main init')
+
+        try:
             # -------------------------------
             # Read  config self.data.
             # -------------------------------
@@ -322,27 +355,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # test_logger()
             # raise SystemExit
 
-
-            try:
-                self.data.constants = Consts("consts.ini", __version__)
+            self.data.constants = Consts("consts.ini", __version__)
                 # constants = Kg1Consts("kg1_consts.ini", __version__)
-            except KeyError:
+        except KeyError:
                 logger.error(" Could not read in configuration file consts.ini")
                 sys.exit(65)
 
-            self.data.poss_ne_corr = np.array([self.data.constants.CORR_NE]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_NE)).transpose()
-            self.data.poss_vib_corr = np.array([self.data.constants.CORR_VIB]*10) * np.array([np.arange(10)+1]*len(self.data.constants.CORR_VIB)).transpose()
-            self.data.poss_dcn_corr = np.array([self.data.constants.FJ_DCN]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_DCN)).transpose()
-            self.data.poss_met_corr = np.array([self.data.constants.FJ_MET]*10) * np.array([np.arange(10)+1]*len(self.data.constants.FJ_MET)).transpose()
-
-            # matrix for converting DCN & MET signals into density & mirror movement
-            self.data.matrix_lat_channels = np.array([[self.data.constants.MAT11 , self.data.constants.MAT12 ],[self.data.constants.MAT21 , self.data.constants.MAT22 ]])
-            self.data.Minv= np.linalg.inv(self.data.matrix_lat_channels)  # invert correction matrix for lateral channels
-
-
-            self.data.sign_vib_corr = np.array(np.zeros(self.data.poss_vib_corr.shape) + 1)
-            self.data.sign_vib_corr[np.where(self.data.poss_vib_corr < 0.0)] = -1
-
+        try:
             # -------------------------------
             # list of authorized user to write KG1 ppfs
             # -------------------------------
@@ -380,13 +399,17 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.comboBox_writeuid.setCurrentIndex(1)
             else:
                 self.comboBox_writeuid.setCurrentIndex(0)
-
+        except:
+            logger.error('Error setting up authorized users')
+            raise SystemExit('Exiting')
             # -------------------------------
             # set default pulse
             # initpulse = pdmsht()
             #initpulse = 92121
             #self.lineEdit_jpn.setText(str(initpulse))
             # -------------------------------
+        try:
+
             # -------------------------------
             # list of the second trace signal use to be compared with KG1
             # -------------------------------
@@ -421,10 +444,13 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.checkSFbutton.clicked.connect(self.checkStatuFlags)
             self.actionHelp.triggered.connect(self.handle_help_menu)
             self.actionOpen_PDF_guide.triggered.connect(self.handle_pdf_open)
+        except:
+            logger.error('Error connecting buttons to methods')
+            raise SystemExit('Exiting')
             # -------------------------------
             # initialising code folders
             # -------------------------------
-            try:
+        try:
                 # figure folder
                 pathlib.Path(cwd + os.sep + 'figures').mkdir(parents=True,
                                                              exist_ok=True)
@@ -434,8 +460,11 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 # save foldere - where you keep saved pulse data
                 pathlib.Path(cwd + os.sep + 'saved').mkdir(parents=True,
                                                            exist_ok=True)
-            except SystemExit:
-                raise SystemExit('failed to initialise folders')
+        except SystemExit:
+            logger.error('failed to initialise folders')
+            raise SystemExit('Exiting')
+
+        try:
             # -------------------------------
             # disable many button to avoid conflicts at startup
             # -------------------------------
@@ -504,10 +533,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.lineEdit_mancorr = LineEdit()
             self.kb = KeyBoard(self.lineEdit_mancorr)
             self.gridLayout_21.addWidget(self.lineEdit_mancorr, 3, 0, 1, 2)
-
-
-
-
             # -------------------------------
 
 
@@ -521,8 +546,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.info('INIT DONE\n')
             #auto click read button
             # self.button_read_pulse.click()
+
         except:
-            logger.error('Error!')
+            logger.error('Error in finalising initialisation')
+            raise SystemExit('Exiting')
+
+
+
+
 
 
 
