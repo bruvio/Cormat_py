@@ -31,7 +31,7 @@ import sys
 import time
 from pathlib import Path
 import CORMAT_GUI
-
+import pdb
 import matplotlib.pyplot as plt
 from PyQt4 import QtCore, QtGui
 
@@ -65,6 +65,7 @@ import cProfile, pstats, io
 from pycallgraph import PyCallGraph
 from pycallgraph.output import GraphvizOutput
 import inspect
+import getpass
 
 
 
@@ -183,6 +184,23 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         except:
             logger.error('Error loading data from workspace')
             raise SystemExit('Exiting')
+
+
+
+        try:
+            # -------------------------------
+            # Read  config self.data.
+            # -------------------------------
+            logger.info(" Reading in constants. \n")
+            # test_logger()
+            # raise SystemExit
+
+            self.data.constants = Consts("consts.ini", __version__)
+                # constants = Kg1Consts("kg1_consts.ini", __version__)
+        except KeyError:
+                logger.error(" Could not read in configuration file consts.ini")
+                sys.exit(65)
+
 
         try:
             self.lineEdit_jpn_seq.setText(str(0))
@@ -313,12 +331,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             self.data.sign_vib_corr = np.array(np.zeros(self.data.poss_vib_corr.shape) + 1)
             self.data.sign_vib_corr[np.where(self.data.poss_vib_corr < 0.0)] = -1
+        except:
+            logger.error('Error in main init')
+            raise SystemExit('Exiting')
 
-
-
+        try:
+            logger.info('initialising folders')
             # -------------------------------
             # initialising folders
             # -------------------------------
+            # pdb.set_trace()
             logger.info('\tStart CORMATpy \n')
             logger.info('\t {} \n'.format(datetime.datetime.today().strftime('%Y-%m-%d')))
             cwd = os.getcwd()
@@ -338,33 +360,21 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.log(5, 'this is your homefold {}'.format(self.homefold))
             home = str(Path.home())
             self.chain1 = '/common/chain1/kg1/'
-            extract_history(
-                self.workfold + '/run_out.txt',
-                self.chain1 + 'cormat_out.txt')
+            extract_history(self.workfold + '/run_out.txt',                self.chain1 + 'cormat_out.txt')
             logger.info(' copying to local user profile \n')
             logger.log(5, 'we are in %s', cwd)
 
         except:
-            logger.error('Error in main init')
+            logger.error('Error when initialising folders')
+            raise SystemExit('Exiting')
 
-        try:
-            # -------------------------------
-            # Read  config self.data.
-            # -------------------------------
-            logger.info(" Reading in constants. \n")
-            # test_logger()
-            # raise SystemExit
 
-            self.data.constants = Consts("consts.ini", __version__)
-                # constants = Kg1Consts("kg1_consts.ini", __version__)
-        except KeyError:
-                logger.error(" Could not read in configuration file consts.ini")
-                sys.exit(65)
 
         try:
             # -------------------------------
             # list of authorized user to write KG1 ppfs
             # -------------------------------
+            # pdb.set_trace()
             read_uis = []
             for user in self.data.constants.readusers.keys():
                 user_name = self.data.constants.readusers[user]

@@ -336,8 +336,10 @@ def extract_history(filename, outputfile):
            lines = f_in.readlines()
            for index, line in enumerate(lines):
             if "shot" in str(line):
+
                 dummy = lines[index].split()
                 shot = int(dummy[1])
+                logger.log(5, 'shot {}'.format(shot))
                 user = str(dummy[3])
                 date = str(dummy[5])
 
