@@ -3464,7 +3464,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 if chan >4 and chan in self.data.KG1_data.vibration.keys():
                     self.data.KG1_data.vibration[chan].data, self.data.KG1_data.vibration[chan].time = \
                     self.data.KG1_data.vibration[chan].resample_signal("zeropadding", time_kg1v)
-
+                    self.data.KG1_data.jxb[chan].data, self.data.KG1_data.jxb[chan].time = \
+                    self.data.KG1_data.jxb[chan].resample_signal("zeropadding", time_kg1v)
 
 
 
