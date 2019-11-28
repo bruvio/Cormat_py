@@ -13,6 +13,9 @@ __maintainer__ = "Bruno Viola"
 __email__ = "bruno.viola@ukaea.uk"
 __status__ = "Testing"
 # __status__ = "Production"
+import warnings
+warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import matplotlib
 matplotlib.use('QT4Agg')
@@ -644,36 +647,52 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
             if args.restore_channel.lower() =='yes':
+                # pdb.set_trace()
                 channel = int(args.channel)
                 if (channel>0) & (channel<9) & (channel in self.data.KG1_data.density.keys()):
-                    try:
-                        with open('/u/'+self.owner+'/work/Python/saved/den_chan' + str(channel) + '.pkl',
-                                  'rb') as f:  # Python 3: open(..., 'rb')
+                    # try:
+                        with open('/u/'+self.owner+'/work/Python/Cormat_py/python/saved/den_chan' + str(channel) + '.pkl','rb') as f:  # Python 3: open(..., 'rb')
                             [self.data.KG1_data.density[channel]] = pickle.load(f)
                         f.close()
                         if channel > 4:
                             # with open('/u/'+self.owner+'/work/Python/cormat_restore_data/saved/vib_chan' + str(channel) + '.pkl',[self.data.KG1_data.vibration[channel]] = pickle.load(f)
-                            with open('/u/'+self.owner+'/work/Python/saved/vib_chan' + str(channel) + '.pkl','rb') as f:
+                            with open('/u/'+self.owner+'/work/Python/Cormat_py/python/saved/vib_chan' + str(channel) + '.pkl','rb') as f:
                                 [self.data.KG1_data.vibration[channel]] = pickle.load(f)
                             f.close()
-                        if os.path.isfile('/u/'+self.owner+'/work/Python/saved/fj_dcn_chan' + str(channel) + '.pkl'):
+                        if os.path.isfile('/u/'+self.owner+'/work/Python/Cormat_py/python/saved/fj_dcn_chan' + str(channel) + '.pkl'):
                             # with open('/u/'+self.owner+'/work/Python/cormat_restore_data/fj_dcn_chan' + str(channel) + '.pkl','rb') as f:  # Python 3: open(..., 'rb')
-                            with open('/u/'+self.owner+'/work/Python/saved/fj_dcn_chan' + str(channel) + '.pkl','rb') as f:  # Python 3: open(..., 'rb')
+                            with open('/u/'+self.owner+'/work/Python/Cormat_py/python/saved/fj_dcn_chan' + str(channel) + '.pkl','rb') as f:  # Python 3: open(..., 'rb')
                                 [self.data.KG1_data.fj_dcn[channel]] = pickle.load(f)
                             f.close()
-                        if os.path.isfile('/u/'+self.owner+'/work/Python/saved/fj_met_chan' + str(channel) + '.pkl'):
+                        if os.path.isfile('/u/'+self.owner+'/work/Python/Cormat_py/python/saved/fj_met_chan' + str(channel) + '.pkl'):
                             # with open('/u/'+self.owner+'/work/Python/cormat_restore_data/fj_met_chan' + str(channel) + '.pkl','rb') as f:  # Python 3: open(..., 'rb')
-                            with open('/u/'+self.owner+'/work/Python/saved/fj_met_chan' + str(channel) + '.pkl','rb') as f:  # Python 3: open(..., 'rb')
+                            with open('/u/'+self.owner+'/work/Python/Cormat_py/python/saved/fj_met_chan' + str(channel) + '.pkl','rb') as f:  # Python 3: open(..., 'rb')
                                 [self.data.KG1_data.fj_met[channel]] = pickle.load(f)
                             f.close()
-                        self.data.SF_ch4 = 0
+                        if channel == 1:
+                            self.data.SF_ch1 = 0
+                        elif channel == 2:
+                            self.data.SF_ch2 = 0
+                        elif channel == 3:
+                            self.data.SF_ch3 = 0
+                        elif channel == 4:
+                            self.data.SF_ch4 = 0
+                        elif channel == 5:
+                            self.data.SF_ch5 = 0
+                        elif channel == 6:
+                            self.data.SF_ch6 = 0
+                        elif channel == 7:
+                            self.data.SF_ch7 = 0
+                        elif channel == 8:
+                            self.data.SF_ch8 = 0
+
                         self.data.data_changed[channel - 1] = False
                         self.data.statusflag_changed[channel - 1] = False
                         # self.update_channel(channel)
                         self.save_kg1('scratch')
                         raise SystemExit
-                    except:
-                        logger.error('check folders where you stored data to be used.')
+                    # except:
+                    #     logger.error('check folders where you stored data to be used.')
             # self.data.data_changed =  np.full(8,True,dtype=bool)
             # self.data.statusflag_changed = np.full(8,True,dtype=bool)
             # self.data.saved = False
@@ -4359,7 +4378,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.blockSignals(False)
             return
         if int(self.chan) <5:
-            suggested_den,dummy = self.suggestcorrection() # computes suggested correction
+            # suggested_den,dummy = self.suggestcorrection() # computes suggested correction
             try:
                 if ('kg1c' in self.data.KG1_data.type[self.chan]) & self.chan in self.data.KG1_data.fj_met.keys():
                     self.corr_den = int(
@@ -4383,25 +4402,25 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 self.blockSignals(False)
                 return
-            if int(suggested_den) != int(self.lineEdit_mancorr.text()):
-                logger.warning('suggested correction is different, do you wish to use it?')
-                # qm.setDetailedText("suggested correction is "+str(suggested_den))
-                ret = qm.question(self, '',
-                                  "suggested correction is different: " + str(
-                                      suggested_den) + "\n  Do you wish to use it?",
-                                  qm.Yes | qm.No)
-                # x  = input('y/n?')
-                if ret==qm.Yes:
-
-                # x  = input('y/n?')
-                # if x.lower() == "y":
-                    self.corr_den = suggested_den
-                    self.lineEdit_mancorr.setText(
-                    str(suggested_den))
-                else:
-                    pass
+            # if int(suggested_den) != int(self.lineEdit_mancorr.text()):
+            #     logger.warning('suggested correction is different, do you wish to use it?')
+            #     # qm.setDetailedText("suggested correction is "+str(suggested_den))
+            #     ret = qm.question(self, '',
+            #                       "suggested correction is different: " + str(
+            #                           suggested_den) + "\n  Do you wish to use it?",
+            #                       qm.Yes | qm.No)
+            #     # x  = input('y/n?')
+            #     if ret==qm.Yes:
+            #
+            #     # x  = input('y/n?')
+            #     # if x.lower() == "y":
+            #         self.corr_den = suggested_den
+            #         self.lineEdit_mancorr.setText(
+            #         str(suggested_den))
+            #     else:
+            #         pass
         elif  int(self.chan) > 4:
-            suggested_den, suggested_vib = self.suggestcorrection()
+            # suggested_den, suggested_vib = self.suggestcorrection()
             try:
                 corr_den = int(self.lineEdit_mancorr.text().split(",")[0])
                 corr_vib = int(self.lineEdit_mancorr.text().split(",")[1])
@@ -4441,23 +4460,23 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                 self.blockSignals(False)
                 return
-            if (int(suggested_den) != int(self.lineEdit_mancorr.text().split(",")[0])) & (int(suggested_vib) != int(self.lineEdit_mancorr.text().split(",")[1])):
-                logger.warning('suggested correction is different, do you wish to use it?')
-                ret = qm.question(self, '',
-                                  "suggested correction is different: " + str(
-                                      suggested_den) + ', ' + str(
-                                      suggested_vib) + "\n  Do you wish to use it?",
-                                  qm.Yes | qm.No)
-                # x  = input('y/n?')
-                if ret==qm.Yes:
-                # x  = input('y/n?')
-                # if x.lower() == "y":
-                    self.corr_den = suggested_den
-                    self.corr_vib = suggested_vib
-                    self.lineEdit_mancorr.setText(
-                    str(suggested_den) + ', ' + str(suggested_vib))
-                else:
-                    pass
+            # if (int(suggested_den) != int(self.lineEdit_mancorr.text().split(",")[0])) & (int(suggested_vib) != int(self.lineEdit_mancorr.text().split(",")[1])):
+            #     logger.warning('suggested correction is different, do you wish to use it?')
+            #     ret = qm.question(self, '',
+            #                       "suggested correction is different: " + str(
+            #                           suggested_den) + ', ' + str(
+            #                           suggested_vib) + "\n  Do you wish to use it?",
+            #                       qm.Yes | qm.No)
+            #     # x  = input('y/n?')
+            #     if ret==qm.Yes:
+            #     # x  = input('y/n?')
+            #     # if x.lower() == "y":
+            #         self.corr_den = suggested_den
+            #         self.corr_vib = suggested_vib
+            #         self.lineEdit_mancorr.setText(
+            #         str(suggested_den) + ', ' + str(suggested_vib))
+            #     else:
+            #         pass
         ###
 
         if str(self.chan).isdigit() == True:
@@ -6646,7 +6665,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             self.blockSignals(False)
             return
         if int(self.chan) <5:
-            suggested_den,dummy = self.suggestcorrection() # compute correction based on fringe jump on selected point
+            # suggested_den,dummy = self.suggestcorrection() # compute correction based on fringe jump on selected point
             try:
                 corr_den = int(self.lineEdit_mancorr.text())
                 if ('kg1c' in self.data.KG1_data.type[self.chan]) & (self.chan in self.data.KG1_data.fj_met.keys()):
@@ -6670,19 +6689,19 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.kb.apply_pressed_signal.disconnect(self.singlecorrection) # disconnect slot
                 self.blockSignals(False)
                 return
-            if (int(suggested_den) != int(self.lineEdit_mancorr.text())):
-                logger.warning('suggested correction is different, do you wish to use it?')
-                ret = qm.question(self,'', "suggested correction is different: " +str(suggested_den)+"\n  Do you wish to use it?", qm.Yes | qm.No)
-                # x  = input('y/n?')
-                if ret==qm.Yes:
-                # if x.lower() == "y":
-                    self.corr_den = suggested_den
-                    self.lineEdit_mancorr.setText(str(self.corr_den))
+            # if (int(suggested_den) != int(self.lineEdit_mancorr.text())):
+            #     logger.warning('suggested correction is different, do you wish to use it?')
+            #     ret = qm.question(self,'', "suggested correction is different: " +str(suggested_den)+"\n  Do you wish to use it?", qm.Yes | qm.No)
+            #     # x  = input('y/n?')
+            #     if ret==qm.Yes:
+            #     # if x.lower() == "y":
+            #         self.corr_den = suggested_den
+            #         self.lineEdit_mancorr.setText(str(self.corr_den))
 
 
                 #     pass
         elif  int(self.chan) > 4:
-            suggested_den, suggested_vib = self.suggestcorrection()
+            # suggested_den, suggested_vib = self.suggestcorrection()
             try:
                 corr_den = int(self.lineEdit_mancorr.text().split(",")[0])
                 corr_vib = int(self.lineEdit_mancorr.text().split(",")[1])
@@ -6719,20 +6738,20 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 self.kb.apply_pressed_signal.disconnect(self.singlecorrection)
                 self.blockSignals(False)
                 return
-            if (int(suggested_den) != int(corr_den) | int(suggested_vib) != int(corr_vib)):
-                logger.warning('suggested correction is different, do you wish to use it?')
-                ret = qm.question(self,'', "suggested correction is different: " +str(suggested_den)+', '+ str(suggested_vib) +"\n  Do you wish to use it?", qm.Yes | qm.No)
-
-                # x  = input('y/n?')
-                if ret==qm.Yes:
-                # x  = input('y/n?')
-                # if x.lower() == "y":
-                    self.corr_den = suggested_den
-                    self.corr_vib = suggested_vib
-                    corr_den=self.corr_den
-                    corr_vib=self.corr_vib
-
-                    self.lineEdit_mancorr.setText(str(suggested_den)+', '+ str(suggested_vib))
+            # if (int(suggested_den) != int(corr_den) | int(suggested_vib) != int(corr_vib)):
+            #     logger.warning('suggested correction is different, do you wish to use it?')
+            #     ret = qm.question(self,'', "suggested correction is different: " +str(suggested_den)+', '+ str(suggested_vib) +"\n  Do you wish to use it?", qm.Yes | qm.No)
+            #
+            #     # x  = input('y/n?')
+            #     if ret==qm.Yes:
+            #     # x  = input('y/n?')
+            #     # if x.lower() == "y":
+            #         self.corr_den = suggested_den
+            #         self.corr_vib = suggested_vib
+            #         corr_den=self.corr_den
+            #         corr_vib=self.corr_vib
+            #
+            #         self.lineEdit_mancorr.setText(str(suggested_den)+', '+ str(suggested_vib))
                 # else:
                     # pass
 
