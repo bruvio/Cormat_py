@@ -2144,6 +2144,21 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         widget7 = self.widget_LID7
         widget8 = self.widget_LID8
 
+        count_ver = 0
+        count_lat = 0
+        vert_chan = [1,2,3,4]
+        lat_chan = [5,6,7,8]
+        for chn in vert_chan:
+            if chn in self.data.KG1_data.density.keys():
+                pass
+            else:
+                count_ver = count_ver +1
+        for chn in lat_chan:
+            if chn in self.data.KG1_data.density.keys():
+                pass
+            else:
+                count_lat = count_lat +1
+
 
         ax_name='ax'+str(chan)
         ax_name1='ax'+str(chan)+str(1)
@@ -2156,15 +2171,15 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         data = self.data.KG1_data.density[chan].data
         # autoscale_data(vars()[ax_name],data)
         if chan<5:
-            self.ax_14.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
-            self.ax_all.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
+            self.ax_14.lines[chan-1-count_ver].set_ydata(self.data.KG1_data.density[chan].data)
+            self.ax_all.lines[chan-1-count_ver-count_lat].set_ydata(self.data.KG1_data.density[chan].data)
             self.widget_LID_14.draw()
             self.widget_LID_14.flush_events()
         #
         #
         if chan>4:
-            self.ax_58.lines[chan-1-4].set_ydata(self.data.KG1_data.density[chan].data)
-            self.ax_all.lines[chan-1].set_ydata(self.data.KG1_data.density[chan].data)
+            self.ax_58.lines[chan-1-4-count_lat].set_ydata(self.data.KG1_data.density[chan].data)
+            self.ax_all.lines[chan-1-count_ver-count_lat].set_ydata(self.data.KG1_data.density[chan].data)
             vars()[ax_name1].lines[0].set_ydata(self.data.KG1_data.vibration[chan].data * 1e6)
             # autoscale_data(vars()[ax_name1], self.data.KG1_data.vibration[chan].data * 1e6)
             vars()[ax_name1].lines[0].set_color('blue')
@@ -6569,18 +6584,23 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 if chan in self.data.KG1_data.density.keys():
                     if self.data.KG1_data.density[chan].corrections.data is None:
                         total = 0
+                        self.lineEdit_totcorr.setText(str(total))
+                        return total, 0
                     elif self.data.KG1_data.density[chan].corrections.data.size==0:
                         total = 0
+                        self.lineEdit_totcorr.setText(str(total))
+                        return total, 0
                     elif not self.chan in self.data.KG1_data.density.keys():
                         # pass
                         logger.warning(
                             ' checking total corrections - channel {} not available'.format(
                                 self.chan))
+
                     else:
                         total = int(round(np.sum(self.data.KG1_data.density[chan].corrections.data)))
+                        self.lineEdit_totcorr.setText(str(total))
+                        return total, 0
 
-                self.lineEdit_totcorr.setText(str(total) )
-                return total,0
 
 
             elif chan > 4:
@@ -6599,19 +6619,30 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
                     if self.data.KG1_data.vibration[chan].corrections.data is None:
                         total2 = 0
+                        self.lineEdit_totcorr.setText(
+                            str(total1) + ',' + str(total2))
+
+                        return total1,total2
+
                     elif self.data.KG1_data.vibration[chan].corrections.data.size==0:
                         total2 = 0
+                        self.lineEdit_totcorr.setText(
+                            str(total1) + ',' + str(total2))
+
+                        return total1,total2
+
                     elif not self.chan in self.data.KG1_data.vibration.keys():
                         # pass
                         logger.warning(
                             ' checking total corrections - channel {} not available'.format(
                                 self.chan))
+
                     else:
                         total2 = int(round(np.sum(self.data.KG1_data.vibration[chan].corrections.data)))
-                    self.lineEdit_totcorr.setText(
+                        self.lineEdit_totcorr.setText(
                             str(total1) + ',' + str(total2))
 
-                    return total1,total2
+                        return total1,total2
                     #
         else:
             self.lineEdit_totcorr.setEnabled(False)
