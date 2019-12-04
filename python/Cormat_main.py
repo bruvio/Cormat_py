@@ -55,6 +55,8 @@ from matplotlib import gridspec
 from matplotlib.backends.backend_qt4agg import \
     NavigationToolbar2QT as NavigationToolbar
 from matplotlib.ticker import AutoMinorLocator
+from signal_kg1 import SignalKg1
+from signal_base import SignalBase
 from nbi_data import NBIData
 from pellet_data import PelletData
 from ppf import *
@@ -577,7 +579,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         implemets what happen when clicking the load button on the GUI
         the logic is explained in the FLowDiagram ../FlowDiagram/load_button_new.dia
         """
-
+        print(' \n' * 45)
         # -------------------------------
         # reading pulse from GUI
         # -------------------------------
@@ -1287,12 +1289,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  self.data.ELM_data, self.data.HRTS_data,
                  self.data.NBI_data, self.data.is_dis, self.data.dis_time,
                  self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,self.data.zeroed, self.data.zeroingbackup_den,
-                self.data.zeroingbackup_vib,self.data.data_changed,self.data.statusflag_changed] = pickle.load(f)
+                self.data.zeroingbackup_vib,self.data.data_changed,self.data.statusflag_changed,
+                 self.data.validated_public_channels] = pickle.load(f)
             f.close()
             with open('./scratch/kg1_data.pkl',
                       'rb') as f:  # Python 3: open(..., 'rb')
                 [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
-                 self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib,self.data.data_changed,self.data.statusflag_changed] = pickle.load(f)
+                 self.read_uid,self.data.zeroing_start,self.data.zeroing_stop,
+                 self.data.zeroingbackup_den,self.data.zeroingbackup_vib,
+                 self.data.data_changed,self.data.statusflag_changed,self.data.validated_public_channels
+                 ] = pickle.load(f)
             f.close()
             logger.info(' workspace loaded\n')
             logger.info(
@@ -1365,7 +1371,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  self.data.KG4_data, self.data.MAG_data, self.data.PELLETS_data,
                  self.data.ELM_data, self.data.HRTS_data,
                  self.data.NBI_data, self.data.is_dis, self.data.dis_time,
-                 self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,self.data.zeroed,self.data.zeroingbackup_den,self.data.zeroingbackup_vib,self.data.data_changed,self.data.statusflag_changed], f)
+                 self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,
+                 self.data.zeroed,self.data.zeroingbackup_den,
+                 self.data.zeroingbackup_vib,self.data.data_changed,
+                 self.data.statusflag_changed,self.data.validated_public_channels], f)
         f.close()
         logger.info(' data saved to {}\n'.format(folder))
 
@@ -1382,7 +1391,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             with open('./' + folder + '/kg1_data.pkl', 'wb') as f:
                 pickle.dump(
                     [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
-                     self.read_uid,self.data.zeroing_start,self.data.zeroing_stop, self.data.zeroingbackup_den,self.data.zeroingbackup_vib,self.data.data_changed,self.data.statusflag_changed], f)
+                     self.read_uid,self.data.zeroing_start,self.data.zeroing_stop,
+                     self.data.zeroingbackup_den,self.data.zeroingbackup_vib,
+                     self.data.data_changed,self.data.statusflag_changed,self.data.validated_public_channels
+                     ], f)
             f.close()
             logger.info(' KG1 data saved to {}\n'.format(folder))
         except AttributeError:
@@ -1684,7 +1696,33 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                         str(self.data.val_seq), self.data.KG1_data.correctedby))
                 except IndexError:
                     logger.error('error!')
-        logger.info('pulse has disrupted? {}\n'.format(self.data.is_dis))
+
+        logger.info('\n \n  pulse has disrupted? {}\n \n'.format(self.data.is_dis))
+
+        self.data.KG1_data_public = Kg1PPFData(self.data.constants,
+                                               self.data.pulse, 0)
+
+        self.read_uid = self.comboBox_readuid.currentText()
+        logging.info('\n reading public KG1V ppf')
+        success = self.data.KG1_data_public.read_data(self.data.pulse,
+                                                      read_uid='jetppf')
+        logger.log(5, 'success reading KG1 data?'.format(success))
+
+        # read status flag from public ppf
+
+        self.data.SF_list_public = check_SF('jetppf', self.data.pulse, 0)
+        self.data.validated_public_channels = [i + 1 for i, e in
+                                               enumerate(
+                                                   self.data.SF_list_public) if
+                                               e != 0]
+
+        if any(self.data.SF_list_public) in [1, 2, 3]:
+            logger.warning(
+                '\n \n there is already a saved public PPF with validated channels! \n \n ')
+
+
+
+
 
         # logger.info('unval_seq {}, val_seq {}'.format(str(self.data.unval_seq),str(self.data.val_seq)))
         # save data to pickle into saved folder
@@ -3255,9 +3293,16 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if user selects in GUI to save SF only the SF will be written in the last sequence (no new sequence)
 
 
-        is data is has not been modified it automatically switches to save status flags only
+        if data has not been modified it automatically switches to save status flags only
 
-        as from May 2019 there is a bug in ppfssr so a new ppf will written in either cases.
+        ::todo:
+        if there is already a jetppf with modified status flags, it should offer 3 options:
+            overwrite all channels with new data
+            keep already validated data and add the new ones
+            cancel
+
+
+
 
 
 
@@ -3399,17 +3444,123 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
     # ------------------------
+
+
     @QtCore.pyqtSlot()
     def handle_save_data_statusflag(self):
-        """
-        function data handles the writing of a new PPF
 
-        :return: 67 if there has been an error in writing status flag
-                0 otherwise (success)
-        """
+            """
+            function data handles the writing of a new PPF
+
+            :return: 67 if there has been an error in writing status flag
+                    0 otherwise (success)
+            """
+
+            self.checkStatuFlags()
+            msg = QtGui.QMessageBox()
+            msg.setText("\n  Do you wish to overwrite the validated public PPF it?")
+
+            msg.setDetailedText("click YES if you want to overwrite \n \nclick No if you want to use the validated channels already saved into the public ppf \n \nclick Cancel if you don't want to save anymore")
+            msg.setStandardButtons(msg.Yes | msg.No | msg.Cancel)
+            ret = msg.exec_()
 
 
 
+            if ret == qm.Cancel:
+                self.handle_no()
+
+            elif ret == qm.No:
+                # iterate the public validated channels to copy them into current structure
+                for public_channel in self.data.validated_public_channels:
+                    logger.info('copying channel {} from JETPPF'.format(public_channel))
+
+                    #copying validated public channels into current KG1 structure
+                    if self.data.KG1_data.type is not None:
+                        # if public_channel in self.data.KG1_data_public.type.keys():
+                            self.data.KG1_data.type[public_channel] = self.data.KG1_data_public.type[public_channel]
+                        # else:
+
+
+
+
+                    if public_channel in self.data.KG1_data_public.type.keys():
+                        self.data.KG1_data.type[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                        # self.data.KG1_data.density[public_channel] = SignalBase(self.data.constants)
+                        self.data.KG1_data.type[public_channel] = self.data.KG1_data_public.density[public_channel]
+
+
+                    if public_channel in self.data.KG1_data_public.density.keys():
+
+                        self.data.KG1_data.density[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                        # self.data.KG1_data.density[public_channel] = SignalBase(self.data.constants)
+                        self.data.KG1_data.density[public_channel] = self.data.KG1_data_public.density[public_channel]
+                    if public_channel in self.data.KG1_data_public.fj_dcn.keys():
+                        self.data.KG1_data.fj_dcn[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                        self.data.KG1_data.fj_dcn[public_channel] = self.data.KG1_data_public.fj_dcn[public_channel]
+                        # self.data.KG1_data.fj_dcn[public_channel].time = self.data.KG1_data_public.fj_dcn[public_channel].time
+
+                    if public_channel in self.data.KG1_data_public.fj_met.keys():
+                        self.data.KG1_data.fj_met[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                        self.data.KG1_data.fj_met[public_channel] =  self.data.KG1_data_public.fj_met[public_channel]
+                        # self.data.KG1_data.fj_met[public_channel].time =  self.data.KG1_data_public.fj_met[public_channel].time
+                    if public_channel >4:
+                            if public_channel in self.data.KG1_data_public.jxb.keys():
+                                self.data.KG1_data.jxb[
+                                    public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                                self.data.KG1_data.jxb[public_channel] = \
+                                self.data.KG1_data_public.jxb[public_channel]
+
+                            if public_channel in self.data.KG1_data_public.vibration.keys():
+                                self.data.KG1_data.vibration[
+                                    public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                                self.data.KG1_data.vibration[public_channel] = \
+                                self.data.KG1_data_public.vibration[public_channel]
+
+
+                            if public_channel+4 in self.data.KG1_data_public.fj_dcn.keys():
+                                self.data.KG1_data.fj_dcn[
+                                    public_channel+4] = SignalKg1(self.data.constants,self.data.pulse)
+                                self.data.KG1_data.fj_dcn[public_channel+4] = \
+                                self.data.KG1_data_public.fj_dcn[public_channel+4]
+
+                    self.data.KG1_data.global_status[public_channel] = self.data.SF_list_public[public_channel-1]
+                    self.data.SF_list[public_channel-1]= self.data.SF_list_public[public_channel-1]
+
+
+                    self.data.KG1_data.status[public_channel] = SignalBase(self.data.constants)
+                    self.data.KG1_data.status[public_channel].data = np.zeros(
+                            len(self.data.KG1_data.density[public_channel].time))
+                    self.data.KG1_data.status[public_channel].time = self.data.KG1_data.density[public_channel].time
+
+
+                #the rest of the channels currently stored in kg1_data are left as they are (last copy is going to be written to ppf)
+                for chan in self.data.KG1_data.density.keys():
+                    if chan ==1:
+                        self.data.SF_ch1 = self.data.SF_list[chan-1]
+                    if chan ==2:
+                        self.data.SF_ch2 = self.data.SF_list[chan-1]
+                    if chan ==3:
+                        self.data.SF_ch3 = self.data.SF_list[chan-1]
+                    if chan ==4:
+                        self.data.SF_ch4 = self.data.SF_list[chan-1]
+                    if chan ==5:
+                        self.data.SF_ch5 = self.data.SF_list[chan-1]
+                    if chan ==6:
+                        self.data.SF_ch6 = self.data.SF_list[chan-1]
+                    if chan ==7:
+                        self.data.SF_ch7 = self.data.SF_list[chan-1]
+                    if chan ==8:
+                        self.data.SF_ch8 = self.data.SF_list[chan-1]
+
+
+
+
+                #after overwriting data
+                self.writeppf()
+
+            elif ret == qm.Yes:
+                self.writeppf()
+    def writeppf(self):
         self.checkStatuFlags()
 
         err = open_ppf(self.data.pulse, self.write_uid)
@@ -3444,7 +3595,6 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             ihdata_kg1v, iwdata_kg1v, data_kg1v, x_kg1v, time_kg1v, ier_kg1v = ppfget(
                 '92025', 'KG1V', 'LID3')
 
-
         for chan in self.data.KG1_data.density.keys():
             # status = np.empty(
             #     len(self.data.KG1_data.density[chan].time))
@@ -3457,51 +3607,70 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 comment = "SIG TYPE: {} CH.{}".format(
                     'KG1V', chan)
             else:
-                comment = "SIG TYPE: {} CH.{}".format(self.data.KG1_data.type[chan], chan)
-            write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_type, np.array([1]),
-                                                 time=np.array([0]), comment=comment, unitd=" ", unitt=" ", itref=-1,
+                comment = "SIG TYPE: {} CH.{}".format(
+                    self.data.KG1_data.type[chan], chan)
+            write_err, itref_written = write_ppf(self.data.pulse, dda,
+                                                 dtype_type,
+                                                 np.array([1]),
+                                                 time=np.array([0]),
+                                                 comment=comment,
+                                                 unitd=" ", unitt=" ",
+                                                 itref=-1,
                                                  nt=1, status=None)
-
 
             dtype_lid = "LID{}".format(chan)
             comment = "DATA FROM KG1 CHANNEL {}".format(chan)
 
             if self.interp_kg1v:
-            # temporary solution
-            # interp kg1 data into kg1v time base
-            # a particular shot has to be selected (that exists!)
-            # moreover the question is what to do with the fast sampling window
-            # the DC sets in the control room
-            # how to access this information?
-                logger.info("temporary solution resampling channel {} ".format(chan))
-                self.data.KG1_data.density[chan].data, self.data.KG1_data.density[chan].time = \
-                self.data.KG1_data.density[chan].resample_signal("zeropadding", time_kg1v)
-                if chan >4 and chan in self.data.KG1_data.vibration.keys():
-                    self.data.KG1_data.vibration[chan].data, self.data.KG1_data.vibration[chan].time = \
-                    self.data.KG1_data.vibration[chan].resample_signal("zeropadding", time_kg1v)
-                    self.data.KG1_data.jxb[chan].data, self.data.KG1_data.jxb[chan].time = \
-                    self.data.KG1_data.jxb[chan].resample_signal("zeropadding", time_kg1v)
+                # temporary solution
+                # interp kg1 data into kg1v time base
+                # a particular shot has to be selected (that exists!)
+                # moreover the question is what to do with the fast sampling window
+                # the DC sets in the control room
+                # how to access this information?
+                logger.info(
+                    "temporary solution resampling channel {} ".format(
+                        chan))
+                self.data.KG1_data.density[chan].data, \
+                self.data.KG1_data.density[chan].time = \
+                    self.data.KG1_data.density[chan].resample_signal(
+                        "zeropadding", time_kg1v)
+                if chan > 4 and chan in self.data.KG1_data.vibration.keys():
+                    self.data.KG1_data.vibration[chan].data, \
+                    self.data.KG1_data.vibration[chan].time = \
+                        self.data.KG1_data.vibration[
+                            chan].resample_signal("zeropadding",
+                                                  time_kg1v)
+                    self.data.KG1_data.jxb[chan].data, \
+                    self.data.KG1_data.jxb[chan].time = \
+                        self.data.KG1_data.jxb[chan].resample_signal(
+                            "zeropadding", time_kg1v)
 
-
-
-            write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_lid,
+            write_err, itref_written = write_ppf(self.data.pulse, dda,
+                                                 dtype_lid,
                                                  self.data.KG1_data.density[
                                                      chan].data,
-                                                 time=self.data.KG1_data.density[
+                                                 time=
+                                                 self.data.KG1_data.density[
                                                      chan].time,
                                                  comment=comment,
-                                                 unitd='M-2', unitt='SEC',
+                                                 unitd='M-2',
+                                                 unitt='SEC',
                                                  itref=itref_kg1v,
-                                                 nt=len(self.data.KG1_data.density[
-                                                            chan].time),
-                                                 status=self.data.KG1_data.status[
+                                                 nt=len(
+                                                     self.data.KG1_data.density[
+                                                         chan].time),
+                                                 status=
+                                                 self.data.KG1_data.status[
                                                      chan],
-                                                 global_status=self.data.SF_list[
+                                                 global_status=
+                                                 self.data.SF_list[
                                                      chan - 1])
 
             if write_err != 0:
                 logger.error(
-                    "Failed to write {}/{}. Errorcode {}".format(dda, dtype_lid,
+                    "Failed to write {}/{}. Errorcode {}".format(dda,
+                                                                 dtype_lid,
                                                                  write_err))
                 break
             if self.data.KG1_data.fj_dcn is not None:
@@ -3512,34 +3681,35 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             # Corrected FJs for vertical channels
             if chan in self.data.KG1_data.fj_dcn.keys():
 
-
-
                 # DCN fringes
                 # if self.data.KG1_data.fj_dcn is not None:
-                    dtype_fc = "FC{}".format(chan)
-                    comment = "DCN FRINGE CORR CH.{}".format(chan)
-                    write_err, itref_written = write_ppf(self.data.pulse, dda,
-                                                         dtype_fc,
+                dtype_fc = "FC{}".format(chan)
+                comment = "DCN FRINGE CORR CH.{}".format(chan)
+                write_err, itref_written = write_ppf(self.data.pulse,
+                                                     dda,
+                                                     dtype_fc,
+                                                     self.data.KG1_data.fj_dcn[
+                                                         chan].data,
+                                                     time=
+                                                     self.data.KG1_data.fj_dcn[
+                                                         chan].time,
+                                                     comment=comment,
+                                                     unitd=" ",
+                                                     unitt="SEC",
+                                                     itref=itref_kg1v,
+                                                     nt=len(
                                                          self.data.KG1_data.fj_dcn[
-                                                             chan].data,
-                                                         time=
-                                                         self.data.KG1_data.fj_dcn[
-                                                             chan].time,
-                                                         comment=comment,
-                                                         unitd=" ", unitt="SEC",
-                                                         itref=itref_kg1v,
-                                                         nt=len(
-                                                             self.data.KG1_data.fj_dcn[
-                                                                 chan].time),
-                                                         status=None)
+                                                             chan].time),
+                                                     status=None)
 
-                    if write_err != 0:
-                        logger.error(
-                            "Failed to write {}/{}. Errorcode {}".format(dda,
-                                                                         dtype_fc,
-                                                                         write_err))
-                        return write_err
-                        # break
+                if write_err != 0:
+                    logger.error(
+                        "Failed to write {}/{}. Errorcode {}".format(
+                            dda,
+                            dtype_fc,
+                            write_err))
+                    return write_err
+                    # break
 
             # Vibration data and JXB for lateral channels, and corrected FJ
             if chan > 4 and chan in self.data.KG1_data.vibration.keys():
@@ -3547,53 +3717,57 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     # Vibration
                     dtype_vib = "MIR{}".format(chan)
                     comment = "MOVEMENT OF MIRROR {}".format(chan)
-                    write_err, itref_written = write_ppf(self.data.pulse, dda,
-                                                         dtype_vib,
-                                                         self.data.KG1_data.vibration[
-                                                             chan].data,
-                                                         time=
-                                                         self.data.KG1_data.vibration[
-                                                             chan].time,
-                                                         comment=comment,
-                                                         unitd='M', unitt='SEC',
-                                                         itref=itref_kg1v,
-                                                         nt=len(
-                                                             self.data.KG1_data.vibration[
-                                                                 chan].time),
-                                                         status=
-                                                         self.data.KG1_data.status[
-                                                             chan -1])
+                    write_err, itref_written = write_ppf(
+                        self.data.pulse, dda,
+                        dtype_vib,
+                        self.data.KG1_data.vibration[
+                            chan].data,
+                        time=
+                        self.data.KG1_data.vibration[
+                            chan].time,
+                        comment=comment,
+                        unitd='M', unitt='SEC',
+                        itref=itref_kg1v,
+                        nt=len(
+                            self.data.KG1_data.vibration[
+                                chan].time),
+                        status=
+                        self.data.KG1_data.status[
+                            chan - 1])
                     if write_err != 0:
                         logger.error(
-                            "Failed to write {}/{}. Errorcode {}".format(dda,
-                                                                         dtype_vib,
-                                                                         write_err))
+                            "Failed to write {}/{}. Errorcode {}".format(
+                                dda,
+                                dtype_vib,
+                                write_err))
                         return write_err
 
                     # JXB movement
                     dtype_jxb = "JXB{}".format(chan)
                     comment = "JxB CALC. MOVEMENT CH.{}".format(chan)
-                    write_err, itref_written = write_ppf(self.data.pulse, dda,
-                                                         dtype_jxb,
-                                                         self.data.KG1_data.jxb[
-                                                             chan].data,
-                                                         time=self.data.KG1_data.jxb[
-                                                             chan].time,
-                                                         comment=comment,
-                                                         unitd='M', unitt='SEC',
-                                                         itref=itref_kg1v,
-                                                         nt=len(
-                                                             self.data.KG1_data.jxb[
-                                                                 chan].time),
-                                                         status=
-                                                         self.data.KG1_data.status[
-                                                             chan -1])
+                    write_err, itref_written = write_ppf(
+                        self.data.pulse, dda,
+                        dtype_jxb,
+                        self.data.KG1_data.jxb[
+                            chan].data,
+                        time=self.data.KG1_data.jxb[
+                            chan].time,
+                        comment=comment,
+                        unitd='M', unitt='SEC',
+                        itref=itref_kg1v,
+                        nt=len(
+                            self.data.KG1_data.jxb[
+                                chan].time),
+                        status=
+                        self.data.KG1_data.status[
+                            chan - 1])
 
                     if write_err != 0:
                         logger.error(
-                            "Failed to write {}/{}. Errorcode {}".format(dda,
-                                                                         dtype_jxb,
-                                                                         write_err))
+                            "Failed to write {}/{}. Errorcode {}".format(
+                                dda,
+                                dtype_jxb,
+                                write_err))
                         return write_err
             if self.data.KG1_data.fj_met is not None:
                 if chan in self.data.KG1_data.fj_met.keys():
@@ -3602,32 +3776,34 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
             if chan in self.data.KG1_data.fj_met.keys():
 
-
                 # MET fringes
                 # if self.data.KG1_data.fj_met is not None:
-                    dtype_fc = "MC{} ".format(chan)
-                    comment = "MET FRINGE CORR CH.{}".format(chan)
-                    write_err, itref_written = write_ppf(self.data.pulse, dda,
-                                                         dtype_fc,
+                dtype_fc = "MC{} ".format(chan)
+                comment = "MET FRINGE CORR CH.{}".format(chan)
+                write_err, itref_written = write_ppf(self.data.pulse,
+                                                     dda,
+                                                     dtype_fc,
+                                                     self.data.KG1_data.fj_met[
+                                                         chan].data,
+                                                     time=
+                                                     self.data.KG1_data.fj_met[
+                                                         chan].time,
+                                                     comment=comment,
+                                                     unitd=" ",
+                                                     unitt="SEC",
+                                                     itref=-1,
+                                                     nt=len(
                                                          self.data.KG1_data.fj_met[
-                                                             chan].data,
-                                                         time=self.data.KG1_data.fj_met[
-                                                             chan].time,
-                                                         comment=comment,
-                                                         unitd=" ", unitt="SEC",
-                                                         itref=-1,
-                                                         nt=len(
-                                                             self.data.KG1_data.fj_met[
-                                                                 chan].time),
-                                                         status=None)
+                                                             chan].time),
+                                                     status=None)
 
-                    if write_err != 0:
-                        logger.error(
-                            "Failed to write {}/{}. Errorcode {}".format(
-                                dda,
-                                dtype_fc,
-                                write_err))
-                        return write_err
+                if write_err != 0:
+                    logger.error(
+                        "Failed to write {}/{}. Errorcode {}".format(
+                            dda,
+                            dtype_fc,
+                            write_err))
+                    return write_err
 
         # if write_err != 0:
         #     logger.error('failed to write KG1 ppf')
@@ -3637,7 +3813,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         mode = "Correct.done by {}".format(self.owner)
         dtype_mode = "MODE"
         comment = mode
-        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_mode,
+        write_err, itref_written = write_ppf(self.data.pulse, dda,
+                                             dtype_mode,
                                              np.array([1]),
                                              time=np.array([0]),
                                              comment=comment, unitd=" ",
@@ -3653,82 +3830,114 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         dtype_temp = "TEMP"
         comment = "Vessel temperature(degC)"
-        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_temp,
+        write_err, itref_written = write_ppf(self.data.pulse, dda,
+                                             dtype_temp,
                                              np.array([temp]),
                                              time=np.array([0]),
-                                             comment=comment, unitd="deg",
+                                             comment=comment,
+                                             unitd="deg",
                                              unitt="none",
-                                             itref=-1, nt=1, status=None)
+                                             itref=-1, nt=1,
+                                             status=None)
 
         geom_chan = np.arange(len(a_ref)) + 1
         dtype_aref = "AREF"
         comment = "CHORD(20 DEC.C): ANGLE"
-        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_aref, a_ref,
-                                             time=geom_chan, comment=comment,
-                                             unitd="RADIANS", unitt="CHORD NO",
-                                             itref=-1, nt=len(geom_chan),
+        write_err, itref_written = write_ppf(self.data.pulse, dda,
+                                             dtype_aref, a_ref,
+                                             time=geom_chan,
+                                             comment=comment,
+                                             unitd="RADIANS",
+                                             unitt="CHORD NO",
+                                             itref=-1,
+                                             nt=len(geom_chan),
                                              status=None)
 
         dtype_rref = "RREF"
         comment = "CHORD(20 DEC.C): RADIUS"
-        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_rref, r_ref,
-                                             time=geom_chan, comment=comment,
-                                             unitd="M", unitt="CHORD NO",
+        write_err, itref_written = write_ppf(self.data.pulse, dda,
+                                             dtype_rref, r_ref,
+                                             time=geom_chan,
+                                             comment=comment,
+                                             unitd="M",
+                                             unitt="CHORD NO",
                                              itref=itref_written,
-                                             nt=len(geom_chan), status=None)
+                                             nt=len(geom_chan),
+                                             status=None)
 
         dtype_zref = "ZREF"
         comment = "CHORD(20 DEC.C): HEIGHT"
-        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_zref, z_ref,
-                                             time=geom_chan, comment=comment,
-                                             unitd="M", unitt="CHORD NO",
+        write_err, itref_written = write_ppf(self.data.pulse, dda,
+                                             dtype_zref, z_ref,
+                                             time=geom_chan,
+                                             comment=comment,
+                                             unitd="M",
+                                             unitt="CHORD NO",
                                              itref=itref_written,
-                                             nt=len(geom_chan), status=None)
+                                             nt=len(geom_chan),
+                                             status=None)
 
         dtype_a = "A   "
         comment = "CHORD: ANGLE"
-        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_a, a_coord,
-                                             time=geom_chan, comment=comment,
-                                             unitd="RADIANS", unitt="CHORD NO",
+        write_err, itref_written = write_ppf(self.data.pulse, dda,
+                                             dtype_a, a_coord,
+                                             time=geom_chan,
+                                             comment=comment,
+                                             unitd="RADIANS",
+                                             unitt="CHORD NO",
                                              itref=itref_written,
-                                             nt=len(geom_chan), status=None)
+                                             nt=len(geom_chan),
+                                             status=None)
 
         dtype_r = "R   "
         comment = "CHORD: RADIUS"
-        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_r, r_coord,
-                                             time=geom_chan, comment=comment,
-                                             unitd="M", unitt="CHORD NO",
+        write_err, itref_written = write_ppf(self.data.pulse, dda,
+                                             dtype_r, r_coord,
+                                             time=geom_chan,
+                                             comment=comment,
+                                             unitd="M",
+                                             unitt="CHORD NO",
                                              itref=itref_written,
-                                             nt=len(geom_chan), status=None)
+                                             nt=len(geom_chan),
+                                             status=None)
 
         dtype_z = "Z   "
         comment = "CHORD: HEIGHT"
-        write_err, itref_written = write_ppf(self.data.pulse, dda, dtype_z, z_coord,
-                                             time=geom_chan, comment=comment,
-                                             unitd="M", unitt="CHORD NO",
+        write_err, itref_written = write_ppf(self.data.pulse, dda,
+                                             dtype_z, z_coord,
+                                             time=geom_chan,
+                                             comment=comment,
+                                             unitd="M",
+                                             unitt="CHORD NO",
                                              itref=itref_written,
-                                             nt=len(geom_chan), status=None)
+                                             nt=len(geom_chan),
+                                             status=None)
 
         if write_err != 0:
             logger.error('failed to write ppf')
             return 67
         else:
 
-            err = close_ppf(self.data.pulse, self.write_uid, self.data.constants.code_version)
+            err = close_ppf(self.data.pulse, self.write_uid,
+                            self.data.constants.code_version)
 
         if err != 0:
             logger.error('failed to close ppf')
             return 67
 
         self.data.saved = True
-        self.data.data_changed = np.full(8,True,dtype=bool)
-        self.data.statusflag_changed = np.full(8,True,dtype=bool)
+        self.data.data_changed = np.full(8, True, dtype=bool)
+        self.data.statusflag_changed = np.full(8, True, dtype=bool)
 
         self.save_kg1('saved')
         logger.log(5, ' deleting scratch folder')
         delete_files_in_folder('./scratch')
         delete_files_in_folder('./saved')
-        logger.log(5, " {} - saved is {} - data changed is {} - status flags changed is {}".format(myself(),self.data.saved,self.data.data_changed, self.data.statusflag_changed))
+        logger.log(5,
+                   " {} - saved is {} - data changed is {} - status flags changed is {}".format(
+                       myself(), self.data.saved,
+                       self.data.data_changed,
+                       self.data.statusflag_changed))
         self.ui_areyousure.pushButton_YES.setChecked(False)
 
         self.areyousure_window.hide()
@@ -6712,8 +6921,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.error('use numerical values')
                 self.lineEdit_mancorr.setText("")
                 self.update_channel(self.chan) #update data and canvas
-                logger.info('applying this correction {} \n'.format(
-                    (self.correction_to_be_applied)))
+                # logger.info('applying this correction {} \n'.format(
+                #     (self.correction_to_be_applied)))
 
                 # self.pushButton_undo.disconnect()
                 self.gettotalcorrections() # compute total correction
@@ -6746,8 +6955,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.warning('no vibration correction')
                 self.lineEdit_mancorr.setText("")
                 self.update_channel(self.chan)
-                logger.info('applying this correction {} \n'.format(
-                    (self.correction_to_be_applied)))
+                # logger.info('applying this correction {} \n'.format(
+                #     (self.correction_to_be_applied)))
 
                 # self.pushButton_undo.disconnect()
                 self.gettotalcorrections()

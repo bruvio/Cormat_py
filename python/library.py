@@ -285,7 +285,7 @@ def check_SF(read_uid,pulse,seq):
     :return: list of Status Flags
     """
     logging.info('\n')
-    logging.info('checking status FLAGS ')
+    logging.info('checking status FLAGS for pulse {}, readuid is {} sequence is {} '.format(pulse,read_uid,seq))
     ier = ppfgo(pulse, seq=seq)
     ppfuid(read_uid, "r")
 
