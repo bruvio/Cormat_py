@@ -1316,10 +1316,10 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     str(self.data.pulse),
                     str(self.data.val_seq), self.data.KG1_data.correctedby))
 
-            logger.info('pulse has disrupted? {}\n'.format(self.data.is_dis))
+            logger.info('\n pulse has disrupted? {}\n'.format(self.data.is_dis))
             if self.data.is_dis:
                 logger.info(
-                    'pulse has disrupted at {}\n'.format(self.data.dis_time))
+                    '\n pulse has disrupted at {}\n'.format(self.data.dis_time))
 
 
 
@@ -1716,7 +1716,8 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                    self.data.SF_list_public) if
                                                e != 0]
 
-        if any(self.data.SF_list_public) in [1, 2, 3]:
+        # if any(self.data.SF_list_public) in [1, 2, 3]:
+        if set(self.data.SF_list_public).intersection(set([1, 2, 3])) is True:
             logger.warning(
                 '\n \n there is already a saved public PPF with validated channels! \n \n ')
 
@@ -3455,111 +3456,117 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             :return: 67 if there has been an error in writing status flag
                     0 otherwise (success)
             """
+            if set(self.data.SF_list_public).intersection(
+                    set([1, 2, 3])) is True:
+                logger.warning(
+                    '\n \n there is already a saved public PPF with validated channels! \n \n ')
+                self.checkStatuFlags()
+                msg = QtGui.QMessageBox()
+                msg.setText("\n  Do you wish to overwrite the validated public PPF it?")
 
-            self.checkStatuFlags()
-            msg = QtGui.QMessageBox()
-            msg.setText("\n  Do you wish to overwrite the validated public PPF it?")
-
-            msg.setDetailedText("click YES if you want to overwrite \n \nclick No if you want to use the validated channels already saved into the public ppf \n \nclick Cancel if you don't want to save anymore")
-            msg.setStandardButtons(msg.Yes | msg.No | msg.Cancel)
-            ret = msg.exec_()
-
-
-
-            if ret == qm.Cancel:
-                self.handle_no()
-
-            elif ret == qm.No:
-                # iterate the public validated channels to copy them into current structure
-                for public_channel in self.data.validated_public_channels:
-                    logger.info('copying channel {} from JETPPF'.format(public_channel))
-
-                    #copying validated public channels into current KG1 structure
-                    if self.data.KG1_data.type is not None:
-                        # if public_channel in self.data.KG1_data_public.type.keys():
-                            self.data.KG1_data.type[public_channel] = self.data.KG1_data_public.type[public_channel]
-                        # else:
+                msg.setDetailedText("click YES if you want to overwrite \n \nclick No if you want to use the validated channels already saved into the public ppf \n \nclick Cancel if you don't want to save anymore")
+                msg.setStandardButtons(msg.Yes | msg.No | msg.Cancel)
+                ret = msg.exec_()
 
 
 
+                if ret == qm.Cancel:
+                    self.handle_no()
 
-                    if public_channel in self.data.KG1_data_public.type.keys():
-                        self.data.KG1_data.type[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
-                        # self.data.KG1_data.density[public_channel] = SignalBase(self.data.constants)
-                        self.data.KG1_data.type[public_channel] = self.data.KG1_data_public.density[public_channel]
+                elif ret == qm.No:
+                    # iterate the public validated channels to copy them into current structure
+                    for public_channel in self.data.validated_public_channels:
+                        logger.info('copying channel {} from JETPPF'.format(public_channel))
 
-
-                    if public_channel in self.data.KG1_data_public.density.keys():
-
-                        self.data.KG1_data.density[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
-                        # self.data.KG1_data.density[public_channel] = SignalBase(self.data.constants)
-                        self.data.KG1_data.density[public_channel] = self.data.KG1_data_public.density[public_channel]
-                    if public_channel in self.data.KG1_data_public.fj_dcn.keys():
-                        self.data.KG1_data.fj_dcn[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
-                        self.data.KG1_data.fj_dcn[public_channel] = self.data.KG1_data_public.fj_dcn[public_channel]
-                        # self.data.KG1_data.fj_dcn[public_channel].time = self.data.KG1_data_public.fj_dcn[public_channel].time
-
-                    if public_channel in self.data.KG1_data_public.fj_met.keys():
-                        self.data.KG1_data.fj_met[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
-                        self.data.KG1_data.fj_met[public_channel] =  self.data.KG1_data_public.fj_met[public_channel]
-                        # self.data.KG1_data.fj_met[public_channel].time =  self.data.KG1_data_public.fj_met[public_channel].time
-                    if public_channel >4:
-                            if public_channel in self.data.KG1_data_public.jxb.keys():
-                                self.data.KG1_data.jxb[
-                                    public_channel] = SignalKg1(self.data.constants,self.data.pulse)
-                                self.data.KG1_data.jxb[public_channel] = \
-                                self.data.KG1_data_public.jxb[public_channel]
-
-                            if public_channel in self.data.KG1_data_public.vibration.keys():
-                                self.data.KG1_data.vibration[
-                                    public_channel] = SignalKg1(self.data.constants,self.data.pulse)
-                                self.data.KG1_data.vibration[public_channel] = \
-                                self.data.KG1_data_public.vibration[public_channel]
-
-
-                            if public_channel+4 in self.data.KG1_data_public.fj_dcn.keys():
-                                self.data.KG1_data.fj_dcn[
-                                    public_channel+4] = SignalKg1(self.data.constants,self.data.pulse)
-                                self.data.KG1_data.fj_dcn[public_channel+4] = \
-                                self.data.KG1_data_public.fj_dcn[public_channel+4]
-
-                    self.data.KG1_data.global_status[public_channel] = self.data.SF_list_public[public_channel-1]
-                    self.data.SF_list[public_channel-1]= self.data.SF_list_public[public_channel-1]
-
-
-                    self.data.KG1_data.status[public_channel] = SignalBase(self.data.constants)
-                    self.data.KG1_data.status[public_channel].data = np.zeros(
-                            len(self.data.KG1_data.density[public_channel].time))
-                    self.data.KG1_data.status[public_channel].time = self.data.KG1_data.density[public_channel].time
-
-
-                #the rest of the channels currently stored in kg1_data are left as they are (last copy is going to be written to ppf)
-                for chan in self.data.KG1_data.density.keys():
-                    if chan ==1:
-                        self.data.SF_ch1 = self.data.SF_list[chan-1]
-                    if chan ==2:
-                        self.data.SF_ch2 = self.data.SF_list[chan-1]
-                    if chan ==3:
-                        self.data.SF_ch3 = self.data.SF_list[chan-1]
-                    if chan ==4:
-                        self.data.SF_ch4 = self.data.SF_list[chan-1]
-                    if chan ==5:
-                        self.data.SF_ch5 = self.data.SF_list[chan-1]
-                    if chan ==6:
-                        self.data.SF_ch6 = self.data.SF_list[chan-1]
-                    if chan ==7:
-                        self.data.SF_ch7 = self.data.SF_list[chan-1]
-                    if chan ==8:
-                        self.data.SF_ch8 = self.data.SF_list[chan-1]
+                        #copying validated public channels into current KG1 structure
+                        if self.data.KG1_data.type is not None:
+                            # if public_channel in self.data.KG1_data_public.type.keys():
+                                self.data.KG1_data.type[public_channel] = self.data.KG1_data_public.type[public_channel]
+                            # else:
 
 
 
 
-                #after overwriting data
+                        if public_channel in self.data.KG1_data_public.type.keys():
+                            self.data.KG1_data.type[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                            # self.data.KG1_data.density[public_channel] = SignalBase(self.data.constants)
+                            self.data.KG1_data.type[public_channel] = self.data.KG1_data_public.density[public_channel]
+
+
+                        if public_channel in self.data.KG1_data_public.density.keys():
+
+                            self.data.KG1_data.density[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                            # self.data.KG1_data.density[public_channel] = SignalBase(self.data.constants)
+                            self.data.KG1_data.density[public_channel] = self.data.KG1_data_public.density[public_channel]
+                        if public_channel in self.data.KG1_data_public.fj_dcn.keys():
+                            self.data.KG1_data.fj_dcn[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                            self.data.KG1_data.fj_dcn[public_channel] = self.data.KG1_data_public.fj_dcn[public_channel]
+                            # self.data.KG1_data.fj_dcn[public_channel].time = self.data.KG1_data_public.fj_dcn[public_channel].time
+
+                        if public_channel in self.data.KG1_data_public.fj_met.keys():
+                            self.data.KG1_data.fj_met[public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                            self.data.KG1_data.fj_met[public_channel] =  self.data.KG1_data_public.fj_met[public_channel]
+                            # self.data.KG1_data.fj_met[public_channel].time =  self.data.KG1_data_public.fj_met[public_channel].time
+                        if public_channel >4:
+                                if public_channel in self.data.KG1_data_public.jxb.keys():
+                                    self.data.KG1_data.jxb[
+                                        public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                                    self.data.KG1_data.jxb[public_channel] = \
+                                    self.data.KG1_data_public.jxb[public_channel]
+
+                                if public_channel in self.data.KG1_data_public.vibration.keys():
+                                    self.data.KG1_data.vibration[
+                                        public_channel] = SignalKg1(self.data.constants,self.data.pulse)
+                                    self.data.KG1_data.vibration[public_channel] = \
+                                    self.data.KG1_data_public.vibration[public_channel]
+
+
+                                if public_channel+4 in self.data.KG1_data_public.fj_dcn.keys():
+                                    self.data.KG1_data.fj_dcn[
+                                        public_channel+4] = SignalKg1(self.data.constants,self.data.pulse)
+                                    self.data.KG1_data.fj_dcn[public_channel+4] = \
+                                    self.data.KG1_data_public.fj_dcn[public_channel+4]
+
+                        self.data.KG1_data.global_status[public_channel] = self.data.SF_list_public[public_channel-1]
+                        self.data.SF_list[public_channel-1]= self.data.SF_list_public[public_channel-1]
+
+
+                        self.data.KG1_data.status[public_channel] = SignalBase(self.data.constants)
+                        self.data.KG1_data.status[public_channel].data = np.zeros(
+                                len(self.data.KG1_data.density[public_channel].time))
+                        self.data.KG1_data.status[public_channel].time = self.data.KG1_data.density[public_channel].time
+
+
+                    #the rest of the channels currently stored in kg1_data are left as they are (last copy is going to be written to ppf)
+                    for chan in self.data.KG1_data.density.keys():
+                        if chan ==1:
+                            self.data.SF_ch1 = self.data.SF_list[chan-1]
+                        if chan ==2:
+                            self.data.SF_ch2 = self.data.SF_list[chan-1]
+                        if chan ==3:
+                            self.data.SF_ch3 = self.data.SF_list[chan-1]
+                        if chan ==4:
+                            self.data.SF_ch4 = self.data.SF_list[chan-1]
+                        if chan ==5:
+                            self.data.SF_ch5 = self.data.SF_list[chan-1]
+                        if chan ==6:
+                            self.data.SF_ch6 = self.data.SF_list[chan-1]
+                        if chan ==7:
+                            self.data.SF_ch7 = self.data.SF_list[chan-1]
+                        if chan ==8:
+                            self.data.SF_ch8 = self.data.SF_list[chan-1]
+
+
+
+
+                    #after overwriting data
+                    self.writeppf()
+
+                elif ret == qm.Yes:
+                    self.writeppf()
+            else:
                 self.writeppf()
 
-            elif ret == qm.Yes:
-                self.writeppf()
     def writeppf(self):
         self.checkStatuFlags()
 
