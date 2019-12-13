@@ -184,10 +184,10 @@ class SignalKg1(SignalBase):
 
 
             # Also store corresponding correction for the DCN & MET lasers (for use with lateral channels only)
-            if self.dcn_or_met is 'dcn':
+            if self.dcn_or_met == 'dcn':
                 self.correction_dcn = np.append(self.correction_dcn, corr_dcn)
 
-            if self.dcn_or_met is 'met':
+            if self.dcn_or_met == 'met':
                 self.correction_met = np.append(self.correction_met, corr_met)
 
 

@@ -8,7 +8,7 @@ import logging
 
 import numpy as np
 from scipy import signal
-# from getdat import getdat, getsca
+from getdat import getdat, getsca
 from getdat import *
 from ppf import ppfgo, ppfget, ppfssr, ppfuid
 

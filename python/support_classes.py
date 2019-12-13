@@ -5,8 +5,9 @@ __author__ = "B. Viola"
 from matplotlib import pyplot as plt
 import pdb
 from canvas import Canvas
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 import numpy as np
 import logging
 from matplotlib.ticker import AutoLocator

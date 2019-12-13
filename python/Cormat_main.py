@@ -36,10 +36,14 @@ from pathlib import Path
 import CORMAT_GUI
 import pdb
 import matplotlib.pyplot as plt
-from PyQt4 import QtCore, QtGui
-
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+# from PyQt4 import QtCore, QtGui
+#
+# from PyQt4.QtCore import *
+# from PyQt4.QtGui import *
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from areyousure_gui import Ui_areyousure_window
 from accept_suggestion import Ui_suggestion_window
 from consts import Consts
@@ -74,14 +78,14 @@ import getpass
 
 
 
-qm = QtGui.QMessageBox
-qm_permanent = QtGui.QMessageBox
+qm = QMessageBox
+qm_permanent = QMessageBox
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 myself = lambda: inspect.stack()[1][3]
 logger = logging.getLogger(__name__)
 
 # noinspection PyUnusedLocal
-class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
+class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  QPlainTextEditLogger):
     """
 
@@ -103,7 +107,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
 
 
-        widget.setLayout(QtGui.QVBoxLayout())
+        widget.setLayout(QVBoxLayout())
         widget.layout().setContentsMargins(0, 710, 50,
                                            -0)  # (left, top, right, bottom)
         widget.layout().setSpacing(0)
@@ -863,7 +867,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.log(5, ' {} is  checked'.format(self.checkBox_newpulse.objectName()))
                 # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
                 #logger.info(' pulse data already downloaded - you are requesting to download again')
-                self.areyousure_window = QtGui.QMainWindow()
+                self.areyousure_window = QMainWindow()
                 self.ui_areyousure = Ui_areyousure_window()
                 self.ui_areyousure.setupUi(self.areyousure_window)
                 self.areyousure_window.show()
@@ -2123,9 +2127,9 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         self.tabWidget.setCurrentIndex(0)
         self.canvasselected(arg=0)
-        self.tabWidget.connect(self.tabWidget,
-                               QtCore.SIGNAL("currentChanged(int)"),
-                               self.canvasselected)
+
+
+        self.tabWidget.currentChanged.connect(self.canvasselected)
 
 
         # set combobox index to 1 so that the default write_uid is owner
@@ -3350,7 +3354,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             if self.radioButton_storeData.isChecked():
                 logger.info(
                     ' Requesting to change ppf data\n')
-                self.areyousure_window = QtGui.QMainWindow()
+                self.areyousure_window = QMainWindow()
                 self.ui_areyousure = Ui_areyousure_window()
                 self.ui_areyousure.setupUi(self.areyousure_window)
                 self.areyousure_window.show()
@@ -3378,7 +3382,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             if self.radioButton_storeSF.isChecked():
                 logger.info(
                     ' Requesting to change ppf data\n')
-                self.areyousure_window = QtGui.QMainWindow()
+                self.areyousure_window = QMainWindow()
                 self.ui_areyousure = Ui_areyousure_window()
                 self.ui_areyousure.setupUi(self.areyousure_window)
                 self.areyousure_window.show()
@@ -3461,7 +3465,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                 logger.warning(
                     '\n \n there is already a saved public PPF with validated channels! \n \n ')
                 self.checkStatuFlags()
-                msg = QtGui.QMessageBox()
+                msg = QMessageBox()
                 msg.setText("\n  Do you wish to overwrite the validated public PPF it?")
 
                 msg.setDetailedText("click YES if you want to overwrite \n \nclick No if you want to use the validated channels already saved into the public ppf \n \nclick Cancel if you don't want to save anymore")
@@ -7598,7 +7602,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         if hasattr(self.data, 'pulse') is False:
             logger.debug( 'data has been loaded, nothing has been modified, it is save to exit')
 
-            self.areyousure_window = QtGui.QMainWindow()
+            self.areyousure_window = QMainWindow()
             self.ui_areyousure = Ui_areyousure_window()
             self.ui_areyousure.setupUi(self.areyousure_window)
             self.areyousure_window.show()
@@ -7610,7 +7614,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         elif self.data.pulse is None:
             logger.debug('no data has been loaded, it is save to exit')
 
-            self.areyousure_window = QtGui.QMainWindow()
+            self.areyousure_window = QMainWindow()
             self.ui_areyousure = Ui_areyousure_window()
             self.ui_areyousure.setupUi(self.areyousure_window)
             self.areyousure_window.show()
@@ -7625,7 +7629,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
         elif hasattr(self.data, 'KG1_data') is False:
             logger.debug('no data has been loaded, it is save to exit')
 
-            self.areyousure_window = QtGui.QMainWindow()
+            self.areyousure_window = QMainWindow()
             self.ui_areyousure = Ui_areyousure_window()
             self.ui_areyousure.setupUi(self.areyousure_window)
             self.areyousure_window.show()
@@ -7643,7 +7647,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             else:
                 logger.info(' data has not been saved do you want to exit? \n')
 
-                self.areyousure_window = QtGui.QMainWindow()
+                self.areyousure_window = QMainWindow()
                 self.ui_areyousure = Ui_areyousure_window()
                 self.ui_areyousure.setupUi(self.areyousure_window)
                 self.areyousure_window.show()
@@ -7656,7 +7660,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             logger.info('data and status flags have not changed, it is save to exit\n')
 
 
-            self.areyousure_window = QtGui.QMainWindow()
+            self.areyousure_window = QMainWindow()
             self.ui_areyousure = Ui_areyousure_window()
             self.ui_areyousure.setupUi(self.areyousure_window)
             self.areyousure_window.show()
@@ -7696,7 +7700,7 @@ def main():
 
     by default is set to INFO
     """
-    from PyQt4.QtCore import pyqtRemoveInputHook
+    from PyQt5.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
     pr = cProfile.Profile()
     pr.enable()
@@ -7704,13 +7708,13 @@ def main():
     # with PyCallGraph(output=GraphvizOutput()):
         # code_to_profile()
 
-    app = QtGui.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     # screen_resolution = app.desktop().screenGeometry()
     # width, height = screen_resolution.width(), screen_resolution.height()
     #width, height = [640,480]
     #width, height = [480,360]
     MainWindow = CORMAT_GUI()
-    screenShape = QtGui.QDesktopWidget().screenGeometry()
+    #screenShape = QDesktopWidget().screenGeometry()
     #logger.debug( 'screen resolution is {} x {}'.format(screenShape.width(), screenShape.height()))
     # 1366x768 vnc viewer size
     # time.sleep(3.0)
@@ -7738,7 +7742,10 @@ if __name__ == '__main__':
 
     # Ensure we are running python 3
     assert sys.version_info >= (
-        3, 5), "Python version too old. Please use >= 3.5.X."
+        3, 7), "Python version too old. Please use >= 3.7 with qtconsole 4.4.3 and PyQt5 installed"
+
+
+    # assert qtconsole.__version__ >= (4,4), "\n Please use PyQt5 \n"
 
     parser = argparse.ArgumentParser(description='Run CORMAT_py')
     parser.add_argument("-d", "--debug", type=int,

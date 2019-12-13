@@ -2,8 +2,13 @@
 __author__ = "B. Viola"
 # ----------------------------
 import logging
-from PyQt4 import Qt, QtCore,QtGui
+# from PyQt4 import Qt, QtCore,QtWidgets
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtGui import QColor
 
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets
 
 # Custom formatter
 class MyFormatter(logging.Formatter):
@@ -73,7 +78,7 @@ class QPlainTextEditLogger(logging.Handler):
     def __init__(self, parent):
         super().__init__()
         #first creates a text edit widget (parent is the main gui)
-        self.widget = QtGui.QPlainTextEdit(parent)
+        self.widget = QtWidgets.QPlainTextEdit(parent)
         #adding this newly created widget to gridLayout_4
         parent.gridLayout_4.addWidget(self.widget,4, 0, 1,2)
     
@@ -90,12 +95,12 @@ class QPlainTextEditLogger(logging.Handler):
 
 class HTMLFormatter(logging.Formatter):
     FORMATS = {
-        logging.ERROR:   ("[%(levelname)-5s] %(message)s", QtGui.QColor("red")),
+        logging.ERROR:   ("[%(levelname)-5s] %(message)s", QColor("red")),
         logging.DEBUG:   ("[%(levelname)-5s] [%(filename)s:%(lineno)d] %(message)s", "black"),
         logging.INFO:    ("[%(levelname)-4s] %(message)s", "#0000FF"),
-        # logging.WARNING: ('%(asctime)s - %(name)s - %(levelname)s - %(message)s', QtGui.QColor(100, 100, 0)),
-        logging.WARNING: ('%(levelname)s - %(message)s', QtGui.QColor(100, 100, 0)),
-        5: ('%(levelname)s - [%(filename)s:%(lineno)d] - %(message)s', QtGui.QColor(0, 100, 0))
+        # logging.WARNING: ('%(asctime)s - %(name)s - %(levelname)s - %(message)s', QtWidgets.QColor(100, 100, 0)),
+        logging.WARNING: ('%(levelname)s - %(message)s', QColor(100, 100, 0)),
+        5: ('%(levelname)s - [%(filename)s:%(lineno)d] - %(message)s', QColor(0, 100, 0))
 
 
     }
@@ -106,7 +111,7 @@ class HTMLFormatter(logging.Formatter):
         opt = HTMLFormatter.FORMATS.get(record.levelno)
         if opt:
             fmt, color = opt
-            self._style._fmt = "<font color=\"{}\">{}</font>".format(QtGui.QColor(color).name(),fmt)
+            self._style._fmt = "<font color=\"{}\">{}</font>".format(QColor(color).name(),fmt)
         res = logging.Formatter.format( self, record )
         self._style._fmt = last_fmt
         return res
