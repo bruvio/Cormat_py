@@ -36,6 +36,7 @@ MANIFEST
 *.spec
 
 # Installer logs
+LOG*.*
 pip-log.txt
 pip-delete-this-directory.txt
 
@@ -109,3 +110,4 @@ venv.bak/
 
 ~*
 /python/run_out.txt
+scratch*
