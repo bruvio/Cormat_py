@@ -1290,14 +1290,14 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  self.data.NBI_data, self.data.is_dis, self.data.dis_time,
                  self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,self.data.zeroed, self.data.zeroingbackup_den,
                 self.data.zeroingbackup_vib,self.data.data_changed,self.data.statusflag_changed,
-                 self.data.validated_public_channels] = pickle.load(f)
+                 self.data.validated_public_channels,self.data.SF_list_public] = pickle.load(f)
             f.close()
             with open('./scratch/kg1_data.pkl',
                       'rb') as f:  # Python 3: open(..., 'rb')
                 [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
                  self.read_uid,self.data.zeroing_start,self.data.zeroing_stop,
                  self.data.zeroingbackup_den,self.data.zeroingbackup_vib,
-                 self.data.data_changed,self.data.statusflag_changed,self.data.validated_public_channels
+                 self.data.data_changed,self.data.statusflag_changed,self.data.validated_public_channels,self.data.SF_list_public
                  ] = pickle.load(f)
             f.close()
             logger.info(' workspace loaded\n')
@@ -1374,7 +1374,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                  self.data.LIDAR_data,self.data.zeroing_start,self.data.zeroing_stop,
                  self.data.zeroed,self.data.zeroingbackup_den,
                  self.data.zeroingbackup_vib,self.data.data_changed,
-                 self.data.statusflag_changed,self.data.validated_public_channels], f)
+                 self.data.statusflag_changed,self.data.validated_public_channels,self.data.SF_list_public], f)
         f.close()
         logger.info(' data saved to {}\n'.format(folder))
 
@@ -1393,7 +1393,7 @@ class CORMAT_GUI(QtGui.QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                     [self.data.KG1_data, self.data.SF_list, self.data.unval_seq, self.data.val_seq,
                      self.read_uid,self.data.zeroing_start,self.data.zeroing_stop,
                      self.data.zeroingbackup_den,self.data.zeroingbackup_vib,
-                     self.data.data_changed,self.data.statusflag_changed,self.data.validated_public_channels
+                     self.data.data_changed,self.data.statusflag_changed,self.data.validated_public_channels,self.data.SF_list_public
                      ], f)
             f.close()
             logger.info(' KG1 data saved to {}\n'.format(folder))
