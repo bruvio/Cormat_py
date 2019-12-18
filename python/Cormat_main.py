@@ -16,7 +16,7 @@ __status__ = "Testing"
 import warnings
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-
+import qtconsole
 import matplotlib
 matplotlib.use('QT4Agg')
 import argparse
@@ -7737,9 +7737,9 @@ if __name__ == '__main__':
     assert (platform.architecture()[0] == '64bit'), "Please log on Freja"
 
     # Ensure we are running python 3
-    assert sys.version_info >= (
-        3, 5), "Python version too old. Please use >= 3.5.X."
+    assert ((sys.version_info.major == (3)) & (sys.version_info.minor ==(5)) & (sys.version_info.micro == (1))), 'Please load module python/3.5.1'
 
+    assert qtconsole.__version__ == '4.2.1', "\n PLease use PyQt4 \n"
     parser = argparse.ArgumentParser(description='Run CORMAT_py')
     parser.add_argument("-d", "--debug", type=int,
                         help="Debug level. 0: Info, 1: Warning, 2: Debug,"
