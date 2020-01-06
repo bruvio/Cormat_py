@@ -8,6 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_areyousure_window(object):
     def setupUi(self, areyousure_window):
         areyousure_window.setObjectName("areyousure_window")
@@ -47,8 +48,9 @@ class Ui_areyousure_window(object):
 
     def retranslateUi(self, areyousure_window):
         _translate = QtCore.QCoreApplication.translate
-        areyousure_window.setWindowTitle(_translate("areyousure_window", "Are you sure?"))
+        areyousure_window.setWindowTitle(
+            _translate("areyousure_window", "Are you sure?")
+        )
         self.pushButton_YES.setText(_translate("areyousure_window", "YES"))
         self.pushButton_NO.setText(_translate("areyousure_window", "NO"))
         self.label_3.setText(_translate("areyousure_window", "are you sure?"))
-

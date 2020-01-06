@@ -2,6 +2,7 @@
 __author__ = "B. Viola"
 # ----------------------------
 import logging
+
 # from PyQt4 import Qt, QtCore,QtWidgets
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QColor
@@ -15,18 +16,19 @@ class MyFormatter(logging.Formatter):
     """
     class to handle the logging formatting
     """
+
     # ----------------------------
 
-    PURPLE = '\033[95m'
-    CYAN = '\033[96m'
-    DARKCYAN = '\033[36m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    END = '\033[0m'
+    PURPLE = "\033[95m"
+    CYAN = "\033[96m"
+    DARKCYAN = "\033[36m"
+    BLUE = "\033[94m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+    END = "\033[0m"
 
     err_fmt = "[\033[91m%(levelname)-5s\033[0m] \033[91m%(message)s\033[0m"
     dbg_fmt = "[\033[36m%(levelname)-4s\033[0m] [\033[36m%(filename)s\033[0m:\033[36m%(lineno)d\033[0m] \033[36m%(message)s\033[0m"
@@ -68,50 +70,53 @@ class MyFormatter(logging.Formatter):
 
         return result
 
+
 class QPlainTextEditLogger(logging.Handler):
     """
     class that defines a handler to write logging message inside the GUI
     
     """
 
-
     def __init__(self, parent):
         super().__init__()
-        #first creates a text edit widget (parent is the main gui)
+        # first creates a text edit widget (parent is the main gui)
         self.widget = QtWidgets.QPlainTextEdit(parent)
-        #adding this newly created widget to gridLayout_4
-        parent.gridLayout_4.addWidget(self.widget,4, 0, 1,2)
-    
+        # adding this newly created widget to gridLayout_4
+        parent.gridLayout_4.addWidget(self.widget, 4, 0, 1, 2)
 
         self.widget.setReadOnly(True)
-
 
     def emit(self, record):
 
         msg = self.format(record)
-        
+
         self.widget.appendHtml(msg)
 
 
 class HTMLFormatter(logging.Formatter):
     FORMATS = {
-        logging.ERROR:   ("[%(levelname)-5s] %(message)s", QColor("red")),
-        logging.DEBUG:   ("[%(levelname)-5s] [%(filename)s:%(lineno)d] %(message)s", "black"),
-        logging.INFO:    ("[%(levelname)-4s] %(message)s", "#0000FF"),
+        logging.ERROR: ("[%(levelname)-5s] %(message)s", QColor("red")),
+        logging.DEBUG: (
+            "[%(levelname)-5s] [%(filename)s:%(lineno)d] %(message)s",
+            "black",
+        ),
+        logging.INFO: ("[%(levelname)-4s] %(message)s", "#0000FF"),
         # logging.WARNING: ('%(asctime)s - %(name)s - %(levelname)s - %(message)s', QtWidgets.QColor(100, 100, 0)),
-        logging.WARNING: ('%(levelname)s - %(message)s', QColor(100, 100, 0)),
-        5: ('%(levelname)s - [%(filename)s:%(lineno)d] - %(message)s', QColor(0, 100, 0))
-
-
+        logging.WARNING: ("%(levelname)s - %(message)s", QColor(100, 100, 0)),
+        5: (
+            "%(levelname)s - [%(filename)s:%(lineno)d] - %(message)s",
+            QColor(0, 100, 0),
+        ),
     }
 
-
-    def format( self, record ):
+    def format(self, record):
         last_fmt = self._style._fmt
         opt = HTMLFormatter.FORMATS.get(record.levelno)
         if opt:
             fmt, color = opt
-            self._style._fmt = "<font color=\"{}\">{}</font>".format(QColor(color).name(),fmt)
-        res = logging.Formatter.format( self, record )
+            self._style._fmt = '<font color="{}">{}</font>'.format(
+                QColor(color).name(), fmt
+            )
+        res = logging.Formatter.format(self, record)
         self._style._fmt = last_fmt
         return res

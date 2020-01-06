@@ -292,19 +292,45 @@ class Ui_CORMAT_py(object):
     def retranslateUi(self, CORMAT_py):
         _translate = QtCore.QCoreApplication.translate
         CORMAT_py.setWindowTitle(_translate("CORMAT_py", "CORMATpy"))
-        self.tabWidget.setWhatsThis(_translate("CORMAT_py", "<html><head/><body><p>MIR</p></body></html>"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_LID1), _translate("CORMAT_py", "LID1"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_LID2), _translate("CORMAT_py", "LID2"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_LID3), _translate("CORMAT_py", "LID3"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_LID4), _translate("CORMAT_py", "LID4"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("CORMAT_py", "LID5"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_6), _translate("CORMAT_py", "LID6"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_7), _translate("CORMAT_py", "LIF7"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_8), _translate("CORMAT_py", "LID8"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_11), _translate("CORMAT_py", "LID 1-4"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_12), _translate("CORMAT_py", "LID 5-8"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_9), _translate("CORMAT_py", "LID ALL"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_10), _translate("CORMAT_py", "MIR"))
+        self.tabWidget.setWhatsThis(
+            _translate("CORMAT_py", "<html><head/><body><p>MIR</p></body></html>")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_LID1), _translate("CORMAT_py", "LID1")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_LID2), _translate("CORMAT_py", "LID2")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_LID3), _translate("CORMAT_py", "LID3")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_LID4), _translate("CORMAT_py", "LID4")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_5), _translate("CORMAT_py", "LID5")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_6), _translate("CORMAT_py", "LID6")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_7), _translate("CORMAT_py", "LIF7")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_8), _translate("CORMAT_py", "LID8")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_11), _translate("CORMAT_py", "LID 1-4")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_12), _translate("CORMAT_py", "LID 5-8")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_9), _translate("CORMAT_py", "LID ALL")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_10), _translate("CORMAT_py", "MIR")
+        )
         self.groupBox_8.setTitle(_translate("CORMAT_py", "CORMATpy"))
         self.groupBox_3.setTitle(_translate("CORMAT_py", "Input"))
         self.label_5.setText(_translate("CORMAT_py", "JPN"))
@@ -340,4 +366,6 @@ class Ui_CORMAT_py(object):
         self.menuHelp.setTitle(_translate("CORMAT_py", "Help"))
         self.actionHelp.setText(_translate("CORMAT_py", "Help"))
         self.actionOpen_PDF_guide.setText(_translate("CORMAT_py", "Open PDF guide"))
+
+
 from canvas import Canvas

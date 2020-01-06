@@ -6,15 +6,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import pathlib
+
 # ----------------------------
 __author__ = "L. Kogan"
 # ----------------------------
 
-def make_plot(all_data, colours=None, markers=None, labels=None, linestyles=None,
-              pformat=None, xtitles=None, ytitles=None, xranges=None, yranges=None,
-              vert_lines=None, horz_lines=None,
-              vert_lines_many_colors=None, vert_labels=None, title="", ncolumns=2,
-              show=True, save_name=""):
+
+def make_plot(
+    all_data,
+    colours=None,
+    markers=None,
+    labels=None,
+    linestyles=None,
+    pformat=None,
+    xtitles=None,
+    ytitles=None,
+    xranges=None,
+    yranges=None,
+    vert_lines=None,
+    horz_lines=None,
+    vert_lines_many_colors=None,
+    vert_labels=None,
+    title="",
+    ncolumns=2,
+    show=True,
+    save_name="",
+):
     """
     Plot data
 
@@ -39,15 +56,15 @@ def make_plot(all_data, colours=None, markers=None, labels=None, linestyles=None
 
     # Style stuff
     if colours is None:
-        colours = ["blue"]*len(all_data)
+        colours = ["blue"] * len(all_data)
     if markers is None:
-        markers = ["None"]*len(all_data)
+        markers = ["None"] * len(all_data)
     elif linestyles is None:
-        linestyles = [""]*len(all_data)
+        linestyles = [""] * len(all_data)
     if linestyles is None:
-        linestyles = ["-"]*len(all_data)
+        linestyles = ["-"] * len(all_data)
     if labels is None:
-        labels = [None]*len(all_data)
+        labels = [None] * len(all_data)
 
     # How plots are arranged into subplots
     if pformat is None:
@@ -78,7 +95,7 @@ def make_plot(all_data, colours=None, markers=None, labels=None, linestyles=None
         sub_y = 2
         ncolumns = 1
 
-    f, ax = plt.subplots(sub_y, sub_x, figsize=(14,14), sharex=True)
+    f, ax = plt.subplots(sub_y, sub_x, figsize=(14, 14), sharex=True)
 
     if ncolumns > 1 and n_subplots != 2:
         if sub_y == 1:
@@ -91,18 +108,24 @@ def make_plot(all_data, colours=None, markers=None, labels=None, linestyles=None
             for ax_t in ax:
                 ax_here.append([ax_t])
             ax = ax_here
-    
 
     for ind, data in enumerate(all_data):
         ind_y = (subplot - 1) // ncolumns
-        ind_x = subplot - ncolumns * (ind_y) - 1        
+        ind_x = subplot - ncolumns * (ind_y) - 1
 
         lw = 1
         if linestyles[ind] == "--":
             lw = 2
-        ax[ind_y][ind_x].plot(data[0], data[1],
-                              c=colours[ind], marker=markers[ind],
-                              linestyle=linestyles[ind], label=labels[ind], markersize=12, linewidth=lw)
+        ax[ind_y][ind_x].plot(
+            data[0],
+            data[1],
+            c=colours[ind],
+            marker=markers[ind],
+            linestyle=linestyles[ind],
+            label=labels[ind],
+            markersize=12,
+            linewidth=lw,
+        )
 
         # For axes ranges (if they haven't been set)
         if xranges is None:
@@ -120,38 +143,54 @@ def make_plot(all_data, colours=None, markers=None, labels=None, linestyles=None
         count_plot += 1
 
         # Last plot in this subplot
-        if count_plot == pformat[subplot-1]:            
+        if count_plot == pformat[subplot - 1]:
             if xranges is None:
-                xrange = [xmin*0.9, xmax*1.1]
+                xrange = [xmin * 0.9, xmax * 1.1]
             else:
-                xrange = xranges[subplot-1]
+                xrange = xranges[subplot - 1]
 
             if yranges is None:
-                yrange = [ymin*0.9, ymax*1.1]
+                yrange = [ymin * 0.9, ymax * 1.1]
             else:
-                yrange = yranges[subplot-1]
+                yrange = yranges[subplot - 1]
 
             # Overlay vertical or horizontal lines
-            show_legend = (labels[0] is not None)
+            show_legend = labels[0] is not None
             if vert_lines is not None:
                 if len(vert_lines) > 0 and vert_lines_many_colors is None:
-                    #print("Vert lines length is > 0 len this one {}".format(len(vert_lines[subplot-1])))
-                    for vert in vert_lines[subplot-1]:
-                        ax[ind_y][ind_x].axvline(x=vert, ymin=0, ymax=1, linewidth=2, color="red")
-                elif len(vert_lines) > 0 and vert_lines_many_colors is not None and vert_labels is not None:
-                    for vert_set, vert_col, vert_label in zip(vert_lines[subplot-1],
-                                                              vert_lines_many_colors[subplot-1],
-                                                              vert_labels[subplot-1]):
+                    # print("Vert lines length is > 0 len this one {}".format(len(vert_lines[subplot-1])))
+                    for vert in vert_lines[subplot - 1]:
+                        ax[ind_y][ind_x].axvline(
+                            x=vert, ymin=0, ymax=1, linewidth=2, color="red"
+                        )
+                elif (
+                    len(vert_lines) > 0
+                    and vert_lines_many_colors is not None
+                    and vert_labels is not None
+                ):
+                    for vert_set, vert_col, vert_label in zip(
+                        vert_lines[subplot - 1],
+                        vert_lines_many_colors[subplot - 1],
+                        vert_labels[subplot - 1],
+                    ):
                         if len(vert_set) > 0:
-                            ax[ind_y][ind_x].plot([xrange[0]], [yrange[0]], c=vert_col, marker="",
-                                                  linestyle="-", label=vert_label)
+                            ax[ind_y][ind_x].plot(
+                                [xrange[0]],
+                                [yrange[0]],
+                                c=vert_col,
+                                marker="",
+                                linestyle="-",
+                                label=vert_label,
+                            )
                         for vert in vert_set:
                             show_legend = True
-                            ax[ind_y][ind_x].axvline(x=vert, ymin=0, ymax=1, linewidth=2, color=vert_col)
+                            ax[ind_y][ind_x].axvline(
+                                x=vert, ymin=0, ymax=1, linewidth=2, color=vert_col
+                            )
 
             if horz_lines is not None:
                 if len(horz_lines) > 0:
-                    for horz in horz_lines[subplot-1]:
+                    for horz in horz_lines[subplot - 1]:
                         plt.axhline(y=horz, xmin=0, xmax=1, linewidth=2, color="red")
 
             # Set axes ranges, legends etc
@@ -159,17 +198,21 @@ def make_plot(all_data, colours=None, markers=None, labels=None, linestyles=None
             plt.ylim(yrange[0], yrange[1])
 
             if xtitles is not None:
-                ax[ind_y][ind_x].set_xlabel(xtitles[subplot-1], fontsize=12)
+                ax[ind_y][ind_x].set_xlabel(xtitles[subplot - 1], fontsize=12)
             if ytitles is not None:
-                ax[ind_y][ind_x].set_ylabel(ytitles[subplot-1], fontsize=12)
+                ax[ind_y][ind_x].set_ylabel(ytitles[subplot - 1], fontsize=12)
 
             if show_legend:
-#                ax[ind_y][ind_x].legend(loc="upper left", bbox_to_anchor=[0, 1], ncol=2, prop={'size':20})
-#                ax[ind_y][ind_x].legend(loc="upper right", bbox_to_anchor=[1, 1], ncol=2, prop={'size':18})
-                ax[ind_y][ind_x].legend(loc="upper right", bbox_to_anchor=[1, 1], prop={'size':12})
+                #                ax[ind_y][ind_x].legend(loc="upper left", bbox_to_anchor=[0, 1], ncol=2, prop={'size':20})
+                #                ax[ind_y][ind_x].legend(loc="upper right", bbox_to_anchor=[1, 1], ncol=2, prop={'size':18})
+                ax[ind_y][ind_x].legend(
+                    loc="upper right", bbox_to_anchor=[1, 1], prop={"size": 12}
+                )
 
-            for tick in (ax[ind_y][ind_x].get_xticklabels() + ax[ind_y][ind_x].get_yticklabels()):
-                #tick.set_fontsize(17)
+            for tick in (
+                ax[ind_y][ind_x].get_xticklabels() + ax[ind_y][ind_x].get_yticklabels()
+            ):
+                # tick.set_fontsize(17)
                 tick.set_fontsize(12)
             ax[ind_y][ind_x].grid()
 
@@ -185,21 +228,20 @@ def make_plot(all_data, colours=None, markers=None, labels=None, linestyles=None
 
     # plt.tight_layout()
     f.set_tight_layout(True)
-    plt.subplots_adjust(hspace=.2)
-#    plt.subplots_adjust(top=0.90)
+    plt.subplots_adjust(hspace=0.2)
+    #    plt.subplots_adjust(top=0.90)
 
     if show:
         plt.show()
         return
 
     if save_name != "":
-        owner = os.getenv('USR')
+        owner = os.getenv("USR")
         # homefold = os.path.join(os.sep, 'u', owner)
         homefold = os.curdir
         # print(owner)
         # print(homefold)
         # print(homefold + os.sep + 'figures/')
-        pathlib.Path(homefold + os.sep + 'figures/').mkdir(parents=True,
-                                                       exist_ok=True)
-        path=homefold + os.sep + 'figures/'
-        plt.savefig(path+save_name)
+        pathlib.Path(homefold + os.sep + "figures/").mkdir(parents=True, exist_ok=True)
+        path = homefold + os.sep + "figures/"
+        plt.savefig(path + save_name)

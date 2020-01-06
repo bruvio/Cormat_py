@@ -8,6 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_suggestion_window(object):
     def setupUi(self, suggestion_window):
         suggestion_window.setObjectName("suggestion_window")
@@ -27,12 +28,16 @@ class Ui_suggestion_window(object):
         self.pushButton_NO.setCheckable(True)
         self.pushButton_NO.setAutoExclusive(False)
         self.pushButton_NO.setObjectName("pushButton_NO")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.pushButton_NO)
+        self.formLayout.setWidget(
+            1, QtWidgets.QFormLayout.LabelRole, self.pushButton_NO
+        )
         self.pushButton_YES = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_YES.setCheckable(True)
         self.pushButton_YES.setAutoExclusive(False)
         self.pushButton_YES.setObjectName("pushButton_YES")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.pushButton_YES)
+        self.formLayout.setWidget(
+            2, QtWidgets.QFormLayout.LabelRole, self.pushButton_YES
+        )
         suggestion_window.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(suggestion_window)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 256, 20))
@@ -47,8 +52,9 @@ class Ui_suggestion_window(object):
 
     def retranslateUi(self, suggestion_window):
         _translate = QtCore.QCoreApplication.translate
-        suggestion_window.setWindowTitle(_translate("suggestion_window", "Are you sure?"))
+        suggestion_window.setWindowTitle(
+            _translate("suggestion_window", "Are you sure?")
+        )
         self.label_3.setText(_translate("suggestion_window", "accept suggestion?"))
         self.pushButton_NO.setText(_translate("suggestion_window", "NO"))
         self.pushButton_YES.setText(_translate("suggestion_window", "YES"))
-

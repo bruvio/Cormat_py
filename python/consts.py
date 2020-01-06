@@ -14,6 +14,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+
 class Consts:
 
     # Fringe in terms of density for DCN & MET
@@ -27,21 +28,54 @@ class Consts:
     MAT22 = -0.9445996e-4
 
     # Lateral channel correction matrices
-    CORR_NE = np.array([-0.56e19, 0.91e19,  # Density in m^2
-               0.35e19, 1.46e19,
-               2.58e19, 2.02e19,
-               -0.21e19, -0.76e19,
-               3.49e19, 2.37e19,
-               1.26e19, 0.15e19,
-               3.84e19, 3.28e19,
-               2.17e19, 1.61e19])
+    CORR_NE = np.array(
+        [
+            -0.56e19,
+            0.91e19,  # Density in m^2
+            0.35e19,
+            1.46e19,
+            2.58e19,
+            2.02e19,
+            -0.21e19,
+            -0.76e19,
+            3.49e19,
+            2.37e19,
+            1.26e19,
+            0.15e19,
+            3.84e19,
+            3.28e19,
+            2.17e19,
+            1.61e19,
+        ]
+    )
 
-    CORR_VIB = np.array([-95.13e-6, 57.7e-6, -37.4e-6, 152.8e-6, 343.8e-6, 247.9e-6, -132.6e-6,  # Vib in m
-                -227.7e-6, 400.7e-6, 210.5e-6, 20.2e-6, -170.0e-6, 363.3e-6, 268.2e-6,
-                77.9e-6, -17.2e-6])
+    CORR_VIB = np.array(
+        [
+            -95.13e-6,
+            57.7e-6,
+            -37.4e-6,
+            152.8e-6,
+            343.8e-6,
+            247.9e-6,
+            -132.6e-6,  # Vib in m
+            -227.7e-6,
+            400.7e-6,
+            210.5e-6,
+            20.2e-6,
+            -170.0e-6,
+            363.3e-6,
+            268.2e-6,
+            77.9e-6,
+            -17.2e-6,
+        ]
+    )
 
-    FJ_DCN = np.array([0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3])  # Number fringes in DCN laser
-    FJ_MET = np.array([1, 0, 1, -1, -3, -2, 2, 3, -3, -1, 1, 3, -2, -1, 1, 2])  # Number fringes in MET laser
+    FJ_DCN = np.array(
+        [0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
+    )  # Number fringes in DCN laser
+    FJ_MET = np.array(
+        [1, 0, 1, -1, -3, -2, 2, 3, -3, -1, 1, 3, -2, -1, 1, 2]
+    )  # Number fringes in MET laser
 
     # jXb factors, for calculating estimated mirror movement due to JXB
     JXB_FAC = [-1.6e-5, -3.0e-5, -4.5e-5, -3.0e-5]
@@ -61,12 +95,14 @@ class Consts:
         self.code_version = int(float(code_version))
 
         # Important times
-        self.time_ip = {"start_ip": 0.0,
-                        "start_topip": 0.0,
-                        "start_nbi": 0.0,
-                        "end_nbi": 0.0,
-                        "end_topip": 0.0,
-                        "end_ip": 0.0}
+        self.time_ip = {
+            "start_ip": 0.0,
+            "start_topip": 0.0,
+            "start_nbi": 0.0,
+            "end_nbi": 0.0,
+            "end_topip": 0.0,
+            "end_ip": 0.0,
+        }
 
         # Define constants to be read from file that have defaults
 
@@ -91,13 +127,13 @@ class Consts:
         self.max_jumps = 400  # The maximum number of jumps the code will try to correct for any given channel
 
         # For filtering the signal with wavelets
-        self.wv_family = 'db5'
+        self.wv_family = "db5"
         self.wv_ncoeff_ne = 100
         self.wv_ncoeff_vib = 300
 
         self.temp_node = "VC/E-AVV-TMP"
         self.geometry_filename = "kg1_chord_geom.txt"
-        
+
         self.mode = "Automatic Corrections"
 
         # Read in constants from file
@@ -105,26 +141,23 @@ class Consts:
         config = configparser.ConfigParser()
         file_read = config.read(config_name)
 
+        # read users
+        self.readusers = self._get_node_channumber_dict(config, "readusers")
+        self.writeusers = self._get_node_channumber_dict(config, "writeusers")
 
-        #read users
-        self.readusers = self._get_node_channumber_dict(config,"readusers")
-        self.writeusers = self._get_node_channumber_dict(config,"writeusers")
-
-        #KG1 signal to be validated
-        self.kg1v = self._get_node_channumber_dict(config,"kg1v")
-
-
+        # KG1 signal to be validated
+        self.kg1v = self._get_node_channumber_dict(config, "kg1v")
 
         # Other diagnostics/PPFs
         self.kg4_far = self._get_node_channumber_dict(config, "kg4_far")
         self.kg4_ell = self._get_node_channumber_dict(config, "kg4_ell")
         self.kg4_xg_ell = self._get_node_channumber_dict(config, "kg4_xg_ell")
-        self.kg4r =   self._get_node_channumber_dict(config, "kg4_lid")
+        self.kg4r = self._get_node_channumber_dict(config, "kg4_lid")
         self.kg4_xg_elld = self._get_node_channumber_dict(config, "kg4_xg_elld")
 
-        #kg1 real time
+        # kg1 real time
 
-        self.kg1rt =  self._get_node_channumber_dict(config, "kg1rt")
+        self.kg1rt = self._get_node_channumber_dict(config, "kg1rt")
 
         self.elms = self._get_node_channumber_dict(config, "elms")
         self.pellets = self._get_node_channumber_dict(config, "pellets")
@@ -144,7 +177,7 @@ class Consts:
         self.kg1r_ppf_type = self._get_node_channumber_dict(config, "kg1r_ppf_type")
 
         # JPF or PPF nodes not stored by channel number
-        self.magnetics = { "ip": config["magnetics"]["ip"] }
+        self.magnetics = {"ip": config["magnetics"]["ip"]}
         self.magnetics["bt_coil_current_av"] = config["magnetics"]["bt_coil_current_av"]
         self.magnetics["eddy_current"] = config["magnetics"]["eddy_current"]
 
@@ -154,15 +187,14 @@ class Consts:
         self.disruption = config["disruption"]["1"]
         self.dis_window = float(config["disruption"]["window"])
 
-
         geometry = config["geometry"]
         self.temp_node = geometry.get("temp_jpf", self.temp_node)
         self.geometry_filename = geometry.get("geom_filename", self.geometry_filename)
-        
-        
+
         correction = config["mode"]
         self.mode = correction.get("mode", self.mode)
-        #self.kg1v_mode = self._get_node_channumber_dict(config, "mode")
+        # self.kg1v_mode = self._get_node_channumber_dict(config, "mode")
+
     # ------------------------
     def _get_node_channumber_dict(self, config, section):
         """
@@ -244,9 +276,11 @@ class Consts:
         try:
             if sig_type == "kg1r":
                 return self.kg1r_amp_dcn[chan]
-            elif (sig_type == "kg1c_ldraw"
-                  or sig_type == "kg1c_ld"
-                  or sig_type == "kg1c_ldcor"):
+            elif (
+                sig_type == "kg1c_ldraw"
+                or sig_type == "kg1c_ld"
+                or sig_type == "kg1c_ldcor"
+            ):
                 return self.kg1c_cprb_dcn[chan]
             elif sig_type == "kg1v":
                 return self.kg1v_amp_dcn[chan]
@@ -267,9 +301,11 @@ class Consts:
         try:
             if sig_type == "kg1r":
                 return self.kg1r_amp_met[chan]
-            elif (sig_type == "kg1c_ldraw"
-                  or sig_type == "kg1c_ld"
-                  or sig_type == "kg1c_ldcor"):
+            elif (
+                sig_type == "kg1c_ldraw"
+                or sig_type == "kg1c_ld"
+                or sig_type == "kg1c_ldcor"
+            ):
                 return self.kg1c_cprb_met[chan]
             elif sig_type == "kg1v":
                 return self.kg1v_amp_met[chan]
@@ -288,9 +324,11 @@ class Consts:
         :return: JPF node name
         """
         try:
-            if (sig_type == "kg1c_ldraw"
-                  or sig_type == "kg1c_ld"
-                  or sig_type == "kg1c_ldcor"):
+            if (
+                sig_type == "kg1c_ldraw"
+                or sig_type == "kg1c_ld"
+                or sig_type == "kg1c_ldcor"
+            ):
                 return self.kg1c_sts_dcn[chan]
             else:
                 return ""
@@ -307,9 +345,11 @@ class Consts:
         :return: JPF node name
         """
         try:
-            if (sig_type == "kg1c_ldraw"
-                  or sig_type == "kg1c_ld"
-                  or sig_type == "kg1c_ldcor"):
+            if (
+                sig_type == "kg1c_ldraw"
+                or sig_type == "kg1c_ld"
+                or sig_type == "kg1c_ldcor"
+            ):
                 return self.kg1c_sts_met[chan]
             else:
                 return ""
@@ -326,9 +366,11 @@ class Consts:
         :return: JPF node name
         """
         try:
-            if (sig_type == "kg1c_ldraw"
-                  or sig_type == "kg1c_ld"
-                  or sig_type == "kg1c_ldcor"):
+            if (
+                sig_type == "kg1c_ldraw"
+                or sig_type == "kg1c_ld"
+                or sig_type == "kg1c_ldcor"
+            ):
                 return self.kg1c_fj_dcn[chan]
             else:
                 return ""
@@ -345,9 +387,11 @@ class Consts:
         :return: JPF node name
         """
         try:
-            if (sig_type == "kg1c_ldraw"
-                  or sig_type == "kg1c_ld"
-                  or sig_type == "kg1c_ldcor"):
+            if (
+                sig_type == "kg1c_ldraw"
+                or sig_type == "kg1c_ld"
+                or sig_type == "kg1c_ldcor"
+            ):
                 return self.kg1c_fj_met[chan]
             else:
                 return ""
