@@ -5707,11 +5707,26 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             #
             xc = zeroing_time_start
             xc1 = zeroing_time_stop
-            index_min = int(min(self.data.zeroing_start))
-            index_max = int(max(self.data.zeroing_stop))
+            xc_min = 100000
+            xc_max = 0
+            for index in range(0,len(self.data.zeroing_start)):
+                if self.data.zeroing_start[index] < 1e6:
+                    if self.data.KG1_data.density[index+1].time[self.data.zeroing_start[index]] < xc_min:
+                        xc_min = self.data.KG1_data.density[index+1].time[self.data.zeroing_start[index]]
+                if self.data.zeroing_stop[index] < 0 :
+                    if     self.data.KG1_data.density[index+1].time[self.data.zeroing_stop[index]] > xc_max:
+                        xc_max = self.data.KG1_data.density[index+1].time[self.data.zeroing_stop[index]]
+            # index_min = int(min(self.data.zeroing_start))
+            #
+            # index_max = int(max(self.data.zeroing_stop))
 
-            xc_min = self.data.KG1_data.density[self.chan].time[index_min]
-            xc_max = self.data.KG1_data.density[self.chan].time[index_max]
+
+
+            # chan_min = np.argmin(self.data.zeroing_start)
+            # chan_max = np.argmax(self.data.zeroing_stop)
+            #
+            # xc_min = self.data.KG1_data.density[self.chan].time[index_min]
+            # xc_max = self.data.KG1_data.density[chan_max].time[index_max]
             # self.data.zeroed[self.chan - 1] = True
             for chan in self.data.KG1_data.density.keys():
                 ax_name = 'ax' + str(chan)
