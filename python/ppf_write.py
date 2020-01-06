@@ -11,10 +11,10 @@ shot,user,date,seq
 import logging
 import pickle
 
-# from ppf import ppfgo, ppfuid, ppfopn, pdstd
-# from ppf import ppfwri_ihdat, ppfwri_irdat, ppfwri
-# from ppf import ppfwri_tbsf_ref_set, ppfwri_tbsf_set
-# from ppf import ppfclo, ppfabo
+from ppf import ppfgo, ppfuid, ppfopn, pdstd
+from ppf import ppfwri_ihdat, ppfwri_irdat, ppfwri
+from ppf import ppfwri_tbsf_ref_set, ppfwri_tbsf_set
+from ppf import ppfclo, ppfabo
 import datetime
 logger = logging.getLogger(__name__)
 now = datetime.datetime.now()

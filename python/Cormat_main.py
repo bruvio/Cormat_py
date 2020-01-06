@@ -1721,7 +1721,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
                                                e != 0]
 
         # if any(self.data.SF_list_public) in [1, 2, 3]:
-        if set(self.data.SF_list_public).intersection(set([1, 2, 3])) is True:
+        if bool(set(self.data.SF_list_public) & set([1,2,3])):
+        # if set(self.data.SF_list_public).intersection(set([1, 2, 3])) is True:
             logger.warning(
                 '\n \n there is already a saved public PPF with validated channels! \n \n ')
 
@@ -3300,11 +3301,6 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
 
         if data has not been modified it automatically switches to save status flags only
 
-        ::todo:
-        if there is already a jetppf with modified status flags, it should offer 3 options:
-            overwrite all channels with new data
-            keep already validated data and add the new ones
-            cancel
 
 
 
@@ -3460,8 +3456,9 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py,
             :return: 67 if there has been an error in writing status flag
                     0 otherwise (success)
             """
-            if set(self.data.SF_list_public).intersection(
-                    set([1, 2, 3])) is True:
+            if bool(set(self.data.SF_list_public) & set([1,2,3])):
+            # if set(self.data.SF_list_public).intersection(
+            #         set([1, 2, 3])) is True:
                 logger.warning(
                     '\n \n there is already a saved public PPF with validated channels! \n \n ')
                 self.checkStatuFlags()

@@ -5,7 +5,7 @@ Reads in LIDX, FCX, MIRX, JXBX, TYPX
 """
 
 import logging
-# import getdat
+import getdat
 import numpy as np
 from ppf_write import write_ppf
 from signal_kg1 import SignalKg1

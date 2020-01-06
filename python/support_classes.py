@@ -59,8 +59,10 @@ class KeyBoard(QWidget):
     def __init__(self, receiver):
         super(KeyBoard, self).__init__()
 
+        # self.setWindowFlags(QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint)
+        # self.setWindowFlags(WindowStaysOnTopHint)
         # QtGui.QWidget.__init__(self, parent)
-        self.setWindowFlags(self.windowFlags() | Qt.Dialog)
+        self.setWindowFlags(self.windowFlags() | Qt.Dialog | Qt.WindowStaysOnTopHint)
 
         # self.resize(400, 300)
         self.move(200, 150)
