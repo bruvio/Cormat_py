@@ -872,7 +872,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
                     # if exists and and new pulse checkbox is checked then ask for confirmation if user wants to carry on
                     # logger.info(' pulse data already downloaded - you are requesting to download again')
-                    self.areyousure_window = QtGui.QMainWindow()
+                    self.areyousure_window = QMainWindow()
                     self.ui_areyousure = Ui_areyousure_window()
                     self.ui_areyousure.setupUi(self.areyousure_window)
                     self.areyousure_window.show()
