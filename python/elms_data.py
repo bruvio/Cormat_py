@@ -42,7 +42,7 @@ class ElmsData:
     """
 
     # Constants for filtering data
-    WV_FAMILY = 'db15'
+    WV_FAMILY = "db15"
     WV_PERC = 99.0
     START_TIME = 40.0  # This is used when finding the background
     END_TIME = 65.0  # This is used when finding the background
@@ -90,8 +90,7 @@ class ElmsData:
 
         # Sort the python dict according to the keys
         # This means the signals are in the order listed in the config file.
-        node_names = collections.OrderedDict(
-            sorted(self.constants.elms.items()))
+        node_names = collections.OrderedDict(sorted(self.constants.elms.items()))
         self.elms_signal = SignalBase(self.constants)
 
         # Read in the first valid JPF signal
@@ -99,7 +98,7 @@ class ElmsData:
             self.elms_signal.read_data_jpf(node_name, shot_no)
 
             if self.elms_signal.data is not None:
-                logger.debug( "Using {} for finding ELMs.".format(node_name))
+                logger.debug("Using {} for finding ELMs.".format(node_name))
                 break
 
         if self.elms_signal.data is None:
@@ -120,28 +119,36 @@ class ElmsData:
             self.elms_signal.data = self.elms_signal.data[ind_analyse]
 
         # Subtract the background. The background is found using wavelet filtering.
-        background = wv_get_background(self.elms_signal.time,
-                                       self.elms_signal.data, self.START_TIME,
-                                       self.END_TIME)
+        background = wv_get_background(
+            self.elms_signal.time, self.elms_signal.data, self.START_TIME, self.END_TIME
+        )
         data_sub_back = self.elms_signal.data - background
 
         # Filter the data
-        self.data_filt = wv_denoise(data_sub_back, family=self.WV_FAMILY,
-                                    percent=self.WV_PERC)
+        self.data_filt = wv_denoise(
+            data_sub_back, family=self.WV_FAMILY, percent=self.WV_PERC
+        )
 
         # Calculate the first derivative
         self.first_deriv = self.data_filt[10:] - self.data_filt[0:-10]
 
-        if self.constants.plot_type == "dpi" and "elms_data" in self.constants.make_plots:
-            make_plot([[self.elms_signal.time, self.elms_signal.data],
-                       [self.elms_signal.time, self.data_filt],
-                       [self.elms_signal.time[0:-10], self.first_deriv]],
-                      labels=["be-II", "filt", "1st deriv"],
-                      colours=["blue", "green", "green"],
-                      pformat=[3, 1],
-                      show=True,
-                      horz_lines=[[], [self.UP_THRESH, self.DOWN_THRESH]],
-                      title="Be-II signal for ELM finding, and 1st derivative of Be-II signal")
+        if (
+            self.constants.plot_type == "dpi"
+            and "elms_data" in self.constants.make_plots
+        ):
+            make_plot(
+                [
+                    [self.elms_signal.time, self.elms_signal.data],
+                    [self.elms_signal.time, self.data_filt],
+                    [self.elms_signal.time[0:-10], self.first_deriv],
+                ],
+                labels=["be-II", "filt", "1st deriv"],
+                colours=["blue", "green", "green"],
+                pformat=[3, 1],
+                show=True,
+                horz_lines=[[], [self.UP_THRESH, self.DOWN_THRESH]],
+                title="Be-II signal for ELM finding, and 1st derivative of Be-II signal",
+            )
 
         # Find ELMs
 
@@ -176,7 +183,7 @@ class ElmsData:
                 continue
 
             # Find the next downwards derivative
-            ind_after, = np.where(self.ind_end > poss_start)
+            (ind_after,) = np.where(self.ind_end > poss_start)
 
             if np.size(ind_after) == 0:
                 continue
@@ -185,20 +192,24 @@ class ElmsData:
             poss_end = self.ind_end[index_end]
 
             # Impose a maximum ELM width
-            time_diff = self.elms_signal.time[poss_end] - self.elms_signal.time[
-                poss_start]
+            time_diff = (
+                self.elms_signal.time[poss_end] - self.elms_signal.time[poss_start]
+            )
 
             if time_diff > self.ELM_WIDTH_MAX:
                 continue
 
             # Make sure we don't count any more between poss_start and poss_end
-            ind_skip, = np.where(
-                (self.ind_start > poss_start) & (self.ind_start < poss_end))
+            (ind_skip,) = np.where(
+                (self.ind_start > poss_start) & (self.ind_start < poss_end)
+            )
 
             skip_next = np.size(ind_skip)
 
             # Add ELM time to list of elm times
-            self.elm_times = np.append(self.elm_times, self.elms_signal.time[poss_start])
+            self.elm_times = np.append(
+                self.elm_times, self.elms_signal.time[poss_start]
+            )
 
         # Store the number and times of the elms.
         if np.size(self.elm_times) > 0:
@@ -206,20 +217,28 @@ class ElmsData:
             self.n_elms = np.size(self.elm_times)
             logger.debug("{} ELMs were found.".format(self.n_elms))
 
-            if self.constants.plot_type == "dpi" and "elms_data" in self.constants.make_plots:
-                make_plot([[self.elms_signal.time, self.elms_signal.data],
-                           [self.elms_signal.time, self.data_filt],
-                           [self.elms_signal.time[0:-10], self.first_deriv],
-                           [self.elms_signal.time, self.elms_signal.data],
-                           [self.elms_signal.time, self.elms_signal.data]],
-                          labels=["Be-II", "filt", "1st deriv", "starts",
-                                  "ends"],
-                          colours=["blue", "green", "green", "blue", "blue"],
-                          pformat=[2, 1, 1, 1],
-                          show=True,
-                          vert_lines=[self.elm_times, [],
-                                      self.elms_signal.time[self.ind_start],
-                                      self.elms_signal.time[self.ind_end]],
-                          horz_lines=[[], [self.UP_THRESH, self.DOWN_THRESH],
-                                      [], []],
-                          title="Be-II signal & 1st derivative used for ELM finding, detected elm times shown.")
+            if (
+                self.constants.plot_type == "dpi"
+                and "elms_data" in self.constants.make_plots
+            ):
+                make_plot(
+                    [
+                        [self.elms_signal.time, self.elms_signal.data],
+                        [self.elms_signal.time, self.data_filt],
+                        [self.elms_signal.time[0:-10], self.first_deriv],
+                        [self.elms_signal.time, self.elms_signal.data],
+                        [self.elms_signal.time, self.elms_signal.data],
+                    ],
+                    labels=["Be-II", "filt", "1st deriv", "starts", "ends"],
+                    colours=["blue", "green", "green", "blue", "blue"],
+                    pformat=[2, 1, 1, 1],
+                    show=True,
+                    vert_lines=[
+                        self.elm_times,
+                        [],
+                        self.elms_signal.time[self.ind_start],
+                        self.elms_signal.time[self.ind_end],
+                    ],
+                    horz_lines=[[], [self.UP_THRESH, self.DOWN_THRESH], [], []],
+                    title="Be-II signal & 1st derivative used for ELM finding, detected elm times shown.",
+                )

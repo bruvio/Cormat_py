@@ -43,7 +43,7 @@ class SignalAmp(SignalBase):
         self.signal_type = ""  # KG1R, KG1C, KG1V
         self.dcn_or_met = ""  # dcn or met
 
-        # To be an array with the same number of time points as the signal, 
+        # To be an array with the same number of time points as the signal,
         # but with 0 or 1 to indicate points with a bad amplitude
         self.bad_points = None
         super(SignalAmp, self).__init__(constants)
@@ -95,9 +95,13 @@ class SignalAmp(SignalBase):
         if self.signal_type.startswith("kg1c"):
             amp_ok = self._check_amp_kg1c()
         elif self.signal_type.startswith("kg1r"):
-            amp_ok = self._check_amp_average(self.KG1R_TIME_AMP_CHECK, self.KG1R_START_AMP_BAD)
+            amp_ok = self._check_amp_average(
+                self.KG1R_TIME_AMP_CHECK, self.KG1R_START_AMP_BAD
+            )
         elif self.signal_type.startswith("kg1v"):
-            amp_ok = self._check_amp_average(self.KG1V_TIME_AMP_CHECK, self.KG1V_START_AMP_BAD)
+            amp_ok = self._check_amp_average(
+                self.KG1V_TIME_AMP_CHECK, self.KG1V_START_AMP_BAD
+            )
         else:
             amp_ok = False
 
@@ -125,11 +129,15 @@ class SignalAmp(SignalBase):
                 cprb_mid = self.constants.cprb_mid_met
                 cprb_range = self.constants.cprb_range_met
 
-            ind_bad_amp, = np.where(np.absolute(self.data - cprb_mid) > cprb_range)
+            (ind_bad_amp,) = np.where(np.absolute(self.data - cprb_mid) > cprb_range)
         elif self.signal_type.startswith("kg1r"):
-            ind_bad_amp, = np.where(np.absolute(self.data) < self.constants.min_amp_kg1r)
+            (ind_bad_amp,) = np.where(
+                np.absolute(self.data) < self.constants.min_amp_kg1r
+            )
         elif self.signal_type.startswith("kg1v"):
-            ind_bad_amp, = np.where(np.absolute(self.data) < self.constants.min_amp_kg1v)
+            (ind_bad_amp,) = np.where(
+                np.absolute(self.data) < self.constants.min_amp_kg1v
+            )
         else:
             ind_bad_amp = np.arange(0)
 
@@ -147,10 +155,14 @@ class SignalAmp(SignalBase):
 
         ind_start = np.where(self.time < time)
 
-        good_amp = (np.absolute(np.mean(self.data[ind_start])) > threshold)
+        good_amp = np.absolute(np.mean(self.data[ind_start])) > threshold
 
         if not good_amp:
-            logger.debug ("Average amplitude is bad at the start: {}".format(np.mean(self.data[ind_start])))
+            logger.debug(
+                "Average amplitude is bad at the start: {}".format(
+                    np.mean(self.data[ind_start])
+                )
+            )
 
         return good_amp
 
@@ -180,26 +192,41 @@ class SignalAmp(SignalBase):
 
         amp_cf_mid = self.data - cprb_mid
 
-        ind_test_drops = (np.where((self.time > 31.05) & (self.time < 32.0) & (amp_cf_mid < -1.0*cprb_range)))[0]
+        ind_test_drops = (
+            np.where(
+                (self.time > 31.05)
+                & (self.time < 32.0)
+                & (amp_cf_mid < -1.0 * cprb_range)
+            )
+        )[0]
         if len(ind_test_drops) > 0:
             self.data[ind_test_drops] = cprb_mid
 
         # Check for whether the amplitude is very low at the beginning of the trace
         ind_start = np.where((self.time > 31.15) & (self.time < 32.0))
-        good_amp = ((np.absolute(np.mean(self.data[ind_start]) - cprb_mid) / cprb_mid) < self.KG1C_START_AMP_BAD)
+        good_amp = (
+            np.absolute(np.mean(self.data[ind_start]) - cprb_mid) / cprb_mid
+        ) < self.KG1C_START_AMP_BAD
 
         if not good_amp:
-            logger.debug("Bad amplitude: KG1C CPRB is bad at the start: {}".format(np.mean(self.data[ind_start])))
+            logger.debug(
+                "Bad amplitude: KG1C CPRB is bad at the start: {}".format(
+                    np.mean(self.data[ind_start])
+                )
+            )
             return good_amp
 
         # Check over the rest of the time range for loads of CPRB drops
         ind_rest = np.where(self.time > 31.15)
-        ind_drops = np.where(amp_cf_mid[ind_rest] < -1.0*cprb_range)[0]
+        ind_drops = np.where(amp_cf_mid[ind_rest] < -1.0 * cprb_range)[0]
 
-        good_amp = (len(ind_drops) < 5000)
+        good_amp = len(ind_drops) < 5000
 
         if not good_amp:
-            logger.debug("Bad amplitude: KG1C CPRB drops below valid range {} times".format(len(ind_drops)))
+            logger.debug(
+                "Bad amplitude: KG1C CPRB drops below valid range {} times".format(
+                    len(ind_drops)
+                )
+            )
 
         return good_amp
-

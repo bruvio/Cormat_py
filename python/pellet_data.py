@@ -68,8 +68,14 @@ class PelletData:
 
         logger.debug("Read in pellets, {} were found/".format(self.n_pellets))
 
-        if self.constants.plot_type == "dpi" and "pellet_data" in self.constants.make_plots:
-            make_plot([[pellet_signal.time, pellet_signal.data]], ytitles=["pellet mass [mg]"],
-                      vert_lines=[self.time_pellets], show=True,
-                      title="Pellet signal (blue) and time of pellets (red lines)")
-
+        if (
+            self.constants.plot_type == "dpi"
+            and "pellet_data" in self.constants.make_plots
+        ):
+            make_plot(
+                [[pellet_signal.time, pellet_signal.data]],
+                ytitles=["pellet mass [mg]"],
+                vert_lines=[self.time_pellets],
+                show=True,
+                title="Pellet signal (blue) and time of pellets (red lines)",
+            )

@@ -8,6 +8,7 @@ import numpy as np
 
 from signal_base import SignalBase
 from make_plots import make_plot
+
 logger = logging.getLogger(__name__)
 
 # ----------------------------
@@ -72,7 +73,7 @@ class MagData:
             return False
 
         # Make ip positive, and convert from A to MA
-        ip.data = np.absolute(ip.data)/1e6
+        ip.data = np.absolute(ip.data) / 1e6
         self.ip = ip
 
         # Find times of ip
@@ -85,8 +86,6 @@ class MagData:
         bvac.read_data_jpf(node_name, shot_no)
 
         # Find times of ip
-
-
 
         # Read in eddy currents
         node_name = self.constants.magnetics["eddy_current"]
@@ -118,7 +117,9 @@ class MagData:
 
         """
 
-        logger.debug( "Max ip : {}, Min ip allowed: {}".format(max(self.ip.data), self.MIN_IP))
+        logger.debug(
+            "Max ip : {}, Min ip allowed: {}".format(max(self.ip.data), self.MIN_IP)
+        )
 
         # First, find if there was an ip above MIN_IP.
         ind_first_ip = np.argmax(self.ip.data > self.MIN_IP)
@@ -126,27 +127,34 @@ class MagData:
         ind_last_ip = len(ip_reversed) - np.argmax(ip_reversed > self.MIN_IP) - 1
 
         # Next, find the flat top
-        ind_first_flat = np.argmax(self.ip.data > self.PER_IP_FLAT*np.max(self.ip.data))
-        ind_last_flat = len(ip_reversed) - np.argmax(ip_reversed > self.PER_IP_FLAT*np.max(self.ip.data)) - 1
+        ind_first_flat = np.argmax(
+            self.ip.data > self.PER_IP_FLAT * np.max(self.ip.data)
+        )
+        ind_last_flat = (
+            len(ip_reversed)
+            - np.argmax(ip_reversed > self.PER_IP_FLAT * np.max(self.ip.data))
+            - 1
+        )
 
         # find where ip above 1MA
         ind_first_ip1MA = np.argmax(self.ip.data >= 1.0)
         ind_last_ip1MA = len(ip_reversed) - np.argmax(ip_reversed >= 1.0) - 1
 
         # Check for cases where there was barely any Ip.
-        if ind_first_ip == 0 and ind_last_ip == len(self.ip.time)-1:
+        if ind_first_ip == 0 and ind_last_ip == len(self.ip.time) - 1:
             return False
 
         if ind_first_ip == 0 and (ind_last_ip - ind_first_ip) >= 100:
             ind_last_ip = len(self.ip.data) - 1
 
             # If there was no ip above min_ip, and there was current for > 0.1 s
-            max_ip = self.ip.data[ind_first_flat-100]
-            ind_first_flat = np.argmax(self.ip.data > self.PER_IP_FLAT*max_ip)
-            ind_last_flat = len(ip_reversed) - np.argmax(ip_reversed > self.PER_IP_FLAT*max_ip) - 1
-
-
-
+            max_ip = self.ip.data[ind_first_flat - 100]
+            ind_first_flat = np.argmax(self.ip.data > self.PER_IP_FLAT * max_ip)
+            ind_last_flat = (
+                len(ip_reversed)
+                - np.argmax(ip_reversed > self.PER_IP_FLAT * max_ip)
+                - 1
+            )
 
         elif ind_first_ip == 0:
             return False
@@ -158,26 +166,37 @@ class MagData:
         self.start_ip1MA = self.ip.time[ind_first_ip1MA] - 1e-4
         self.end_ip1MA = self.ip.time[ind_last_ip1MA] + 1e-4
 
-
-
         # Set times of start and end of the flat top
         self.start_flattop = self.ip.time[ind_first_flat]
         self.end_flattop = self.ip.time[ind_last_flat]
 
-        dmsg = "Start of Ip : {}, end of Ip : {}, start of flat-top {}, end of flat-top {}, |Ip| < 1MA {} - {}, Ip".format(self.start_ip,
-                                                                                                    self.end_ip,
-                                                                                                    self.start_flattop,
-                                                                                                    self.end_flattop,self.start_ip1MA,self.end_ip1MA)
-        logger.debug( dmsg)
+        dmsg = "Start of Ip : {}, end of Ip : {}, start of flat-top {}, end of flat-top {}, |Ip| < 1MA {} - {}, Ip".format(
+            self.start_ip,
+            self.end_ip,
+            self.start_flattop,
+            self.end_flattop,
+            self.start_ip1MA,
+            self.end_ip1MA,
+        )
+        logger.debug(dmsg)
 
         # For debugging, plot ip and times of ip
-        if self.constants.plot_type == "dpi" and "mag_data" in self.constants.make_plots:
-            make_plot([[self.ip.time, self.ip.data]], xtitles=["time [sec]"], ytitles=["ip [MA]"],
-                      vert_lines=[[self.start_ip, self.start_flattop, self.end_flattop, self.end_ip]],
-                      show=True, title="Ip (blue) and start / end ip and flat-top (red lines)")
+        if (
+            self.constants.plot_type == "dpi"
+            and "mag_data" in self.constants.make_plots
+        ):
+            make_plot(
+                [[self.ip.time, self.ip.data]],
+                xtitles=["time [sec]"],
+                ytitles=["ip [MA]"],
+                vert_lines=[
+                    [self.start_ip, self.start_flattop, self.end_flattop, self.end_ip]
+                ],
+                show=True,
+                title="Ip (blue) and start / end ip and flat-top (red lines)",
+            )
 
         return True
-
 
     # ------------------------
     def _find_bvac_times(self):
@@ -190,29 +209,44 @@ class MagData:
 
         """
 
-        logger.debug( "Max Bvac : {}, Min Bvac allowed: {}".format(min(self.bvac.data), self.MIN_BVAC))
+        logger.debug(
+            "Max Bvac : {}, Min Bvac allowed: {}".format(
+                min(self.bvac.data), self.MIN_BVAC
+            )
+        )
 
         # First, find if there was an ip above MIN_BVAC.
         ind_first_bvac = np.argmax(self.bvac.data < self.MIN_BVAC)
         bvac_reversed = self.bvac.data[::-1]
-        ind_last_bvac = len(bvac_reversed) - np.argmax(bvac_reversed < self.MIN_BVAC) - 1
-
+        ind_last_bvac = (
+            len(bvac_reversed) - np.argmax(bvac_reversed < self.MIN_BVAC) - 1
+        )
 
         # Check for cases where there was barely any Ip.
-        if ind_first_bvac == 0 and ind_last_bvac == len(self.bvac.time)-1:
+        if ind_first_bvac == 0 and ind_last_bvac == len(self.bvac.time) - 1:
             return False
 
         # Set times of start and end Bvac
         self.start_bvac = self.bvac.time[ind_first_bvac] - 1e-4
         self.end_bvac = self.bvac.time[ind_last_bvac] + 1e-4
 
-        dmsg = "Start of Bvac < -1.5T : {}, end of Bvac < -1.5T : {}".format(self.start_bvac,self.end_bvac)
-        logger.debug( dmsg)
+        dmsg = "Start of Bvac < -1.5T : {}, end of Bvac < -1.5T : {}".format(
+            self.start_bvac, self.end_bvac
+        )
+        logger.debug(dmsg)
 
         # For debugging, plot ip and times of ip
-        if self.constants.plot_type == "dpi" and "mag_data" in self.constants.make_plots:
-            make_plot([[self.bvac.time, self.bvac.data]], xtitles=["time [sec]"], ytitles=["Bvac [T]"],
-                      vert_lines=[[self.start_bvac, self.end_bvac]],
-                      show=True, title="Bvac (blue) and start / end Bvac < -1.5T (red lines)")
+        if (
+            self.constants.plot_type == "dpi"
+            and "mag_data" in self.constants.make_plots
+        ):
+            make_plot(
+                [[self.bvac.time, self.bvac.data]],
+                xtitles=["time [sec]"],
+                ytitles=["Bvac [T]"],
+                vert_lines=[[self.start_bvac, self.end_bvac]],
+                show=True,
+                title="Bvac (blue) and start / end Bvac < -1.5T (red lines)",
+            )
 
         return True

@@ -33,7 +33,7 @@ def recursive_wv(data, ind_times, currentiter=0, niter=10, nlevels=12):
     :param nlevels: number of levels for the wavelet filtering
     """
 
-    filt_data = wv_denoise(data, family='db15', ncoeff=1, nlevels=nlevels)
+    filt_data = wv_denoise(data, family="db15", ncoeff=1, nlevels=nlevels)
     filt_data = np.float64(filt_data)
 
     diff = data - filt_data
@@ -48,7 +48,10 @@ def recursive_wv(data, ind_times, currentiter=0, niter=10, nlevels=12):
     if currentiter >= niter:
         return filt_data
     else:
-        return recursive_wv(data, ind_times, currentiter=currentiter, niter=niter, nlevels=nlevels)
+        return recursive_wv(
+            data, ind_times, currentiter=currentiter, niter=niter, nlevels=nlevels
+        )
+
 
 # ----------------------------
 def wv_get_background(time, data, start_time, end_time, nlevels=12):
@@ -69,4 +72,3 @@ def wv_get_background(time, data, start_time, end_time, nlevels=12):
     filt_data = recursive_wv(data_copy, ind_times, niter=5, nlevels=nlevels)
 
     return filt_data
-    

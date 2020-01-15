@@ -16,13 +16,13 @@ from ppf import ppfwri_ihdat, ppfwri_irdat, ppfwri
 from ppf import ppfwri_tbsf_ref_set, ppfwri_tbsf_set
 from ppf import ppfclo, ppfabo
 import datetime
+
 logger = logging.getLogger(__name__)
 now = datetime.datetime.now()
-date=print(now.strftime("%Y-%m-%d"))
+date = print(now.strftime("%Y-%m-%d"))
 # ----------------------------
 __author__ = "L. Kogan"
 # ----------------------------
-
 
 
 def check_uid(shot_no, write_uid):
@@ -39,11 +39,12 @@ def check_uid(shot_no, write_uid):
     if ier != 0:
         return 1
 
-#    ier = close_ppf(shot_no)
+    #    ier = close_ppf(shot_no)
 
     ier = ppfabo()
 
     return 0
+
 
 def open_ppf(shot_no, write_uid, comment="CORRECTED KG1 DATA FROM KG1C AND KG1R   "):
     """
@@ -61,7 +62,7 @@ def open_ppf(shot_no, write_uid, comment="CORRECTED KG1 DATA FROM KG1C AND KG1R 
         return ier
 
     # Set UID
-    ppfuid(write_uid, 'w')
+    ppfuid(write_uid, "w")
 
     # Retrieve shot data and time, for PPFOPN
     time, date, ier = pdstd(shot_no)
@@ -74,10 +75,21 @@ def open_ppf(shot_no, write_uid, comment="CORRECTED KG1 DATA FROM KG1C AND KG1R 
 
     return ier
 
-def write_ppf(shot_no, dda, dtype, data, time=None,
-              comment=None, unitd=None, unitt=None,
-              itref=-1, nt=None, global_status=None,
-              status=None):
+
+def write_ppf(
+    shot_no,
+    dda,
+    dtype,
+    data,
+    time=None,
+    comment=None,
+    unitd=None,
+    unitt=None,
+    itref=-1,
+    nt=None,
+    global_status=None,
+    status=None,
+):
     """
     Write PPF DDA/DTYPE
 
@@ -96,7 +108,7 @@ def write_ppf(shot_no, dda, dtype, data, time=None,
     :return: error code (0 if everything is OK), itref for timebase written
     """
 
-    logger.log(5, ( "Writing {}/{} : {}".format(dda, dtype, comment)))
+    logger.log(5, ("Writing {}/{} : {}".format(dda, dtype, comment)))
 
     # PPF dtype needs to have 4 characters: add extra spaces if this is not the case
     if len(dtype) < 4:
@@ -106,20 +118,24 @@ def write_ppf(shot_no, dda, dtype, data, time=None,
         nt = len(time)
 
     if len(data) != nt:
-        logger.error("Could not write {}/{}: data and time vectors are different lengths".format(dda, dtype))
+        logger.error(
+            "Could not write {}/{}: data and time vectors are different lengths".format(
+                dda, dtype
+            )
+        )
         return 1, -1
 
-    logger.log(5, ( "Length time vector {}".format(nt)))
+    logger.log(5, ("Length time vector {}".format(nt)))
 
-    logger.log(5, ( "Using itref {}".format(itref)))
+    logger.log(5, ("Using itref {}".format(itref)))
 
-    data_type = 'F'
-    if (data.dtype == 'int32' or data.dtype == 'int64'):
-        data_type = 'I'
+    data_type = "F"
+    if data.dtype == "int32" or data.dtype == "int64":
+        data_type = "I"
 
-    time_type = 'F'
-    if (time.dtype == 'int32' or  data.dtype == 'int64'):
-        time_type = 'I'
+    time_type = "F"
+    if time.dtype == "int32" or data.dtype == "int64":
+        time_type = "I"
 
     if global_status is None:
         global_status = 0
@@ -127,37 +143,40 @@ def write_ppf(shot_no, dda, dtype, data, time=None,
     # Create ihdat & irdat
     ihdat = ppfwri_ihdat(unitd, "", unitt, data_type, data_type, time_type, comment)
 
-    logger.log(5, ( "ihdat {}".format(ihdat)))
+    logger.log(5, ("ihdat {}".format(ihdat)))
 
     irdat = ppfwri_irdat(1, nt, refx=-1, reft=itref, user=0, system=global_status)
 
-    logger.log(5, ( "irdat {}".format(irdat)))
+    logger.log(5, ("irdat {}".format(irdat)))
 
     # Set TDSF : THIS ISN'T WORKING PROPERLY YET... I WANT TO NOT SET A STATUS FLAG WHEN status is NONE ...
-#    if status is not None:
-#        logger.debug("Length status flag {}".format(len(status)))
-#        ppfwri_tbsf_ref_set(-1)
-#        ppfwri_tbsf_set(status)
-#    else:
-#        ppfwri_tbsf_ref_set(0)
-#        status = np.zeros(nt)
-#        ppfwri_tbsf_set(status)
+    #    if status is not None:
+    #        logger.debug("Length status flag {}".format(len(status)))
+    #        ppfwri_tbsf_ref_set(-1)
+    #        ppfwri_tbsf_set(status)
+    #    else:
+    #        ppfwri_tbsf_ref_set(0)
+    #        status = np.zeros(nt)
+    #        ppfwri_tbsf_set(status)
 
     # Write data
     # irdat[7]=0 #generates ppf identical to KG1V code
     # irdat[8]=-1
     iwdat, ier = ppfwri(shot_no, dda, dtype, irdat, ihdat, data, global_status, time)
 
-    logger.log(5, ( "iwdat: {}".format(iwdat)))
-    logger.log(5, ( "itref for signal that was just written : {}".format(iwdat[8])))
-    logger.log(5, ( "ier: {}".format(ier)))
+    logger.log(5, ("iwdat: {}".format(iwdat)))
+    logger.log(5, ("itref for signal that was just written : {}".format(iwdat[8])))
+    logger.log(5, ("ier: {}".format(ier)))
 
     if ier != 0:
-        logger.warning("Failed to write PPF {}/{}. Errorcode {}".format(dda, dtype, ier))
+        logger.warning(
+            "Failed to write PPF {}/{}. Errorcode {}".format(dda, dtype, ier)
+        )
 
     return ier, iwdat[8]
 
-def close_ppf(shot_no, write_uid,version):
+
+def close_ppf(shot_no, write_uid, version):
     """
     Close PPF
 
@@ -166,14 +185,23 @@ def close_ppf(shot_no, write_uid,version):
     """
     import time
     import os
-    owner = os.getenv('USR')
+
+    owner = os.getenv("USR")
     timestr = time.strftime("%Y-%m-%d")
-    program = 'KG1 PPF  '
+    program = "KG1 PPF  "
     # time, date, ier = pdstd(shot_no)
     seq, ier = ppfclo(shot_no, program, version)
-    with open('run_out.txt','a+') as f_out:
-        f_out.write("shot: {} user: {} date: {} seq: {} written by: {}\n".format(shot_no,write_uid,str(timestr),seq,owner))
+    with open("run_out.txt", "a+") as f_out:
+        f_out.write(
+            "shot: {} user: {} date: {} seq: {} written by: {}\n".format(
+                shot_no, write_uid, str(timestr), seq, owner
+            )
+        )
     f_out.close()
-    logger.info("\n shot: {} user: {} date: {} seq: {} written by: {}\n".format(shot_no,write_uid,timestr,seq,owner))
+    logger.info(
+        "\n shot: {} user: {} date: {} seq: {} written by: {}\n".format(
+            shot_no, write_uid, timestr, seq, owner
+        )
+    )
 
     return ier
