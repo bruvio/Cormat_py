@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 __author__ = "L. Kogan"
 # ----------------------------
 
+
 def find_disruption(shot_no, constants, kg1_signals=None):
     """
     Find the disruption time from the JPF disruption signal
@@ -38,14 +39,19 @@ def find_disruption(shot_no, constants, kg1_signals=None):
     disruption_signal.read_data_jpf_1D(dis_node, shot_no)
 
     if disruption_signal.data is None:
-        return False, [-1.0,-1.0],-1
+        return False, [-1.0, -1.0], -1
 
     # Set the disruption window
-    dis_window = [disruption_signal.data[0] - constants.dis_window,
-                  disruption_signal.data[0] + constants.dis_window]
+    dis_window = [
+        disruption_signal.data[0] - constants.dis_window,
+        disruption_signal.data[0] + constants.dis_window,
+    ]
 
-    logger.debug( "There was a disruption at {}, window is {}-{}.".format(disruption_signal.data[0],
-                                                                          dis_window[0], dis_window[1]))
+    logger.debug(
+        "There was a disruption at {}, window is {}-{}.".format(
+            disruption_signal.data[0], dis_window[0], dis_window[1]
+        )
+    )
 
     # Set the status flag around the disruption time to 4 for all kg1_signals
     if kg1_signals is not None:
@@ -53,6 +59,4 @@ def find_disruption(shot_no, constants, kg1_signals=None):
             # Set status to 3
             kg1_signals.set_status(chan, 3, time=dis_window)
 
-
-
-    return True, dis_window,disruption_signal.data[0]
+    return True, dis_window, disruption_signal.data[0]

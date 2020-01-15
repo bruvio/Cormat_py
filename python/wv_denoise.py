@@ -14,9 +14,7 @@ __author__ = "L. Kogan"
 # ----------------------------
 
 
-def wv_denoise(signal, family=None,
-               nlevels=None,
-               ncoeff=None, percent=None):
+def wv_denoise(signal, family=None, nlevels=None, ncoeff=None, percent=None):
     """
     Function to filter a signal using wavelet filtering.
     Determination of threshold from ncoeff and percent is
@@ -49,7 +47,7 @@ def wv_denoise(signal, family=None,
         return signal
 
     # Dimension should be divisible by 2
-    signal = np.array(signal, dtype=np.dtype('d'))
+    signal = np.array(signal, dtype=np.dtype("d"))
     signal_length = len(signal)
     if signal_length % 2 > 0:
         signal = np.append(signal, signal[-1])
@@ -59,7 +57,7 @@ def wv_denoise(signal, family=None,
     signal -= mean
 
     if family is None:
-        family = 'db1'
+        family = "db1"
 
     if nlevels is not None:
         if nlevels > pywt.dwt_max_level(np.size(signal), pywt.Wavelet(family).dec_len):
@@ -77,9 +75,9 @@ def wv_denoise(signal, family=None,
     if len(detail_coeff) == 0:
         return signal
 
-    wps = np.absolute(detail_coeff)*np.absolute(detail_coeff)
+    wps = np.absolute(detail_coeff) * np.absolute(detail_coeff)
     power = np.sum(wps)
-    norm_wps = 100.*np.sort(wps)[::-1]/power
+    norm_wps = 100.0 * np.sort(wps)[::-1] / power
 
     cutoff = 0.0
 
@@ -95,11 +93,11 @@ def wv_denoise(signal, family=None,
         if ncoeff > len(detail_coeff):
             ncoeff = len(detail_coeff)
 
-        cutoff = math.sqrt(norm_wps[ncoeff-1]*power/100.)
+        cutoff = math.sqrt(norm_wps[ncoeff - 1] * power / 100.0)
 
     # Apply threshold
     for ind in range(len(coeffs[1:])):
-        coeffs[ind+1] = pywt.threshold(coeffs[ind+1], cutoff, 'hard')
+        coeffs[ind + 1] = pywt.threshold(coeffs[ind + 1], cutoff, "hard")
 
     # Do inverse-transform
     filtered_signal = pywt.waverec(coeffs, family)

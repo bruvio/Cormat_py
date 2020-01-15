@@ -125,8 +125,10 @@ class NBIData:
         if len(ind_nbi) == 0:
             return 0.0, 0.0
 
-        if ind_nbi[-1] > len(nbi_data)-1:
-            logger.warning("Index of end of NBI is > length of NBI data! No NBI times will be returned")
+        if ind_nbi[-1] > len(nbi_data) - 1:
+            logger.warning(
+                "Index of end of NBI is > length of NBI data! No NBI times will be returned"
+            )
             return 0.0, 0.0
 
         start_nbi = nbi_time[ind_nbi[0]]
@@ -135,8 +137,15 @@ class NBIData:
         if start_nbi < 10.0:
             return 0.0, 0.0
 
-        if "dpi" in self.constants.plot_type and "nbi_data" in self.constants.make_plots:
-            make_plot([[nbi_time, nbi_data]], vert_lines=[[start_nbi, end_nbi]], show=True,
-                      title="NBI power (blue) and start / end NBI (red lines)")
+        if (
+            "dpi" in self.constants.plot_type
+            and "nbi_data" in self.constants.make_plots
+        ):
+            make_plot(
+                [[nbi_time, nbi_data]],
+                vert_lines=[[start_nbi, end_nbi]],
+                show=True,
+                title="NBI power (blue) and start / end NBI (red lines)",
+            )
 
         return start_nbi, end_nbi
