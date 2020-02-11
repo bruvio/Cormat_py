@@ -686,8 +686,11 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             assert exists
             print(" \n" * 45)
             logger.info("The workspace contains data not saved to ppf\n")
-            self.load_pickle()
-
+            try:
+                self.load_pickle()
+            except:
+                logger.error('failed to load workspace data\n')
+                logger.error('run code with -e option!')
             # restore channel from saved pickle file (to be used in debug mode)
 
             if args.restore_channel.lower() == "yes":
@@ -774,6 +777,16 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     elif channel == 8:
                         self.data.SF_ch8 = 0
 
+                    self.data.SF_list = [
+                        int(self.data.SF_ch1),
+                        int(self.data.SF_ch2),
+                        int(self.data.SF_ch3),
+                        int(self.data.SF_ch4),
+                        int(self.data.SF_ch5),
+                        int(self.data.SF_ch6),
+                        int(self.data.SF_ch7),
+                        int(self.data.SF_ch8),
+                    ]
                     self.data.data_changed[channel - 1] = False
                     self.data.statusflag_changed[channel - 1] = False
                     # self.update_channel(channel)
