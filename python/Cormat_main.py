@@ -32,7 +32,6 @@ from importlib import import_module
 libnames = ['ppf']
 relative_imports = []
 
-
 for libname in libnames:
     try:
         lib = import_module(libname)
@@ -42,20 +41,20 @@ for libname in libnames:
         print(exc)
     else:
         globals()[libname] = lib
-
 for libname in relative_imports:
     try:
         anchor = libname.split('.')
         libr = anchor[0]
         package = anchor[1]
 
-        lib = import_module(libr,package=package)
+        lib = import_module(libr)
+        # lib = import_module(libr,package=package)
     except:
         exc_type, exc, tb = sys.exc_info()
         print(os.path.realpath(__file__))
         print(exc)
     else:
-        globals()[libname] = lib
+        globals()[libr] = lib
 
 
 import matplotlib
