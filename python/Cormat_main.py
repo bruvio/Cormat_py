@@ -7,12 +7,12 @@ Class that runs CORMAT_py GUI
 # ----------------------------
 __author__ = "Bruno Viola"
 __Name__ = "CORMAT_py"
-__version__ = "0.18"
-__release__ = "0"
+__version__ = "2.3"
+__release__ = "2"
 __maintainer__ = "Bruno Viola"
 __email__ = "bruno.viola@ukaea.uk"
-__status__ = "Testing"
-# __status__ = "Production"
+#__status__ = "Testing"
+__status__ = "Production"
 
 
 import warnings
@@ -4098,6 +4098,10 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             self.writeppf()
 
     def writeppf(self):
+        """
+        function that writes to ppf the KG1 data
+        :return:
+        """
         self.checkStatuFlags()
 
         err = open_ppf(self.data.pulse, self.write_uid)
@@ -5173,13 +5177,13 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
     @QtCore.pyqtSlot()
     def handle_help_menu():
         """
-        opens Chrome browser to read HTML documentation
+        opens firefox browser to read HTML documentation
         :return:
         """
         import webbrowser
 
         url = "file://" + os.path.realpath("../docs/_build/html/index.html")
-        webbrowser.get(using="google-chrome").open(url, new=2)
+        webbrowser.get(using="firefox").open(url, new=2)
 
         # ----------------------------
 
@@ -7590,6 +7594,11 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
     @QtCore.pyqtSlot()
     def gettotalcorrections(self):
+        """
+        function that computes the total number of correction in a channel
+        :return: sum of correction (vertical channels)
+        sum of correction on density / vibration (lateral channels)
+        """
         if str(self.chan).isdigit() == True:
             self.lineEdit_totcorr.setEnabled(True)
             self.chan = int(self.chan)
@@ -8371,6 +8380,10 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             self.kb.hide()
 
     def init_read(self):
+        """
+        function that runs initialization of the GUI each time a new pulse is loaded
+        :return:
+        """
 
         logger.log(5, "resetting Canvas before reading data")
         # status flag groupbox is disabled

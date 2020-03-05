@@ -15,32 +15,84 @@ from terminal
 
     >> git clone git@git.ccfe.ac.uk:bviola/Cormat_py.git -b master /your/folder
 
+Once this is done the user needs to checks if they have access to two Python libraries used at JET: ppf and getdata
+
+
+From v2.0.0 this code works  only with python > 3.7 and PyQt5.
+to swith to python3.7
+
+From the Terminal
+
+    >> module unload python
+
+    >> module load python/3.7
+
+Or you can create your own virtualenviroment running 
+
+    >> python -v venv venv
+
+
+From the Python  console, run
+    >> pip install -r repuirements.txt --user
+
+    to update the python packages to meet the requirements of the application.
+
+Once this is donem the application is ready to be used
+
+    >> python Cormat_main.py
+
+The code can run with different levels of verbosity. The defaul version is set to INFO (level = 0)
+Alternatively is possible to run the code specifying the debug level to 
+increase verbosity and show debug/warning/error messages.
+
+The user can change it
+
+    >> python Cormat_main.py -d level_name (with level_name an integer among 0,1,2,3,4)
+
+    Level 4 is the maximum level of verbosity possible and it is generally used for debugging purposes.
+
+For a more comprehensive list of the command that the user can use:
+
+    >> python Cormat_main.py -h
+
+    will run an help
+
+
 
 
 Running the code from Terminal
 ------------------------------------
 
-To tun the code::
+To run the code::
     cd /u/username/work/
     python Cormat_main.py -h
     
-    usage: Cormat_main.py [-h] [-d DEBUG] [-doc DOCUMENTATION]
+usage: Cormat_main.py [-h] [-d DEBUG] [-doc DOCUMENTATION]
+                      [-r RESTORE_CHANNEL] [-c CHANNEL] [-e ERASE_DATA]
 
-    Run Cormat_main
+Run CORMAT_py
 
-    optional arguments:
-    -h, --help            show this help message and exit
-    -d DEBUG, --debug DEBUG
-    Debug level. 0: Info, 1: Warning, 2: Debug, 3: Error, 4: Debug plus;
-    default level is INFO
-    
-    -doc yes
+optional arguments:
+  -h, --help            show this help message and exit
+  -d DEBUG, --debug DEBUG
+                        Debug level. 0: Info, 1: Warning, 2: Debug, 3: Error, 4: Debug Plus; default level is INFO
+
+  -doc DOCUMENTATION, --documentation DOCUMENTATION
+                        Make documentation. yes/no
+
+  -r RESTORE_CHANNEL, --restore_channel RESTORE_CHANNEL
+                        restore channel to original value. yes/no
+
+  -c CHANNEL, --channel CHANNEL
+                        channel to be restored
+
+  -e ERASE_DATA, --erase_data ERASE_DATA
+                        remove stored data from scratch and saved folders.
+                        yes/no
 
 
-Alternatively is possible to run the code specifying the debug level to 
-increase verbosity and show debug/warning/error messages.
 
-By default the debug level is **INFO**
+
 
 
 Once run an itialization process begins:
@@ -52,7 +104,7 @@ Once run an itialization process begins:
 
     Initialisation process
 
-The code will check if is running in an 64bit enviroment with Python3. It will 
+The code will check if is running in an 64bit enviroment with Python3.7 It will 
 also check what user is running the code and if it has proper authorisation to 
 write KG1 public ppfs.
 If not, the user will be able to run the code but he/she will be limited in 
@@ -222,6 +274,8 @@ An overview of valid key strokes is given in the following table.
 +------+-----------------------------+
 | N    | neutralise corrections/s    |
 +------+-----------------------------+
+| S    | suggest correction          |
++------+-----------------------------+
 | T    | zero LID (tail) data        |
 +------+-----------------------------+
 | Z    | zero LID (interval) data    |
@@ -233,7 +287,7 @@ For further details see relative paragraph on topic/s.
 
 Note that any action, valid or not, triggers a clear response, i.e. either the final result expected (user performed action correctly) or an error message with be displayed.
 
-There is NO option so far to excape from an unwanted mode, event has to finish.
+There is NO option so far to excape from an unwanted mode: the event has to finish.
 
 
 
@@ -277,9 +331,8 @@ the user will be promped with a widged asking if he/she wants to confirm that co
 and then with another widget asking to confirm the correction and mark it as **permanent**, which means the correction will be stored.
 
 
-
 Multiple correction
-##################
+####################
 
 Hit the key **[M]** and you will be in the multicorrection mode.
 
@@ -291,7 +344,7 @@ You will have to click as many time points as you like and you then select in th
 
 
 Neutralise correction(s)
-##################
+#########################
 
 Hit the key **[N]** and you will be in the neutralisation mode.
 
@@ -306,6 +359,29 @@ In order to do so:
 	
 	
 First all manual corrections within the chose timw window will be neutralised and then intershot corrections.
+
+
+Suggest correction(s)
+######################
+
+Hit the key **[S]** and then click between the two data points in question with the **right** mouse button. The vertical position of the pointer is very important to get a precise response.
+
+A widget will be prompeted and the user will have to click on the  **[APPLY]**
+button.
+A message will be displayed telling the user what is the suggested correction to apply based on the distance between the point at the left of the click and the next one.
+
+It is possible to tell the code to give a suggestion based on the distance between the point at the left of the click and X point on the right by selecting a number on the widget that appers once the event has started.
+
+
+
+.. figure:: _figure/fringe_correction.png
+    :align: center
+    :alt: alternate text
+    :figclass: align-center
+    
+    select fringe correction to be applied
+    
+
 
 Zeroing LID data
 ##################
@@ -370,6 +446,29 @@ How to set the status flag of a channel
     change status flag to channel
 
 
+When the user is confident that the channel validation is complete can select a value for the status flag to apply to it.
+
+
+The values for the System status flags are:
+
+
++-------+----------------------------------------+
+| Value | Meaning                                |
++=======+========================================+
+|   0   |  Data is unchecked - the default value.|
++-------+----------------------------------------+
+|   1   |  Data is of above normal quality.      |
++-------+----------------------------------------+
+|   2   |  Data is of normal quality.            |
++-------+----------------------------------------+
+|   3   |  Data is below normal quality.         |
++-------+----------------------------------------+
+|   4   |  Data is unreliable or incorrect.      |
++-------+----------------------------------------+
+
+You will not normally be able to read any data that has been given a System Status Flag value of 4.
+
+
 Saving data and storing Status flags
 ------------------------------------------------
 
@@ -380,8 +479,17 @@ Saving data and storing Status flags
     :figclass: align-center
     
     
-    
-    select fringe correction to be applied
+
+Once the validation request is complete the user can save to ppf the data.
+
+They can choose to save privately or in a public ppf.
+Save just status flag (only available if data has not changed), or save both data and status flag.
+
+At the moment of writing this guide v2.1.2 of the code still allow the user to downsample the data, suggested pratice if saving to public ppf.
+
+This is due to still on going compatibility checks of KG1 data with the rest of the chain.
+
+
 
 
 

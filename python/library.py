@@ -9,7 +9,8 @@ from importlib import import_module
 
 
 
-
+### procedure to load JET related python packages
+### if package is not found an error message is displayed
 libnames = ['ppf']
 relative_imports = []
 
@@ -37,6 +38,8 @@ for libname in relative_imports:
         print(exc)
     else:
         globals()[libname] = lib
+
+############
 from status_flag import GetSF
 import numpy as np
 
@@ -85,6 +88,13 @@ def find_duplicate_w_index(l):
 
 
 def reconnect(signal, newhandler=None, oldhandler=None):
+    """
+    reconnect a signal to a new handler after disconnection from old handler
+    :param signal:
+    :param newhandler:
+    :param oldhandler:
+    :return:
+    """
     while True:
         try:
             if oldhandler is not None:
@@ -98,6 +108,11 @@ def reconnect(signal, newhandler=None, oldhandler=None):
 
 
 def is_empty(any_structure):
+    """
+    check if structure is empty
+    :param any_structure:
+    :return:
+    """
     if any_structure:
 
         return False
@@ -107,6 +122,12 @@ def is_empty(any_structure):
 
 
 def are_eq(a, b):
+    """
+    checks if a and b are equal
+    :param a:
+    :param b:
+    :return:
+    """
     return set(a) == set(b) and len(a) == len(b)
 
 
@@ -191,6 +212,13 @@ def find_listelements_in_otherlist2(list1, list2, tstep):
 
 
 def find_within_range(array, minvalue, maxvalue):
+    """
+    returns elements of array within two values
+    :param array:
+    :param minvalue:
+    :param maxvalue:
+    :return:
+    """
 
     # idxmin = (np.abs(array - min)).argmin()
     # idxmax = (np.abs(array - max)).argmax()
@@ -210,7 +238,7 @@ def find_within_range(array, minvalue, maxvalue):
 
 def pyqt_set_trace():
     """Set a tracepoint in the Python debugger that works with Qt"""
-    from PyQt4.QtCore import pyqtRemoveInputHook
+    from PyQt5.QtCore import pyqtRemoveInputHook
     import pdb
     import sys
 
@@ -476,23 +504,7 @@ def equalsFile(firstFile, secondFile, blocksize=65536):
     return True
 
 
-# =============================================================================
-def pyqt_set_trace():
-    """Set a tracepoint in the Python debugger that works with Qt"""
-    from PyQt4.QtCore import pyqtRemoveInputHook
-    import pdb
-    import sys
 
-    pyqtRemoveInputHook()
-    # set up the debugger
-    debugger = pdb.Pdb()
-    debugger.reset()
-    # custom next to get outside of function scope
-    debugger.do_next(None)  # run the next command
-    users_frame = (
-        sys._getframe().f_back
-    )  # frame where the user invoked `pyqt_set_trace()`
-    debugger.interaction(users_frame, None)
 
 
 #
