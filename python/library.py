@@ -1,18 +1,53 @@
 # ----------------------------
 __author__ = "B. Viola"
 # ----------------------------
+import logging
+logger = logging.getLogger(__name__)
+import sys
+import os
+from importlib import import_module
+
+
+
+
+libnames = ['ppf']
+relative_imports = []
+
+
+for libname in libnames:
+    try:
+        lib = import_module(libname)
+    except:
+        exc_type, exc, tb = sys.exc_info()
+        print(os.path.realpath(__file__))
+        print(exc)
+    else:
+        globals()[libname] = lib
+
+for libname in relative_imports:
+    try:
+        anchor = libname.split('.')
+        libr = anchor[0]
+        package = anchor[1]
+
+        lib = import_module(libr,package=package)
+    except:
+        exc_type, exc, tb = sys.exc_info()
+        print(os.path.realpath(__file__))
+        print(exc)
+    else:
+        globals()[libname] = lib
 from status_flag import GetSF
 import numpy as np
-from ppf import *
-import logging
+
 from numpy import arange, asscalar
-import os
+
 
 import shutil
 from collections import defaultdict
 
 
-logger = logging.getLogger(__name__)
+
 
 
 def test_logger():
@@ -246,13 +281,13 @@ def get_seq(shot_no, dda, read_uid="JETPPF"):
     :param read_uid:
     :return: get sequence of a ppf
     """
-    ier = ppfgo(shot_no, seq=0)
+    ier = ppf.ppfgo(shot_no, seq=0)
     if ier != 0:
         return None
 
-    ppfuid(read_uid, rw="R")
+    ppf.ppfuid(read_uid, rw="R")
 
-    iseq, nseq, ier = ppfdda(shot_no, dda)
+    iseq, nseq, ier = ppf.ppfdda(shot_no, dda)
 
     if ier != 0:
         return None
@@ -292,10 +327,10 @@ def check_SF(read_uid, pulse, seq):
     """
     logging.info("\n")
     logging.info("checking status FLAGS ")
-    ier = ppfgo(pulse, seq=seq)
-    ppfuid(read_uid, "r")
+    ier = ppf.ppfgo(pulse, seq=seq)
+    ppf.ppfuid(read_uid, "r")
 
-    ppfssr([0, 1, 2, 3, 4])
+    ppf.ppfssr([0, 1, 2, 3, 4])
 
     channels = arange(0, 8) + 1
     SF_list = []

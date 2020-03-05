@@ -13,16 +13,54 @@ __maintainer__ = "Bruno Viola"
 __email__ = "bruno.viola@ukaea.uk"
 __status__ = "Testing"
 # __status__ = "Production"
+
+
 import warnings
 
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+import logging
+logger = logging.getLogger(__name__)
+import sys
+import os
+from importlib import import_module
+
+
+
+
+libnames = ['ppf']
+relative_imports = []
+
+for libname in libnames:
+    try:
+        lib = import_module(libname)
+    except:
+        exc_type, exc, tb = sys.exc_info()
+        print(os.path.realpath(__file__))
+        print(exc)
+    else:
+        globals()[libname] = lib
+for libname in relative_imports:
+    try:
+        anchor = libname.split('.')
+        libr = anchor[0]
+        package = anchor[1]
+
+        lib = import_module(libr)
+        # lib = import_module(libr,package=package)
+    except:
+        exc_type, exc, tb = sys.exc_info()
+        print(os.path.realpath(__file__))
+        print(exc)
+    else:
+        globals()[libr] = lib
+
+
 import matplotlib
 
 matplotlib.use("QT4Agg")
 import argparse
-import logging
 from types import SimpleNamespace
 from logging.handlers import RotatingFileHandler
 from logging import handlers
@@ -33,7 +71,6 @@ import pathlib
 import pickle
 import platform
 import datetime
-import sys
 import time
 from pathlib import Path
 import CORMAT_GUI
@@ -66,7 +103,6 @@ from signal_kg1 import SignalKg1
 from signal_base import SignalBase
 from nbi_data import NBIData
 from pellet_data import PelletData
-from ppf import *
 from ppf_write import *
 from signal_base import SignalBase
 from custom_formatters import MyFormatter, QPlainTextEditLogger, HTMLFormatter
@@ -84,7 +120,7 @@ qm = QMessageBox
 qm_permanent = QMessageBox
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 myself = lambda: inspect.stack()[1][3]
-logger = logging.getLogger(__name__)
+
 
 # noinspection PyUnusedLocal
 class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
@@ -652,7 +688,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         self.tabWidget.setTabEnabled(11, False)
 
         if self.data.pulse is "":  # user has not entered a pulse number
-            logger.error("PLEASE USE JPN lower than {}\n".format((pdmsht())))
+            logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
             assert self.data.pulse is not "", "ERROR no pulse selected"
             return
 
@@ -662,13 +698,13 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 int(self.data.pulse)
 
             except ValueError:
-                logger.error("PLEASE USE JPN lower than {}\n".format((pdmsht())))
+                logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
                 return
 
-            if int(self.data.pulse) <= pdmsht():
+            if int(self.data.pulse) <= ppf.pdmsht():
                 pass  # user has entered a valid pulse number
             else:
-                logger.error("PLEASE USE JPN lower than {}\n".format((pdmsht())))
+                logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
                 return
 
         # self.data.pulse = int(self.lineEdit_jpn.text())
@@ -4086,14 +4122,14 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             # how to access this information?
             logger.info("_______________________________")
             # logger.info("Reading in KG1V data ")
-            ier = ppfgo("92025", seq=0)
+            ier = ppf.ppfgo("92025", seq=0)
 
-            ppfuid("jetppf", rw="R")
+            ppf.ppfuid("jetppf", rw="R")
 
             if ier != 0:
                 return 0
 
-            ihdata_kg1v, iwdata_kg1v, data_kg1v, x_kg1v, time_kg1v, ier_kg1v = ppfget(
+            ihdata_kg1v, iwdata_kg1v, data_kg1v, x_kg1v, time_kg1v, ier_kg1v = ppf.ppfget(
                 "92025", "KG1V", "LID3"
             )
 
