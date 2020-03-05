@@ -4,13 +4,42 @@ with functionality for filtering, resampling, and calculating the
 differences between adjacent time points.
 """
 
-import logging
 
+import logging
+logger = logging.getLogger(__name__)
+import sys
+import os
+from importlib import import_module
+
+libnames = ['ppf']
+relative_imports = ['getdat.getdat','getdat.getsca']
+
+for libname in libnames:
+    try:
+        lib = import_module(libname)
+    except:
+        exc_type, exc, tb = sys.exc_info()
+        print(os.path.realpath(__file__))
+        print(exc)
+    else:
+        globals()[libname] = lib
+for libname in relative_imports:
+    try:
+        anchor = libname.split('.')
+        libr = anchor[0]
+        package = anchor[1]
+
+        lib = import_module(libr)
+        # lib = import_module(libr,package=package)
+    except:
+        exc_type, exc, tb = sys.exc_info()
+        print(os.path.realpath(__file__))
+        print(exc)
+    else:
+        globals()[libr] = lib
 import numpy as np
 from scipy import signal
-from getdat import getdat, getsca
-from getdat import *
-from ppf import ppfgo, ppfget, ppfssr, ppfuid
+
 
 from wv_denoise import wv_denoise
 

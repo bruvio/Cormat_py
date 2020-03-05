@@ -189,3 +189,15 @@ wrapt==1.10.8
 xarray==0.10.2
 xlrd==0.9.4
 xmltodict==0.11.0
+cycler==0.10.0
+kiwisolver==1.1.0
+matplotlib==3.2.0
+numpy==1.18.1
+pycallgraph==1.0.1
+pyparsing==2.4.6
+PyQt5==5.14.1
+PyQt5-sip==12.7.1
+python-dateutil==2.8.1
+PyWavelets==1.1.1
+scipy==1.4.1
+six==1.14.0

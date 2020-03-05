@@ -6,14 +6,45 @@
 # ----------------------------
 __author__ = "B. Viola"
 # ----------------------------
-from ppf import *
+import logging
+logger = logging.getLogger(__name__)
+import sys
+import os
+from importlib import import_module
+
+libnames = ['ppf']
+relative_imports = ['getdat.getdat','getdat.getsca']
+
+for libname in libnames:
+    try:
+        lib = import_module(libname)
+    except:
+        exc_type, exc, tb = sys.exc_info()
+        print(os.path.realpath(__file__))
+        print(exc)
+    else:
+        globals()[libname] = lib
+for libname in relative_imports:
+    try:
+        anchor = libname.split('.')
+        libr = anchor[0]
+        package = anchor[1]
+
+        lib = import_module(libr)
+        # lib = import_module(libr,package=package)
+    except:
+        exc_type, exc, tb = sys.exc_info()
+        print(os.path.realpath(__file__))
+        print(exc)
+    else:
+        globals()[libr] = lib
 import csv
 import sys
 import collections
 import matplotlib.pyplot as plt
 import argparse
 import numpy as np
-from getdat import getdat, getsca
+
 
 # from make_plots import make_plots
 
