@@ -139,7 +139,7 @@ python-dateutil==2.8.0
 python3-ldap==0.9.8.4
 pytz==2016.7
 PyWavelets==0.4.0
-PyYAML==3.11
+PyYAML==5.1
 pyzmq==15.2.0
 qtconsole==4.2.1
 quantities==0+unknown
