@@ -9,12 +9,40 @@ shot,user,date,seq
 """
 
 import logging
+logger = logging.getLogger(__name__)
+import sys
+import os
+from importlib import import_module
+
+libnames = ['ppf']
+relative_imports = []
+
+for libname in libnames:
+    try:
+        lib = import_module(libname)
+    except:
+        exc_type, exc, tb = sys.exc_info()
+        print(os.path.realpath(__file__))
+        print(exc)
+    else:
+        globals()[libname] = lib
+for libname in relative_imports:
+    try:
+        anchor = libname.split('.')
+        libr = anchor[0]
+        package = anchor[1]
+
+        lib = import_module(libr)
+        # lib = import_module(libr,package=package)
+    except:
+        exc_type, exc, tb = sys.exc_info()
+        print(os.path.realpath(__file__))
+        print(exc)
+    else:
+        globals()[libr] = lib
 import pickle
 
-from ppf import ppfgo, ppfuid, ppfopn, pdstd
-from ppf import ppfwri_ihdat, ppfwri_irdat, ppfwri
-from ppf import ppfwri_tbsf_ref_set, ppfwri_tbsf_set
-from ppf import ppfclo, ppfabo
+
 import datetime
 
 logger = logging.getLogger(__name__)
@@ -41,7 +69,7 @@ def check_uid(shot_no, write_uid):
 
     #    ier = close_ppf(shot_no)
 
-    ier = ppfabo()
+    ier = ppf.ppfabo()
 
     return 0
 
@@ -56,22 +84,22 @@ def open_ppf(shot_no, write_uid, comment="CORRECTED KG1 DATA FROM KG1C AND KG1R 
     """
 
     # Initialise PPF system
-    ier = ppfgo(pulse=shot_no)
+    ier = ppf.ppfgo(pulse=shot_no)
 
     if ier != 0:
         return ier
 
     # Set UID
-    ppfuid(write_uid, "w")
+    ppf.ppfuid(write_uid, "w")
 
     # Retrieve shot data and time, for PPFOPN
-    time, date, ier = pdstd(shot_no)
+    time, date, ier = ppf.pdstd(shot_no)
 
     if ier != 0:
         return ier
 
     # Open PPF for writing
-    ier = ppfopn(shot_no, date, time, comment)
+    ier = ppf.ppfopn(shot_no, date, time, comment)
 
     return ier
 
@@ -141,11 +169,11 @@ def write_ppf(
         global_status = 0
 
     # Create ihdat & irdat
-    ihdat = ppfwri_ihdat(unitd, "", unitt, data_type, data_type, time_type, comment)
+    ihdat = ppf.ppfwri_ihdat(unitd, "", unitt, data_type, data_type, time_type, comment)
 
     logger.log(5, ("ihdat {}".format(ihdat)))
 
-    irdat = ppfwri_irdat(1, nt, refx=-1, reft=itref, user=0, system=global_status)
+    irdat = ppf.ppfwri_irdat(1, nt, refx=-1, reft=itref, user=0, system=global_status)
 
     logger.log(5, ("irdat {}".format(irdat)))
 
@@ -162,7 +190,7 @@ def write_ppf(
     # Write data
     # irdat[7]=0 #generates ppf identical to KG1V code
     # irdat[8]=-1
-    iwdat, ier = ppfwri(shot_no, dda, dtype, irdat, ihdat, data, global_status, time)
+    iwdat, ier = ppf.ppfwri(shot_no, dda, dtype, irdat, ihdat, data, global_status, time)
 
     logger.log(5, ("iwdat: {}".format(iwdat)))
     logger.log(5, ("itref for signal that was just written : {}".format(iwdat[8])))
@@ -190,7 +218,7 @@ def close_ppf(shot_no, write_uid, version):
     timestr = time.strftime("%Y-%m-%d")
     program = "KG1 PPF  "
     # time, date, ier = pdstd(shot_no)
-    seq, ier = ppfclo(shot_no, program, version)
+    seq, ier = ppf.ppfclo(shot_no, program, version)
     with open("run_out.txt", "a+") as f_out:
         f_out.write(
             "shot: {} user: {} date: {} seq: {} written by: {}\n".format(
