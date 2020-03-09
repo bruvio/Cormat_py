@@ -50,15 +50,12 @@ import numpy as np
 
 # import pylab as P
 from scipy import array, zeros
-import os
-import sys
+
 
 path = os.getcwd()
 # print(path)
 # sys.path.append("/jet/share/lib/python")
-import logging
 
-logger = logging.getLogger(__name__)
 
 
 def _log_level_string_to_int(log_level_string):
@@ -85,7 +82,7 @@ def find_disruption(pulse):
 
     """
     # print(pulse)
-    data, nwds, title, units, ier = getsca("PF/PTN-DSRPT<PFP", pulse, nwds=0)
+    data, nwds, title, units, ier = getdat.getsca("PF/PTN-DSRPT<PFP", pulse, nwds=0)
     # print(shape(data))
     # print(dtype(data))
     # print(pulse,data,ier)
@@ -122,10 +119,10 @@ def GetSF(pulse, dda, dtype):
     """
 
     # this sequence of instruction allows to extract status flag correctly for each pulse
-    ihdat, iwdat, data, x, t, ier = ppfget(pulse, dda, dtype)
-    pulse, seq, iwdat, comment, numdda, ddalist, ier = ppfinf(comlen=50, numdda=50)
+    ihdat, iwdat, data, x, t, ier = ppf.ppfget(pulse, dda, dtype)
+    pulse, seq, iwdat, comment, numdda, ddalist, ier = ppf.ppfinf(comlen=50, numdda=50)
     # info,cnfo,ddal,istl,pcom,pdsn,ier=pdinfo(pulse,seq) #commented lines, with this i get an error.
-    istat, ier = ppfgsf(pulse, seq, dda, dtype, mxstat=1)
+    istat, ier = ppf.ppfgsf(pulse, seq, dda, dtype, mxstat=1)
 
     # print('GETSF ok')
 
@@ -199,7 +196,7 @@ def GETfringejumps(pulse, FJC_dtypelist):
     FJ_correction = list()
     for jj in range(0, len(FJC_dtypelist)):
         FJcount = FJC_dtypelist[jj]
-        ihdat, iwdat, data, x, t, ier = ppfget(pulse, "KG1V", FJcount)
+        ihdat, iwdat, data, x, t, ier = ppf.ppfget(pulse, "KG1V", FJcount)
         corrections = iwdat[3]
         FJ_correction.append(corrections)
 
@@ -236,11 +233,11 @@ exceed the given threshold and marks if there was a disruption or not
     filename = outputfilename + "_" + str(pulse1) + "_" + str(pulse2)
 
     #
-    ier = ppfgo()
-    ppfsetdevice("JET")
-    ppfuid("jetppf", "r")
+    ier = ppf.ppfgo()
+    ppf.ppfsetdevice("JET")
+    ppf.ppfuid("jetppf", "r")
     # ppfuid("bviola","r")
-    ppfssr(i=[0, 1, 2, 3])
+    ppf.ppfssr(i=[0, 1, 2, 3])
 
     dda = "KG1V"
 
