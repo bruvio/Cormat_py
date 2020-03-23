@@ -450,10 +450,13 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             logger.log(5, "this is your homefold {}".format(self.homefold))
             home = str(Path.home())
             self.chain1 = "/common/chain1/kg1/"
-            extract_history(
-                self.workfold + "/run_out.txt", self.chain1 + "cormat_out.txt"
-            )
-            logger.info(" copying to local user profile \n")
+            try:
+                extract_history(
+                    self.workfold + "/run_out.txt", self.chain1 + "cormat_out.txt"
+                )
+                logger.info(" copying to local user profile \n")
+            except:
+                logger.warning('check file permission on {}'.format(self.chain1))
             logger.log(5, "we are in %s", cwd)
 
         except:
@@ -1613,6 +1616,38 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         f.close()
         logger.info(" data saved to {}\n".format(folder))
 
+        pathlib.Path("./" + folder + os.sep+ str(self.data.pulse)).mkdir(parents=True,
+                                                     exist_ok=True)
+        with open("./" + folder + os.sep+ str(self.data.pulse)+"/data.pkl", "wb") as f:
+            pickle.dump(
+                [
+                    self.data.pulse,
+                    self.data.sequence,
+                    self.data.KG1_data,
+                    self.data.KG4_data,
+                    self.data.MAG_data,
+                    self.data.PELLETS_data,
+                    self.data.ELM_data,
+                    self.data.HRTS_data,
+                    self.data.NBI_data,
+                    self.data.is_dis,
+                    self.data.dis_time,
+                    self.data.LIDAR_data,
+                    self.data.zeroing_start,
+                    self.data.zeroing_stop,
+                    self.data.zeroed,
+                    self.data.zeroingbackup_den,
+                    self.data.zeroingbackup_vib,
+                    self.data.data_changed,
+                    self.data.statusflag_changed,
+                    self.data.validated_public_channels,
+                    self.data.SF_list_public,
+                ],
+                f,
+            )
+        f.close()
+
+
     # ------------------------
     def save_kg1(self, folder):
         """
@@ -1624,6 +1659,36 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         logger.debug(" saving KG1 data to {}".format(folder))
         try:
             with open("./" + folder + "/kg1_data.pkl", "wb") as f:
+                pickle.dump(
+                    [
+                        self.data.KG1_data,
+                        self.data.SF_list,
+                        self.data.unval_seq,
+                        self.data.val_seq,
+                        self.read_uid,
+                        self.data.zeroing_start,
+                        self.data.zeroing_stop,
+                        self.data.zeroingbackup_den,
+                        self.data.zeroingbackup_vib,
+                        self.data.data_changed,
+                        self.data.statusflag_changed,
+                        self.data.validated_public_channels,
+                        self.data.SF_list_public,
+                    ],
+                    f,
+                )
+            f.close()
+            logger.info(" KG1 data saved to {}\n".format(folder))
+        except AttributeError:
+            logger.error("failed to save, check data!")
+
+        pathlib.Path(
+            "./" + folder + os.sep + str(self.data.pulse) ).mkdir(
+            parents=True,
+            exist_ok=True)
+
+        try:
+            with open("./" + folder + os.sep + str(self.data.pulse) + "/kg1_data.pkl", "wb") as f:
                 pickle.dump(
                     [
                         self.data.KG1_data,
@@ -2071,6 +2136,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             vars()["vib_chan" + str(chan)] = self.data.KG1_data.vibration[chan]
             with open("./saved/vib_chan" + str(chan) + ".pkl", "wb") as f:
                 pickle.dump([vars()["vib_chan" + str(chan)]], f)
+
             f.close()
 
         return True
@@ -2555,8 +2621,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             self.widget_LID_58.draw()
             self.widget_LID_58.flush_events()
 
-        self.widget_LID_ALL.draw()
-        self.widget_LID_ALL.flush_events()
+        # self.widget_LID_ALL.draw()
+        # self.widget_LID_ALL.flush_events()
 
         vars()[widget_name].draw()
         vars()[widget_name].flush_events()
@@ -4539,19 +4605,19 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             5, "saving data to PPF using this SF list {}".format(self.data.SF_list)
         )
         # Initialise PPF system
-        ier = ppfgo(pulse=self.data.pulse)
+        ier = ppf.ppfgo(pulse=self.data.pulse)
 
         if ier != 0:
             return 68
 
         # Set UID
-        ppfuid(self.write_uid, "w")
+        ppf.ppfuid(self.write_uid, "w")
 
         for chan in self.data.KG1_data.density.keys():
             dtype_lid = "LID{}".format(chan)
             # if self.data.val_seq <0:
 
-            (write_err,) = ppfssf(
+            (write_err,) = ppf.ppfssf(
                 self.data.pulse,
                 self.data.val_seq,
                 "KG1V",
