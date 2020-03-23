@@ -121,6 +121,11 @@ qm_permanent = QMessageBox
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 myself = lambda: inspect.stack()[1][3]
 
+if 'ppf' not in sys.modules:
+    logging.warning('failed to load ppf')
+    logging.warning('you are offline!')
+    offline = True
+
 
 # noinspection PyUnusedLocal
 class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
@@ -689,26 +694,34 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         self.tabWidget.setTabEnabled(9, False)
         self.tabWidget.setTabEnabled(10, False)
         self.tabWidget.setTabEnabled(11, False)
+        if not offline :
 
-        if self.data.pulse is "":  # user has not entered a pulse number
-            logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
-            assert self.data.pulse is not "", "ERROR no pulse selected"
-            return
-
-        else:
-            # self.data.pulse = int(self.lineEdit_jpn.text())
-            try:
-                int(self.data.pulse)
-
-            except ValueError:
+            if self.data.pulse == "":  # user has not entered a pulse number
                 logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
+                assert self.data.pulse != "", "ERROR no pulse selected"
                 return
 
-            if int(self.data.pulse) <= ppf.pdmsht():
-                pass  # user has entered a valid pulse number
             else:
-                logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
-                return
+                # self.data.pulse = int(self.lineEdit_jpn.text())
+                try:
+                    int(self.data.pulse)
+
+                except ValueError:
+                    logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
+                    return
+
+                if int(self.data.pulse) <= ppf.pdmsht():
+                    pass  # user has entered a valid pulse number
+                else:
+                    logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
+                    return
+        else:
+            logger.warning('\n OFFLINE MODE \n')
+            logger.warning('reading data from workspace')
+
+
+
+
 
         # self.data.pulse = int(self.lineEdit_jpn.text())
         # self.data.sequence = self.lineEdit_jpn_seq.text()
@@ -4900,6 +4913,11 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
                             vars()[widget_name].draw()
                             vars()[widget_name].flush_events()
+                            self.tabWidget.setFocusPolicy(Qt.ClickFocus)
+                            self.tabWidget.setFocus()
+                            self.tabWidget.raise_()
+                            self.tabWidget.activateWindow()
+
                             # vars()[widget_name].blockSignals(True)
 
                         except:
@@ -8696,6 +8714,7 @@ if __name__ == "__main__":
     logging.addLevelName(5, "DEBUG_PLUS")
     logger = logging.getLogger(__name__)
     logging.basicConfig(level=debug_map[args.debug])
+
     # logger.setLevel(debug_map[args.debug])
 
     fmt = MyFormatter()
@@ -8708,5 +8727,6 @@ if __name__ == "__main__":
     )
     fh.setFormatter(fmt)
     logging.root.addHandler(fh)
+    logger.setLevel(logging.INFO)
 
     main()
