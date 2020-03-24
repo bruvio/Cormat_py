@@ -11,7 +11,7 @@ __version__ = "2.3"
 __release__ = "2"
 __maintainer__ = "Bruno Viola"
 __email__ = "bruno.viola@ukaea.uk"
-#__status__ = "Testing"
+# __status__ = "Testing"
 __status__ = "Production"
 
 
@@ -21,15 +21,14 @@ warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import logging
+
 logger = logging.getLogger(__name__)
 import sys
 import os
 from importlib import import_module
 
 
-
-
-libnames = ['ppf']
+libnames = ["ppf"]
 relative_imports = []
 
 for libname in libnames:
@@ -43,7 +42,7 @@ for libname in libnames:
         globals()[libname] = lib
 for libname in relative_imports:
     try:
-        anchor = libname.split('.')
+        anchor = libname.split(".")
         libr = anchor[0]
         package = anchor[1]
 
@@ -191,417 +190,397 @@ data.pulse = None
 data.saved = False
 
 
-def readdata(pulse,read_uid):
+def readdata(pulse, read_uid):
 
-        """
+    """
         function that reads data as described in const.ini
         :return: True if success
                 False if error
                 saves data to pickle files: one just for KG1 (kg1_data) and one for everything else (data.pkl)
         """
 
-        # -------------------------------
-        # 1. Read in Magnetics data
-        # -------------------------------
-        data.pulse = pulse
-        data.sequence = 0
-        data.read_uid = read_uid
-        logger.info("             Reading in magnetics data.\n")
-        data.MAG_data = MagData(data.constants)
-        success = data.MAG_data.read_data(data.pulse)
-        if not success:
-            logging.error(
-                "no MAG data for pulse {} with uid {}\n".format(
-                    data.pulse, read_uid
-                )
-            )
-
-        # -------------------------------
-        # 2. Read in KG1 data
-        # -------------------------------
-        logger.info("             Reading in KG1 data.\n")
-        data.KG1_data = Kg1PPFData(
-            data.constants, data.pulse, data.sequence
+    # -------------------------------
+    # 1. Read in Magnetics data
+    # -------------------------------
+    data.pulse = pulse
+    data.sequence = 0
+    data.read_uid = read_uid
+    logger.info("             Reading in magnetics data.\n")
+    data.MAG_data = MagData(data.constants)
+    success = data.MAG_data.read_data(data.pulse)
+    if not success:
+        logging.error(
+            "no MAG data for pulse {} with uid {}\n".format(data.pulse, read_uid)
         )
 
-        read_uid = read_uid
-        success = data.KG1_data.read_data(data.pulse, read_uid=read_uid)
-        logger.log(5, "success reading KG1 data?".format(success))
-        # Exit if there were no good signals
-        # If success == 1 it means that at least one channel was not available. But this shouldn't stop the rest of the code
-        # from running.
-        if not success:
-            # success = 11: Validated PPF data is already available for all channels
-            # success = 8: No good JPF data was found
-            # success = 9: JPF data was bad
-            logging.error(
-                "no KG1V data for pulse {} with uid {}\n".format(
-                    data.pulse, read_uid
-                )
-            )
-            return False
-            # -------------------------------
-        # -------------------------------
-        # 4. Read in KG4 data
-        # -------------------------------
-        logger.info("             Reading in KG4 data.\n")
-        data.KG4_data = Kg4Data(data.constants)
-        data.KG4_data.read_data(data.MAG_data, data.pulse)
+    # -------------------------------
+    # 2. Read in KG1 data
+    # -------------------------------
+    logger.info("             Reading in KG1 data.\n")
+    data.KG1_data = Kg1PPFData(data.constants, data.pulse, data.sequence)
 
-        # -------------------------------
-        # 5. Read in pellet signals
-        # -------------------------------
-        logger.info("             Reading in pellet data.\n")
-        data.PELLETS_data = PelletData(data.constants)
-        data.PELLETS_data.read_data(data.pulse)
-
-        # -------------------------------
-        # 6. Read in NBI data.
-        # -------------------------------
-        logger.info("             Reading in NBI data.\n")
-        data.NBI_data = NBIData(data.constants)
-        data.NBI_data.read_data(data.pulse)
-
-        # -------------------------------
-        # 7. Check for a disruption, and set status flag near the disruption to 4
-        #    If there was no disruption then dis_time elements are set to -1.
-        #    dis_time is a 2 element list, being the window around the disruption.
-        #    Within this time window the code will not make corrections.
-        # -------------------------------
-        logger.info("             Find disruption.\n")
-        is_dis, dis_window, dis_time = find_disruption(
-            data.pulse, data.constants, data.KG1_data
+    read_uid = read_uid
+    success = data.KG1_data.read_data(data.pulse, read_uid=read_uid)
+    logger.log(5, "success reading KG1 data?".format(success))
+    # Exit if there were no good signals
+    # If success == 1 it means that at least one channel was not available. But this shouldn't stop the rest of the code
+    # from running.
+    if not success:
+        # success = 11: Validated PPF data is already available for all channels
+        # success = 8: No good JPF data was found
+        # success = 9: JPF data was bad
+        logging.error(
+            "no KG1V data for pulse {} with uid {}\n".format(data.pulse, read_uid)
         )
-        data.is_dis = is_dis
-        data.dis_time = dis_time
-        logger.info("Time of disruption {}\n".format(dis_time))
+        return False
+        # -------------------------------
+    # -------------------------------
+    # 4. Read in KG4 data
+    # -------------------------------
+    logger.info("             Reading in KG4 data.\n")
+    data.KG4_data = Kg4Data(data.constants)
+    data.KG4_data.read_data(data.MAG_data, data.pulse)
 
-        # -------------------------------
-        # 8. Read in Be-II signals, and find ELMs
-        # -------------------------------
-        logger.info("             Reading in ELMs data.\n")
-        data.ELM_data = ElmsData(
-            data.constants, data.pulse, dis_time=dis_time
+    # -------------------------------
+    # 5. Read in pellet signals
+    # -------------------------------
+    logger.info("             Reading in pellet data.\n")
+    data.PELLETS_data = PelletData(data.constants)
+    data.PELLETS_data.read_data(data.pulse)
+
+    # -------------------------------
+    # 6. Read in NBI data.
+    # -------------------------------
+    logger.info("             Reading in NBI data.\n")
+    data.NBI_data = NBIData(data.constants)
+    data.NBI_data.read_data(data.pulse)
+
+    # -------------------------------
+    # 7. Check for a disruption, and set status flag near the disruption to 4
+    #    If there was no disruption then dis_time elements are set to -1.
+    #    dis_time is a 2 element list, being the window around the disruption.
+    #    Within this time window the code will not make corrections.
+    # -------------------------------
+    logger.info("             Find disruption.\n")
+    is_dis, dis_window, dis_time = find_disruption(
+        data.pulse, data.constants, data.KG1_data
+    )
+    data.is_dis = is_dis
+    data.dis_time = dis_time
+    logger.info("Time of disruption {}\n".format(dis_time))
+
+    # -------------------------------
+    # 8. Read in Be-II signals, and find ELMs
+    # -------------------------------
+    logger.info("             Reading in ELMs data.\n")
+    data.ELM_data = ElmsData(data.constants, data.pulse, dis_time=dis_time)
+
+    # -------------------------------
+    # 9. Read HRTS data
+    # # -------------------------------
+    logger.info("             Reading in HRTS data.\n")
+    data.HRTS_data = HRTSData(data.constants)
+    data.HRTS_data.read_data(data.pulse)
+
+    # # # # -------------------------------
+    # # # 10. Read LIDAR data
+    # # # -------------------------------
+    logger.info("             Reading in LIDAR data.\n")
+    data.LIDAR_data = LIDARData(data.constants)
+    data.LIDAR_data.read_data(data.pulse)
+
+    # read status flag
+
+    data.SF_list = check_SF(read_uid, data.pulse, data.sequence)
+
+    [
+        data.SF_ch1,
+        data.SF_ch2,
+        data.SF_ch3,
+        data.SF_ch4,
+        data.SF_ch5,
+        data.SF_ch6,
+        data.SF_ch7,
+        data.SF_ch8,
+    ] = data.SF_list
+
+    data.SF_old1 = data.SF_ch1
+    data.SF_old2 = data.SF_ch2
+    data.SF_old3 = data.SF_ch3
+    data.SF_old4 = data.SF_ch4
+    data.SF_old5 = data.SF_ch5
+    data.SF_old6 = data.SF_ch6
+    data.SF_old7 = data.SF_ch7
+    data.SF_old8 = data.SF_ch8
+
+    try:
+        data.unval_seq, data.val_seq = get_min_max_seq(
+            data.pulse, dda="KG1V", read_uid=read_uid
         )
+    except TypeError:
+        logger.error("impossible to read sequence for user {}".format(read_uid))
+        return
 
-        # -------------------------------
-        # 9. Read HRTS data
-        # # -------------------------------
-        logger.info("             Reading in HRTS data.\n")
-        data.HRTS_data = HRTSData(data.constants)
-        data.HRTS_data.read_data(data.pulse)
-
-        # # # # -------------------------------
-        # # # 10. Read LIDAR data
-        # # # -------------------------------
-        logger.info("             Reading in LIDAR data.\n")
-        data.LIDAR_data = LIDARData(data.constants)
-        data.LIDAR_data.read_data(data.pulse)
-
-        # read status flag
-
-        data.SF_list = check_SF(read_uid, data.pulse, data.sequence)
-
-        [
-            data.SF_ch1,
-            data.SF_ch2,
-            data.SF_ch3,
-            data.SF_ch4,
-            data.SF_ch5,
-            data.SF_ch6,
-            data.SF_ch7,
-            data.SF_ch8,
-        ] = data.SF_list
-
-        data.SF_old1 = data.SF_ch1
-        data.SF_old2 = data.SF_ch2
-        data.SF_old3 = data.SF_ch3
-        data.SF_old4 = data.SF_ch4
-        data.SF_old5 = data.SF_ch5
-        data.SF_old6 = data.SF_ch6
-        data.SF_old7 = data.SF_ch7
-        data.SF_old8 = data.SF_ch8
-
-        try:
-            data.unval_seq, data.val_seq = get_min_max_seq(
-                data.pulse, dda="KG1V", read_uid=read_uid
-            )
-        except TypeError:
-            logger.error(
-                "impossible to read sequence for user {}".format(read_uid)
-            )
-            return
-
-        if read_uid.lower() == "jetppf":
-            logger.info(
-                "{} last public seq is {}\n".format(
-                    str(data.pulse), str(data.val_seq)
-                )
-            )
-            if "Automatic Corrections" in data.KG1_data.mode:
-                pass
-            else:
-                try:
-                    data.KG1_data.correctedby = data.KG1_data.mode.split(" ")[
-                        2
-                    ]
-                    logger.info(
-                        "{} corrected by {}\n \n".format(
-                            str(data.pulse), data.KG1_data.correctedby
-                        )
+    if read_uid.lower() == "jetppf":
+        logger.info(
+            "{} last public seq is {}\n".format(str(data.pulse), str(data.val_seq))
+        )
+        if "Automatic Corrections" in data.KG1_data.mode:
+            pass
+        else:
+            try:
+                data.KG1_data.correctedby = data.KG1_data.mode.split(" ")[2]
+                logger.info(
+                    "{} corrected by {}\n \n".format(
+                        str(data.pulse), data.KG1_data.correctedby
                     )
-                except IndexError:
-                    logger.error("error!")
+                )
+            except IndexError:
+                logger.error("error!")
+
+    else:
+        if "Automatic Corrections" in data.KG1_data.mode:
+            data.KG1_data.correctedby = data.KG1_data.mode
+            logger.info(
+                "{} last private seq is {} by {}\n".format(
+                    str(data.pulse), str(data.val_seq), data.KG1_data.correctedby,
+                )
+            )
+            logger.info("userid is {}".format(read_uid))
 
         else:
-            if "Automatic Corrections" in data.KG1_data.mode:
-                data.KG1_data.correctedby = data.KG1_data.mode
+            try:
+                data.KG1_data.correctedby = data.KG1_data.mode.split(" ")[2]
                 logger.info(
-                    "{} last private seq is {} by {}\n".format(
-                        str(data.pulse),
-                        str(data.val_seq),
-                        data.KG1_data.correctedby,
+                    "{} last seq is {} by {}\n".format(
+                        str(data.pulse), str(data.val_seq), data.KG1_data.correctedby,
                     )
                 )
-                logger.info("userid is {}".format(read_uid))
+            except IndexError:
+                logger.error("error!")
 
-            else:
-                try:
-                    data.KG1_data.correctedby = data.KG1_data.mode.split(" ")[
-                        2
-                    ]
-                    logger.info(
-                        "{} last seq is {} by {}\n".format(
-                            str(data.pulse),
-                            str(data.val_seq),
-                            data.KG1_data.correctedby,
-                        )
-                    )
-                except IndexError:
-                    logger.error("error!")
+    logger.info("\n \n  pulse has disrupted? {}\n \n".format(data.is_dis))
 
-        logger.info("\n \n  pulse has disrupted? {}\n \n".format(data.is_dis))
+    data.KG1_data_public = Kg1PPFData(data.constants, data.pulse, 0)
 
-        data.KG1_data_public = Kg1PPFData(data.constants, data.pulse, 0)
+    read_uid = read_uid
+    logging.info("\n reading public KG1V ppf")
+    success = data.KG1_data_public.read_data(data.pulse, read_uid="jetppf")
+    logger.log(5, "success reading KG1 data?".format(success))
 
-        read_uid = read_uid
-        logging.info("\n reading public KG1V ppf")
-        success = data.KG1_data_public.read_data(
-            data.pulse, read_uid="jetppf"
+    # read status flag from public ppf
+
+    data.SF_list_public = check_SF("jetppf", data.pulse, 0)
+    data.validated_public_channels = [
+        i + 1 for i, e in enumerate(data.SF_list_public) if e != 0
+    ]
+
+    # if any(data.SF_list_public) in [1, 2, 3]:
+    if bool(set(data.SF_list_public) & set([1, 2, 3])):
+        # if set(data.SF_list_public).intersection(set([1, 2, 3])) is True:
+        logger.warning(
+            "\n \n there is already a saved public PPF with validated channels! \n \n "
         )
-        logger.log(5, "success reading KG1 data?".format(success))
 
-        # read status flag from public ppf
+    # logger.info('unval_seq {}, val_seq {}'.format(str(data.unval_seq),str(data.val_seq)))
+    # save data to pickle into saved folder
+    save_to_pickle("saved")
+    # save data to pickle into scratch folder
+    save_to_pickle("scratch")
+    # save KG1 data on different file (needed later when applying corrections)
+    save_kg1("saved")
+    save_kg1("scratch")
+    data.saved = False
+    data.data_changed = np.full(8, False, dtype=bool)
+    data.statusflag_changed = np.full(8, False, dtype=bool)
+    # dump KG1 data on different file (used to autosave later when applying corrections)
+    dump_kg1
 
-        data.SF_list_public = check_SF("jetppf", data.pulse, 0)
-        data.validated_public_channels = [
-            i + 1 for i, e in enumerate(data.SF_list_public) if e != 0
-        ]
+    # if "Automatic Corrections" in data.KG1_data.mode:
+    #     data.KG1_data.correctedby = data.KG1_data.mode
+    #     logger.info('{} last seq is {} by {}'.format(str(data.pulse),
+    #                                                  str(data.val_seq),
+    #                                                  data.KG1_data.correctedby))
+    # else:
+    #     data.KG1_data.correctedby = \
+    #         data.KG1_data.mode.split(" ")[2]
+    #     logger.info('{} last validated seq is {} by {}'.format(
+    #         str(data.pulse),
+    #         str(data.val_seq), data.KG1_data.correctedby))
 
-        # if any(data.SF_list_public) in [1, 2, 3]:
-        if bool(set(data.SF_list_public) & set([1, 2, 3])):
-            # if set(data.SF_list_public).intersection(set([1, 2, 3])) is True:
-            logger.warning(
-                "\n \n there is already a saved public PPF with validated channels! \n \n "
-            )
+    # backup of channel data to single files
+    # density
+    for chan in data.KG1_data.density.keys():
+        vars()["den_chan" + str(chan)] = data.KG1_data.density[chan]
 
-        # logger.info('unval_seq {}, val_seq {}'.format(str(data.unval_seq),str(data.val_seq)))
-        # save data to pickle into saved folder
-        save_to_pickle("saved")
-        # save data to pickle into scratch folder
-        save_to_pickle("scratch")
-        # save KG1 data on different file (needed later when applying corrections)
-        save_kg1("saved")
-        save_kg1("scratch")
-        data.saved = False
-        data.data_changed = np.full(8, False, dtype=bool)
-        data.statusflag_changed = np.full(8, False, dtype=bool)
-        # dump KG1 data on different file (used to autosave later when applying corrections)
-        dump_kg1
+        with open("./saved/den_chan" + str(chan) + ".pkl", "wb") as f:
+            pickle.dump([vars()["den_chan" + str(chan)]], f)
+        f.close()
+    #     fj_fcn
+    for chan in data.KG1_data.fj_dcn.keys():
+        vars()["fj_dcn_chan" + str(chan)] = data.KG1_data.fj_dcn[chan]
 
-        # if "Automatic Corrections" in data.KG1_data.mode:
-        #     data.KG1_data.correctedby = data.KG1_data.mode
-        #     logger.info('{} last seq is {} by {}'.format(str(data.pulse),
-        #                                                  str(data.val_seq),
-        #                                                  data.KG1_data.correctedby))
-        # else:
-        #     data.KG1_data.correctedby = \
-        #         data.KG1_data.mode.split(" ")[2]
-        #     logger.info('{} last validated seq is {} by {}'.format(
-        #         str(data.pulse),
-        #         str(data.val_seq), data.KG1_data.correctedby))
+        with open("./saved/fj_dcn_chan" + str(chan) + ".pkl", "wb") as f:
+            pickle.dump([vars()["fj_dcn_chan" + str(chan)]], f)
+        f.close()
+    #     fj_met
+    for chan in data.KG1_data.fj_met.keys():
+        vars()["fj_met_chan" + str(chan)] = data.KG1_data.fj_met[chan]
 
+        with open("./saved/fj_met_chan" + str(chan) + ".pkl", "wb") as f:
+            pickle.dump([vars()["fj_met_chan" + str(chan)]], f)
+        f.close()
 
-        # backup of channel data to single files
-        # density
-        for chan in data.KG1_data.density.keys():
-            vars()["den_chan" + str(chan)] = data.KG1_data.density[chan]
+    #     vibration
+    for chan in sorted(data.KG1_data.vibration.keys()):
+        vars()["vib_chan" + str(chan)] = data.KG1_data.vibration[chan]
+        with open("./saved/vib_chan" + str(chan) + ".pkl", "wb") as f:
+            pickle.dump([vars()["vib_chan" + str(chan)]], f)
 
-            with open("./saved/den_chan" + str(chan) + ".pkl", "wb") as f:
-                pickle.dump([vars()["den_chan" + str(chan)]], f)
-            f.close()
-        #     fj_fcn
-        for chan in data.KG1_data.fj_dcn.keys():
-            vars()["fj_dcn_chan" + str(chan)] = data.KG1_data.fj_dcn[chan]
+        f.close()
 
-            with open("./saved/fj_dcn_chan" + str(chan) + ".pkl", "wb") as f:
-                pickle.dump([vars()["fj_dcn_chan" + str(chan)]], f)
-            f.close()
-        #     fj_met
-        for chan in data.KG1_data.fj_met.keys():
-            vars()["fj_met_chan" + str(chan)] = data.KG1_data.fj_met[chan]
-
-            with open("./saved/fj_met_chan" + str(chan) + ".pkl", "wb") as f:
-                pickle.dump([vars()["fj_met_chan" + str(chan)]], f)
-            f.close()
-
-        #     vibration
-        for chan in sorted(data.KG1_data.vibration.keys()):
-            vars()["vib_chan" + str(chan)] = data.KG1_data.vibration[chan]
-            with open("./saved/vib_chan" + str(chan) + ".pkl", "wb") as f:
-                pickle.dump([vars()["vib_chan" + str(chan)]], f)
-                
-            f.close()
-
-        return True
+    return True
 
 
-
-
-    # ------------------------
-def save_to_pickle( folder):
-        """
+# ------------------------
+def save_to_pickle(folder):
+    """
         saves to pickle experimental data
         :param folder: for now user can save either to saved or scratch folder
         :return:
         """
-        logger.info(" saving pulse data to {}\n".format(folder))
-        with open("./" + folder + "/data.pkl", "wb") as f:
-            pickle.dump(
-                [
-                    data.pulse,
-                    data.sequence,
-                    data.KG1_data,
-                    data.KG4_data,
-                    data.MAG_data,
-                    data.PELLETS_data,
-                    data.ELM_data,
-                    data.HRTS_data,
-                    data.NBI_data,
-                    data.is_dis,
-                    data.dis_time,
-                    data.LIDAR_data,
-                    data.zeroing_start,
-                    data.zeroing_stop,
-                    data.zeroed,
-                    data.zeroingbackup_den,
-                    data.zeroingbackup_vib,
-                    data.data_changed,
-                    data.statusflag_changed,
-                    data.validated_public_channels,
-                    data.SF_list_public,
-                ],
-                f,
-            )
-        f.close()
-        logger.info(" data saved to {}\n".format(folder))
+    logger.info(" saving pulse data to {}\n".format(folder))
+    with open("./" + folder + "/data.pkl", "wb") as f:
+        pickle.dump(
+            [
+                data.pulse,
+                data.sequence,
+                data.KG1_data,
+                data.KG4_data,
+                data.MAG_data,
+                data.PELLETS_data,
+                data.ELM_data,
+                data.HRTS_data,
+                data.NBI_data,
+                data.is_dis,
+                data.dis_time,
+                data.LIDAR_data,
+                data.zeroing_start,
+                data.zeroing_stop,
+                data.zeroed,
+                data.zeroingbackup_den,
+                data.zeroingbackup_vib,
+                data.data_changed,
+                data.statusflag_changed,
+                data.validated_public_channels,
+                data.SF_list_public,
+            ],
+            f,
+        )
+    f.close()
+    logger.info(" data saved to {}\n".format(folder))
 
-        pathlib.Path("./" + folder + os.sep+ str(data.pulse)).mkdir(parents=True,
-                                                     exist_ok=True)
-        with open("./" + folder + os.sep+ str(data.pulse)+"/data.pkl", "wb") as f:
-            pickle.dump(
-                [
-                    data.pulse,
-                    data.sequence,
-                    data.KG1_data,
-                    data.KG4_data,
-                    data.MAG_data,
-                    data.PELLETS_data,
-                    data.ELM_data,
-                    data.HRTS_data,
-                    data.NBI_data,
-                    data.is_dis,
-                    data.dis_time,
-                    data.LIDAR_data,
-                    data.zeroing_start,
-                    data.zeroing_stop,
-                    data.zeroed,
-                    data.zeroingbackup_den,
-                    data.zeroingbackup_vib,
-                    data.data_changed,
-                    data.statusflag_changed,
-                    data.validated_public_channels,
-                    data.SF_list_public,
-                ],
-                f,
-            )
-        f.close()
+    pathlib.Path("./" + folder + os.sep + str(data.pulse)).mkdir(
+        parents=True, exist_ok=True
+    )
+    with open("./" + folder + os.sep + str(data.pulse) + "/data.pkl", "wb") as f:
+        pickle.dump(
+            [
+                data.pulse,
+                data.sequence,
+                data.KG1_data,
+                data.KG4_data,
+                data.MAG_data,
+                data.PELLETS_data,
+                data.ELM_data,
+                data.HRTS_data,
+                data.NBI_data,
+                data.is_dis,
+                data.dis_time,
+                data.LIDAR_data,
+                data.zeroing_start,
+                data.zeroing_stop,
+                data.zeroed,
+                data.zeroingbackup_den,
+                data.zeroingbackup_vib,
+                data.data_changed,
+                data.statusflag_changed,
+                data.validated_public_channels,
+                data.SF_list_public,
+            ],
+            f,
+        )
+    f.close()
 
-    # ------------------------
-def save_kg1( folder):
-        """
+
+# ------------------------
+def save_kg1(folder):
+    """
         module that saves just kg1 data to folder
         :param folder:
         :return:
         """
 
-        logger.debug(" saving KG1 data to {}".format(folder))
-        try:
-            with open("./" + folder + "/kg1_data.pkl", "wb") as f:
-                pickle.dump(
-                    [
-                        data.KG1_data,
-                        data.SF_list,
-                        data.unval_seq,
-                        data.val_seq,
-                        data.read_uid,
-                        data.zeroing_start,
-                        data.zeroing_stop,
-                        data.zeroingbackup_den,
-                        data.zeroingbackup_vib,
-                        data.data_changed,
-                        data.statusflag_changed,
-                        data.validated_public_channels,
-                        data.SF_list_public,
-                    ],
-                    f,
-                )
-            f.close()
-            logger.info(" KG1 data saved to {}\n".format(folder))
-        except AttributeError:
-            logger.error("failed to save, check data!")
+    logger.debug(" saving KG1 data to {}".format(folder))
+    try:
+        with open("./" + folder + "/kg1_data.pkl", "wb") as f:
+            pickle.dump(
+                [
+                    data.KG1_data,
+                    data.SF_list,
+                    data.unval_seq,
+                    data.val_seq,
+                    data.read_uid,
+                    data.zeroing_start,
+                    data.zeroing_stop,
+                    data.zeroingbackup_den,
+                    data.zeroingbackup_vib,
+                    data.data_changed,
+                    data.statusflag_changed,
+                    data.validated_public_channels,
+                    data.SF_list_public,
+                ],
+                f,
+            )
+        f.close()
+        logger.info(" KG1 data saved to {}\n".format(folder))
+    except AttributeError:
+        logger.error("failed to save, check data!")
 
-        pathlib.Path(
-            "./" + folder + os.sep + str(data.pulse) ).mkdir(
-            parents=True,
-            exist_ok=True)
+    pathlib.Path("./" + folder + os.sep + str(data.pulse)).mkdir(
+        parents=True, exist_ok=True
+    )
 
-        try:
-            with open("./" + folder + os.sep + str(data.pulse) + "/kg1_data.pkl", "wb") as f:
-                pickle.dump(
-                    [
-                        data.KG1_data,
-                        data.SF_list,
-                        data.unval_seq,
-                        data.val_seq,
-                        data.read_uid,
-                        data.zeroing_start,
-                        data.zeroing_stop,
-                        data.zeroingbackup_den,
-                        data.zeroingbackup_vib,
-                        data.data_changed,
-                        data.statusflag_changed,
-                        data.validated_public_channels,
-                        data.SF_list_public,
-                    ],
-                    f,
-                )
-            f.close()
-            logger.info(" KG1 data saved to {}\n".format(folder))
-        except AttributeError:
-            logger.error("failed to save, check data!")
+    try:
+        with open(
+            "./" + folder + os.sep + str(data.pulse) + "/kg1_data.pkl", "wb"
+        ) as f:
+            pickle.dump(
+                [
+                    data.KG1_data,
+                    data.SF_list,
+                    data.unval_seq,
+                    data.val_seq,
+                    data.read_uid,
+                    data.zeroing_start,
+                    data.zeroing_stop,
+                    data.zeroingbackup_den,
+                    data.zeroingbackup_vib,
+                    data.data_changed,
+                    data.statusflag_changed,
+                    data.validated_public_channels,
+                    data.SF_list_public,
+                ],
+                f,
+            )
+        f.close()
+        logger.info(" KG1 data saved to {}\n".format(folder))
+    except AttributeError:
+        logger.error("failed to save, check data!")
 
-    # ---------------------------------
+
+# ---------------------------------
+
 
 def dump_kg1():
     """
@@ -625,6 +604,7 @@ def dump_kg1():
 
     # ----------------------------
 
+
 if __name__ == "__main__":
     debug_map = {
         0: logging.INFO,
@@ -637,27 +617,64 @@ if __name__ == "__main__":
     logging.addLevelName(5, "DEBUG_PLUS")
     logger = logging.getLogger(__name__)
     logging.basicConfig(level=debug_map[0])
-    pulselist = [97094,
-    97095,
-    97096,
-    97035,
-    97037,
-    97038,
-    97120,
-    97121,
-    97122,
-    97123,
-    97124,
-    97125,
-    97126,
-    97128,
-    97129,
-    97130,
-    97131,
-    97133,
-    97134]
-
+    # pulselist = [97094,
+    # 97095,
+    # 97096,
+    # 97035,
+    # 97037,
+    # 97038,
+    # 97120,
+    # 97121,
+    # 97122,
+    # 97123,
+    # 97124,
+    # 97125,
+    # 97126,
+    # 97128,
+    # 97129,
+    # 97130,
+    # 97131,
+    # 97133,
+    # 97134]
+    pulselist = [
+        96931,
+        96536,
+        96924,
+        96925,
+        96926,
+        96927,
+        96928,
+        96289,
+        96290,
+        96291,
+        96292,
+        96293,
+        96294,
+        96295,
+        96424,
+        96296,
+        96298,
+        96297,
+        96940,
+        96301,
+        96942,
+        96943,
+        96724,
+        96729,
+        96730,
+        96731,
+        96994,
+        96482,
+        96996,
+        96998,
+        96745,
+        96749,
+        97134,
+        97133,
+        96499,
+        96929,
+        96892,
+        96893,
+    ]
     for pulse in pulselist:
-        readdata(pulse,'bviola')
-
-    
+        readdata(pulse, "bviola")
