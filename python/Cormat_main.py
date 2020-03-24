@@ -191,8 +191,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                         try:
                             if os.path.isfile(file_path):
                                 os.unlink(file_path)
-                            elif os.path.isdir(file_path):
-                                shutil.rmtree(file_path)
+                            # elif os.path.isdir(file_path):
+                            #     shutil.rmtree(file_path)
                         except Exception as e:
                             logger.error(
                                 "error while deleting file(s) \n {} \n".format(e)
