@@ -532,8 +532,8 @@ def delete_files_in_folder(folder):
         for root, dirs, files in os.walk(folder):
             for f in files:
                 os.unlink(os.path.join(root, f))
-                for d in dirs:
-                    shutil.rmtree(os.path.join(root, d))
+                # for d in dirs:
+                #     shutil.rmtree(os.path.join(root, d))
         return True
     except:
         return False
