@@ -1748,6 +1748,38 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         # if workspace is saved then delete data point collected (so no need to undo)
         self.setcoord(reset=True, chan="all")
 
+        pathlib.Path("./scratch" + os.sep+ str(self.data.pulse)).mkdir(parents=True,
+                                                     exist_ok=True)
+        with open("./scratch" + os.sep+ str(self.data.pulse)+"/data.pkl", "wb") as f:
+            pickle.dump(
+                [
+                    self.data.pulse,
+                    self.data.sequence,
+                    self.data.KG1_data,
+                    self.data.KG4_data,
+                    self.data.MAG_data,
+                    self.data.PELLETS_data,
+                    self.data.ELM_data,
+                    self.data.HRTS_data,
+                    self.data.NBI_data,
+                    self.data.is_dis,
+                    self.data.dis_time,
+                    self.data.LIDAR_data,
+                    self.data.zeroing_start,
+                    self.data.zeroing_stop,
+                    self.data.zeroed,
+                    self.data.zeroingbackup_den,
+                    self.data.zeroingbackup_vib,
+                    self.data.data_changed,
+                    self.data.statusflag_changed,
+                    self.data.validated_public_channels,
+                    self.data.SF_list_public,
+                ],
+                f,
+            )
+        f.close()
+
+
     # ----------------------------
 
     @QtCore.pyqtSlot()
@@ -2280,6 +2312,9 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             )
 
             vars()[ax_name].legend()
+            vars()[ax_name].set_xlabel('t[s]')
+            vars()[ax_name].set_ylabel('$m^{-2}$')
+
 
             ax_all.plot(
                 self.data.KG1_data.density[chan].time,
@@ -2289,6 +2324,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 linestyle="None",
             )
             ax_all.legend()
+            vars()[ax_name].set_xlabel('t[s]')
+            vars()[ax_name].set_ylabel('$m^{-2}$')
             if chan < 5:
                 # if self.data.SF_list[chan - 1] <4:
                 ax_14.plot(
@@ -2299,6 +2336,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 ax_14.legend()
+                ax_14.set_xlabel('t[s]')
+                ax_14.set_ylabel('$m^{-2}$')
 
             if chan > 4:
                 # if self.data.SF_list[chan - 1] <4:
@@ -2310,6 +2349,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 ax_58.legend()
+                ax_58.set_xlabel('t[s]')
+                ax_58.set_ylabel('$m^{-2}$')
 
             if chan > 4:
                 name1 = "MIR" + str(chan)
@@ -2334,6 +2375,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 vars()[ax_name1].legend()
+                vars()[ax_name].set_xlabel('t[s]')
+                vars()[ax_name].set_ylabel('$m^{-2}$')
 
                 ax_mir.plot(
                     self.data.KG1_data.vibration[chan].time,
@@ -2343,6 +2386,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 ax_mir.legend()
+                vars()[ax_name].set_xlabel('t[s]')
+                vars()[ax_name].set_ylabel('$m^{-2}$')
                 # draw_widget(chan)
 
         for chan in self.data.KG1_data.fj_dcn.keys():
@@ -2764,6 +2809,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 linestyle="None",
             )
             vars()[ax_name].legend()
+            vars()[ax_name].set_xlabel('t[s]')
+            vars()[ax_name].set_ylabel('$m^{-2}$')
             # self.widget_LID1.draw()
 
             if chan > 4:
@@ -2787,6 +2834,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 vars()[ax_name1].legend()
+                vars()[ax_name].set_xlabel('t[s]')
+                vars()[ax_name].set_ylabel('$m^{-2}$')
 
         # for chan in self.data.KG1_data.fj_dcn.keys():
         #     if chan >9:
@@ -2885,6 +2934,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                     color="orange",
                                 )
                                 vars()[ax_name].legend()
+                                vars()[ax_name].set_xlabel('t[s]')
+                                vars()[ax_name].set_ylabel('$m^{-2}$')
                             except:
                                 logger.error(
                                     "is not possible to plot HRTS for channel {}".format(
@@ -2933,6 +2984,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                 color="green",
                             )
                             vars()[ax_name].legend()
+                            vars()[ax_name].set_xlabel('t[s]')
+                            vars()[ax_name].set_ylabel('$m^{-2}$')
 
             else:
                 logging.warning("no {} data".format(self.data.s2ndtrace))
@@ -2975,6 +3028,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                 color="red",
                             )
                             vars()[ax_name].legend()
+                            vars()[ax_name].set_xlabel('t[s]')
+                            vars()[ax_name].set_ylabel('$m^{-2}$')
 
             else:
                 logging.warning("no {} data".format(self.data.s2ndtrace))
@@ -3017,6 +3072,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                 color="black",
                             )
                             vars()[ax_name].legend()
+                            vars()[ax_name].set_xlabel('t[s]')
+                            vars()[ax_name].set_ylabel('$m^{-2}$')
 
             else:
                 logging.warning("no {} data".format(self.data.s2ndtrace))
@@ -3060,6 +3117,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                 color="purple",
                             )
                             vars()[ax_name].legend()
+                            vars()[ax_name].set_xlabel('t[s]')
+                            vars()[ax_name].set_ylabel('$m^{-2}$')
 
             else:
                 logging.warning("no {} data".format(self.data.s2ndtrace))
@@ -3102,6 +3161,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                 color="brown",
                             )
                             vars()[ax_name].legend()
+                            vars()[ax_name].set_xlabel('t[s]')
+                            vars()[ax_name].set_ylabel('$m^{-2}$')
 
         elif self.data.s2ndtrace[0:3] == "LID":
             chan = int(self.data.s2ndtrace[-1])
@@ -3145,6 +3206,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                     color="cyan",
                                 )
                                 vars()[ax_name].legend()
+                                vars()[ax_name].set_xlabel('t[s]')
+                                vars()[ax_name].set_ylabel('$m^{-2}$')
                             except:
                                 logger.error(
                                     "is not possible to plot HRTS for channel {}".format(
@@ -3497,6 +3560,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 linestyle="None",
             )
             vars()[ax_name].legend()
+            vars()[ax_name].set_xlabel('t[s]')
+            vars()[ax_name].set_ylabel('$m^{-2}$')
             self.widget_LID1.draw()
 
             if chan > 4:
@@ -3522,6 +3587,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 vars()[ax_name1].legend()
+                vars()[ax_name].set_xlabel('t[s]')
+                vars()[ax_name].set_ylabel('$m^{-2}$')
 
                 # ax_mir.plot(self.data.KG1_data.vibration[chan].time,
                 #             self.data.KG1_data.vibration[chan].data * 1e6,
