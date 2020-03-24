@@ -125,7 +125,8 @@ if 'ppf' not in sys.modules:
     logging.warning('failed to load ppf')
     logging.warning('you are offline!')
     offline = True
-
+else:
+    offline = False
 
 # noinspection PyUnusedLocal
 class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
