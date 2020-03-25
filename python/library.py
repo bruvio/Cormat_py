@@ -527,16 +527,27 @@ def copy_changed_kg1_to_save(src, dst, filename):
 # -----------------------
 
 
-def delete_files_in_folder(folder):
-    try:
-        for root, dirs, files in os.walk(folder):
-            for f in files:
-                os.unlink(os.path.join(root, f))
-                # for d in dirs:
-                #     shutil.rmtree(os.path.join(root, d))
-        return True
-    except:
-        return False
+# def delete_files_in_folder(folder):
+#     try:
+#         for root, dirs, files in os.walk(folder):
+#             for f in files:
+#                 os.unlink(os.path.join(root, f))
+#                 # for d in dirs:
+#                 #     shutil.rmtree(os.path.join(root, d))
+#         return True
+#     except:
+#         return False
+
+def delete_files_in_folder(path):
+    """ param <path> could either be relative or absolute. """
+        try:
+            os.remove(path+os.sep+'kg1_data.pkl')  # remove the file
+        except:
+            raise ValueError("file {} is not a file or dir.".format(path+os.sep+'kg1_data.pkl'))
+        try:    
+            os.remove(path+os.sep+'data.pkl')  # remove the file
+        except:
+            raise ValueError("file {} is not a file or dir.".format(path+os.sep+'data.pkl'))
 
 
 # Declare and register callbacks
