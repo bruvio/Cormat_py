@@ -540,14 +540,11 @@ def copy_changed_kg1_to_save(src, dst, filename):
 
 def delete_files_in_folder(path):
     """ param <path> could either be relative or absolute. """
-        try:
-            os.remove(path+os.sep+'kg1_data.pkl')  # remove the file
-        except:
-            raise ValueError("file {} is not a file or dir.".format(path+os.sep+'kg1_data.pkl'))
-        try:    
-            os.remove(path+os.sep+'data.pkl')  # remove the file
-        except:
-            raise ValueError("file {} is not a file or dir.".format(path+os.sep+'data.pkl'))
+    if os.path.isfile("./"+path+"/kg1_data.pkl"):
+        os.remove(path+os.sep+'kg1_data.pkl')  # remove the file
+    if os.path.isfile("./"+path+"/data.pkl"):
+        os.remove(path+os.sep+'data.pkl')  # remove the file
+
 
 
 # Declare and register callbacks

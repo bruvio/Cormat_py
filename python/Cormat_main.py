@@ -186,11 +186,9 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             if args.erase_data.lower() == "yes":
                 folders = ["scratch", "saved"]
                 for folder in folders:
-                    for the_file in os.listdir(folder):
-                        file_path = os.path.join(folder, the_file)
                         try:
-                            if os.path.isfile(file_path):
-                                os.unlink(file_path)
+                            os.unlink(folder+os.sep+'data.pkl')
+                            os.unlink(folder+os.sep+'kg1_data.pkl')
                             # elif os.path.isdir(file_path):
                             #     shutil.rmtree(file_path)
                         except Exception as e:
@@ -4417,7 +4415,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                         unitt="SEC",
                         itref=itref_kg1v,
                         nt=len(self.data.KG1_data.vibration[chan].time),
-                        status=self.data.KG1_data.status[chan - 1],
+                        status=self.data.KG1_data.status[chan],
                     )
                     if write_err != 0:
                         logger.error(
@@ -4441,7 +4439,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                         unitt="SEC",
                         itref=itref_kg1v,
                         nt=len(self.data.KG1_data.jxb[chan].time),
-                        status=self.data.KG1_data.status[chan - 1],
+                        status=self.data.KG1_data.status[chan],
                     )
 
                     if write_err != 0:
@@ -4653,8 +4651,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
         self.save_kg1("saved")
         logger.log(5, " deleting scratch folder")
-        delete_files_in_folder("./scratch")
-        delete_files_in_folder("./saved")
+        delete_files_in_folder("scratch")
+        delete_files_in_folder("saved")
         logger.log(
             5,
             " {} - saved is {} - data changed is {} - status flags changed is {}".format(
