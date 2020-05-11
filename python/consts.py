@@ -175,6 +175,7 @@ class Consts:
         self.kg1r_ppf_bp_met = self._get_node_channumber_dict(config, "kg1r_ppf_bp_met")
         self.kg1r_ppf_jxb = self._get_node_channumber_dict(config, "kg1r_ppf_jxb")
         self.kg1r_ppf_type = self._get_node_channumber_dict(config, "kg1r_ppf_type")
+        self.kg1v_los_len = self._get_node_channumber_dict(config, "kg1v_los_len")
 
         # JPF or PPF nodes not stored by channel number
         self.magnetics = {"ip": config["magnetics"]["ip"]}

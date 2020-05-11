@@ -676,6 +676,8 @@ if __name__ == "__main__":
     #     96892,
     #     96893,
     # ]
-    pulselist = [97133,97134]
+    # pulselist = [97133,97134]
+    # pulselist = [96783]
+    pulselist = [97099, 97100, 97102, 96783]
     for pulse in pulselist:
         readdata(pulse, "bviola")

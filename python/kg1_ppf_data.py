@@ -73,6 +73,7 @@ class Kg1PPFData(SignalBase):
         self.fj_dcn = {}
         self.fj_met = {}
         self.jxb = {}
+        self.los_len = {}
 
         # Time dependent status flags
         self.status = {}
@@ -221,6 +222,19 @@ class Kg1PPFData(SignalBase):
 
             if jxb.data is not None:
                 self.jxb[chan] = jxb
+
+        for chan in self.constants.kg1v_los_len.keys():
+            nodename = self.constants.kg1v_los_len[chan]
+            los_len = SignalBase(self.constants)
+            dda = nodename[: nodename.find("/")]
+            dtype = nodename[nodename.find("/") + 1 :]
+            status = los_len.read_data_ppf(
+                dda, dtype, shot_no, read_bad=True, read_uid=read_uid, seq=self.sequence
+            )
+
+            if los_len.data is not None:
+                self.los_len[chan] = los_len
+
 
         for chan in self.constants.kg1r_ppf_type.keys():
             nodename = self.constants.kg1r_ppf_type[chan]
