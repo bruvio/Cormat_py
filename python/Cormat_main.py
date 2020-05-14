@@ -4309,23 +4309,23 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 nt=1,
                 status=None,
             )
-
-            dtype_len = "LEN{}".format(chan)
-            comment = "LOS length ch {}".format(chan)
-            write_err, itref_written = write_ppf(
-                self.data.pulse,
-                dda,
-                dtype_len,
-                self.data.KG1_data.los_len[chan].data,
-                time=self.data.KG1_data.los_len[chan].time,
-                comment=comment,
-                unitd="M",
-                unitt="SEC",
-                itref=itref_kg1v,
-                nt=len(self.data.KG1_data.los_len[chan].time),
-                status=self.data.KG1_data.status[chan],
-                global_status=None,
-            )
+            if chan in self.data.KG1_data.los_len.keys():
+                dtype_len = "LEN{}".format(chan)
+                comment = "LOS length ch {}".format(chan)
+                write_err, itref_written = write_ppf(
+                    self.data.pulse,
+                    dda,
+                    dtype_len,
+                    self.data.KG1_data.los_len[chan].data,
+                    time=self.data.KG1_data.los_len[chan].time,
+                    comment=comment,
+                    unitd="M",
+                    unitt="SEC",
+                    itref=itref_kg1v,
+                    nt=len(self.data.KG1_data.los_len[chan].time),
+                    status=self.data.KG1_data.status[chan],
+                    global_status=None,
+                )
 
             if write_err != 0:
                 logger.error(
