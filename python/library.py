@@ -544,6 +544,35 @@ def delete_files_in_folder(path):
         os.remove(path+os.sep+'kg1_data.pkl')  # remove the file
     if os.path.isfile("./"+path+"/data.pkl"):
         os.remove(path+os.sep+'data.pkl')  # remove the file
+    for channel in range(1,13):
+        if os.path.isfile("./"+path+"/vib_chan"
+                            + str(channel)
+                            + ".pkl"):
+            os.remove(path+os.sep+'vib_chan'
+                            + str(channel)
+                            + ".pkl") # remove the file
+        if os.path.isfile("./"+path+"/den_chan"
+                            + str(channel)
+                            + ".pkl"):
+            os.remove(path+os.sep+'den_chan'
+                            + str(channel)
+                            + ".pkl") # remove the file
+        if os.path.isfile("./"+path+"/fj_dcn_chan"
+                            + str(channel)
+                            + ".pkl"):
+            os.remove(path+os.sep+'fj_dcn_chan'
+                            + str(channel)
+                            + ".pkl")  # remove the file
+        if os.path.isfile("./"+path+"/fj_met_chan"
+                            + str(channel)
+                            + ".pkl"):
+            os.remove(path+os.sep+'fj_met_chan'
+                            + str(channel)
+                            + ".pkl")  # remove the file
+
+
+
+
 
 
 

@@ -1627,37 +1627,37 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             )
         f.close()
         logger.info(" data saved to {}\n".format(folder))
-
-        pathlib.Path("./" + folder + os.sep+ str(self.data.pulse)).mkdir(parents=True,
-                                                     exist_ok=True)
-        with open("./" + folder + os.sep+ str(self.data.pulse)+"/data.pkl", "wb") as f:
-            pickle.dump(
-                [
-                    self.data.pulse,
-                    self.data.sequence,
-                    self.data.KG1_data,
-                    self.data.KG4_data,
-                    self.data.MAG_data,
-                    self.data.PELLETS_data,
-                    self.data.ELM_data,
-                    self.data.HRTS_data,
-                    self.data.NBI_data,
-                    self.data.is_dis,
-                    self.data.dis_time,
-                    self.data.LIDAR_data,
-                    self.data.zeroing_start,
-                    self.data.zeroing_stop,
-                    self.data.zeroed,
-                    self.data.zeroingbackup_den,
-                    self.data.zeroingbackup_vib,
-                    self.data.data_changed,
-                    self.data.statusflag_changed,
-                    self.data.validated_public_channels,
-                    self.data.SF_list_public,
-                ],
-                f,
-            )
-        f.close()
+        if folder == 'saved':
+            pathlib.Path("./" + folder + os.sep+ str(self.data.pulse)).mkdir(parents=True,
+                                                         exist_ok=True)
+            with open("./" + folder + os.sep+ str(self.data.pulse)+"/data.pkl", "wb") as f:
+                pickle.dump(
+                    [
+                        self.data.pulse,
+                        self.data.sequence,
+                        self.data.KG1_data,
+                        self.data.KG4_data,
+                        self.data.MAG_data,
+                        self.data.PELLETS_data,
+                        self.data.ELM_data,
+                        self.data.HRTS_data,
+                        self.data.NBI_data,
+                        self.data.is_dis,
+                        self.data.dis_time,
+                        self.data.LIDAR_data,
+                        self.data.zeroing_start,
+                        self.data.zeroing_stop,
+                        self.data.zeroed,
+                        self.data.zeroingbackup_den,
+                        self.data.zeroingbackup_vib,
+                        self.data.data_changed,
+                        self.data.statusflag_changed,
+                        self.data.validated_public_channels,
+                        self.data.SF_list_public,
+                    ],
+                    f,
+                )
+            f.close()
 
 
     # ------------------------
@@ -1693,36 +1693,36 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             logger.info(" KG1 data saved to {}\n".format(folder))
         except AttributeError:
             logger.error("failed to save, check data!")
+        if folder == 'saved':
+            pathlib.Path(
+                "./" + folder + os.sep + str(self.data.pulse) ).mkdir(
+                parents=True,
+                exist_ok=True)
 
-        pathlib.Path(
-            "./" + folder + os.sep + str(self.data.pulse) ).mkdir(
-            parents=True,
-            exist_ok=True)
-
-        try:
-            with open("./" + folder + os.sep + str(self.data.pulse) + "/kg1_data.pkl", "wb") as f:
-                pickle.dump(
-                    [
-                        self.data.KG1_data,
-                        self.data.SF_list,
-                        self.data.unval_seq,
-                        self.data.val_seq,
-                        self.read_uid,
-                        self.data.zeroing_start,
-                        self.data.zeroing_stop,
-                        self.data.zeroingbackup_den,
-                        self.data.zeroingbackup_vib,
-                        self.data.data_changed,
-                        self.data.statusflag_changed,
-                        self.data.validated_public_channels,
-                        self.data.SF_list_public,
-                    ],
-                    f,
-                )
-            f.close()
-            logger.info(" KG1 data saved to {}\n".format(folder))
-        except AttributeError:
-            logger.error("failed to save, check data!")
+            try:
+                with open("./" + folder + os.sep + str(self.data.pulse) + "/kg1_data.pkl", "wb") as f:
+                    pickle.dump(
+                        [
+                            self.data.KG1_data,
+                            self.data.SF_list,
+                            self.data.unval_seq,
+                            self.data.val_seq,
+                            self.read_uid,
+                            self.data.zeroing_start,
+                            self.data.zeroing_stop,
+                            self.data.zeroingbackup_den,
+                            self.data.zeroingbackup_vib,
+                            self.data.data_changed,
+                            self.data.statusflag_changed,
+                            self.data.validated_public_channels,
+                            self.data.SF_list_public,
+                        ],
+                        f,
+                    )
+                f.close()
+                logger.info(" KG1 data saved to {}\n".format(folder))
+            except AttributeError:
+                logger.error("failed to save, check data!")
 
     # ---------------------------------
     @QtCore.pyqtSlot()
@@ -1746,9 +1746,9 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         # if workspace is saved then delete data point collected (so no need to undo)
         self.setcoord(reset=True, chan="all")
 
-        pathlib.Path("./scratch" + os.sep+ str(self.data.pulse)).mkdir(parents=True,
+        pathlib.Path("./saved" + os.sep+ str(self.data.pulse)).mkdir(parents=True,
                                                      exist_ok=True)
-        with open("./scratch" + os.sep+ str(self.data.pulse)+"/data.pkl", "wb") as f:
+        with open("./saved" + os.sep+ str(self.data.pulse)+"/data.pkl", "wb") as f:
             pickle.dump(
                 [
                     self.data.pulse,
