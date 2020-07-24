@@ -37,7 +37,7 @@ def upload_to_dropbox(pulselist):
         dbx.users_get_current_account()
         for root, dirs, files in os.walk(folder):
             for folders in dirs:
-                if folders in pulselist:
+                if int(folders) in pulselist:
                     for dd,aa,files in os.walk(folder+os.sep+folders):
                         for file in files:
                             full_file_name = os.path.join(folder, folders,file)
@@ -58,3 +58,5 @@ def upload_to_dropbox(pulselist):
                                 # print(dl_url)
 
 
+if __name__ == "__main__":
+    upload_to_dropbox([97482])
