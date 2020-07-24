@@ -679,3 +679,4 @@ if __name__ == "__main__":
     pulselist = [97133,97134]
     for pulse in pulselist:
         readdata(pulse, "bviola")
+    upload_to_dropbox(pulselist)
