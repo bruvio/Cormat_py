@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 import sys
 import os
 from importlib import import_module
-
+from save_2_dropbox import *
 
 libnames = ["ppf"]
 relative_imports = []
@@ -676,7 +676,20 @@ if __name__ == "__main__":
     #     96892,
     #     96893,
     # ]
-    pulselist = [97133,97134]
+    # pulselist = [97133,97134]
+    pulselist = [97514,
+97515,
+97516,
+97517,
+97518,
+97521,
+97522,
+97523,
+97524,
+97525,
+97527,
+97528,
+97529]
     for pulse in pulselist:
         readdata(pulse, "bviola")
     upload_to_dropbox(pulselist)
