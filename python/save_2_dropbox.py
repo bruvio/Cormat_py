@@ -55,11 +55,13 @@ def upload_to_dropbox(pulselist,inputfolder):
         #                         # link which directly downloads by replacing ?dl=0 with ?dl=1
         #                         dl_url = re.sub(r"\?dl\=0", "?dl=1", url)
         #                         print(dl_url)
+
         fullfilename = pathlib.Path('./pulselist.txt')
-        targetfile = os.sep +  'pulselist.txt'
-        with fullfilename.open("rb") as f:
-            meta = dbx.files_upload(f.read(), targetfile,
-                                mode=dropbox.files.WriteMode("overwrite"))
+        if os.path.isfile(fullfilename):
+            targetfile = os.sep +  'pulselist.txt'
+            with fullfilename.open("rb") as f:
+                meta = dbx.files_upload(f.read(), targetfile,
+                                    mode=dropbox.files.WriteMode("overwrite"))
 
 def download_from_dropbox(pulselist,folder):
     APP_KEY = "b5tkict7tmtq7ig"
