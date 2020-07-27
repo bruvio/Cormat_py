@@ -10,11 +10,11 @@ import six
 This example walks through a basic oauth flow using the existing long-lived token type
 Populate your app key and app secret in order to run this locally
 '''
-def upload_to_dropbox(pulselist):
+def upload_to_dropbox(pulselist,inputfolder):
     APP_KEY = "b5tkict7tmtq7ig"
     APP_SECRET = "baaiqhm6bcjskn7"
     # the source folder
-    folder = os.getcwd()+"/saved"    # located in this folder
+    folder = os.getcwd()+"/"+inputfolder    # located in this folder
 
 
 
@@ -36,15 +36,16 @@ def upload_to_dropbox(pulselist):
         dbx.users_get_current_account()
         for root, dirs, files in os.walk(folder):
             for folders in dirs:
-                if int(folders) in pulselist:
-                    for dd,aa,files in os.walk(folder+os.sep+folders):
-                        for file in files:
-                            full_file_name = os.path.join(folder, folders,file)
-                            fullfilename = pathlib.Path(full_file_name)
-                            targetfile = os.sep+folders+os.sep+file
-                            print('uploading {}\n'.format(targetfile))
-                            with fullfilename.open("rb") as f:
-                                meta = dbx.files_upload(f.read(), targetfile, mode=dropbox.files.WriteMode("overwrite"))
+                if folders.isdigit():
+                    if int(folders) in pulselist:
+                        for dd,aa,files in os.walk(folder+os.sep+folders):
+                            for file in files:
+                                full_file_name = os.path.join(folder, folders,file)
+                                fullfilename = pathlib.Path(full_file_name)
+                                targetfile = os.sep+folders+os.sep+file
+                                print('uploading {}\n'.format(targetfile))
+                                with fullfilename.open("rb") as f:
+                                    meta = dbx.files_upload(f.read(), targetfile, mode=dropbox.files.WriteMode("overwrite"))
         #                         # create a shared link
         #                         link = dbx.sharing_create_shared_link(targetfile)
         #
@@ -63,9 +64,6 @@ def upload_to_dropbox(pulselist):
 def download_from_dropbox(pulselist,folder):
     APP_KEY = "b5tkict7tmtq7ig"
     APP_SECRET = "baaiqhm6bcjskn7"
-    # the source folder
-    # folder = os.getcwd()+os.sep+folder    # located in this folder
-
 
 
     auth_flow = DropboxOAuth2FlowNoRedirect(APP_KEY, APP_SECRET)
@@ -101,5 +99,19 @@ def download_from_dropbox(pulselist,folder):
 
 
 if __name__ == "__main__":
+    pulselist =[97514,
+97515,
+97516,
+97517,
+97518,
+97521,
+97522,
+97523,
+97524,
+97525,
+97527,
+97528,
+97529]
+    upload_to_dropbox(pulselist,'scratch')
     # download_from_dropbox([97133],'saved')
-    download_from_dropbox([97133],'scratch')
+    # download_from_dropbox([97133],'scratch')
