@@ -4,7 +4,7 @@ from dropbox import DropboxOAuth2FlowNoRedirect
 import pathlib
 import re
 import os
-
+import six
 
 '''
 This example walks through a basic oauth flow using the existing long-lived token type
@@ -14,7 +14,7 @@ def upload_to_dropbox(pulselist):
     APP_KEY = "b5tkict7tmtq7ig"
     APP_SECRET = "baaiqhm6bcjskn7"
     # the source folder
-    folder = os.getcwd()+"/scratch"    # located in this folder
+    folder = os.getcwd()+"/saved"    # located in this folder
 
 
 

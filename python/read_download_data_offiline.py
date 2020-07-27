@@ -697,3 +697,4 @@ if __name__ == "__main__":
         for item in pulselist:
             f.write("%s\n" % item)
 
+    download_from_dropbox(pulselist, 'scratch')
