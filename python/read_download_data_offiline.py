@@ -693,3 +693,7 @@ if __name__ == "__main__":
     for pulse in pulselist:
         readdata(pulse, "bviola")
     upload_to_dropbox(pulselist)
+    with open('pulselist.txt', 'w+') as f:
+        for item in pulselist:
+            f.write("%s\n" % item)
+

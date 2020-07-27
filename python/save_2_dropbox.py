@@ -45,18 +45,20 @@ def upload_to_dropbox(pulselist):
                             print('uploading {}\n'.format(targetfile))
                             with fullfilename.open("rb") as f:
                                 meta = dbx.files_upload(f.read(), targetfile, mode=dropbox.files.WriteMode("overwrite"))
-                                # create a shared link
-                                link = dbx.sharing_create_shared_link(targetfile)
-
-                                # url which can be shared
-                                url = link.url
-
-                                # link which directly downloads by replacing ?dl=0 with ?dl=1
-                                dl_url = re.sub(r"\?dl\=0", "?dl=1", url)
-                                print(dl_url)
-        with open('pulselist.txt','w'):
-            for item in pulselist:
-                f.write("%s\n" % item)
+        #                         # create a shared link
+        #                         link = dbx.sharing_create_shared_link(targetfile)
+        #
+        #                         # url which can be shared
+        #                         url = link.url
+        #
+        #                         # link which directly downloads by replacing ?dl=0 with ?dl=1
+        #                         dl_url = re.sub(r"\?dl\=0", "?dl=1", url)
+        #                         print(dl_url)
+        fullfilename = pathlib.Path('./pulselist.txt')
+        targetfile = os.sep +  'pulselist.txt'
+        with fullfilename.open("rb") as f:
+            meta = dbx.files_upload(f.read(), targetfile,
+                                mode=dropbox.files.WriteMode("overwrite"))
 
 
 if __name__ == "__main__":
