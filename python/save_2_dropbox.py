@@ -95,7 +95,7 @@ def download_from_dropbox(pulselist,folder):
                     entries = dbx.files_list_folder(path=response.entries[ii].path_lower)
                     # md, res = dbx.files_download_to_file(folder+os.sep+str(response.entries[ii].name),response.entries[ii].path_lower)
                     for entry in entries.entries:
-
+                        print('downloading {}\n'.format(str(response.entries[ii].name+os.sep+entry.name)))
                         dbx.files_download_to_file(path=entry.path_lower,download_path=os.getcwd()+os.sep+folder+os.sep+str(response.entries[ii].name+os.sep+entry.name))
 
 
@@ -112,8 +112,7 @@ if __name__ == "__main__":
 97524,
 97525,
 97527,
-97528,
-97529]
-    upload_to_dropbox(pulselist,'scratch')
-    # download_from_dropbox([97133],'saved')
+97528]
+    # upload_to_dropbox(pulselist,'scratch')
+    download_from_dropbox(pulselist,'scratch')
     # download_from_dropbox([97133],'scratch')
