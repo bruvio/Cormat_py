@@ -14,7 +14,7 @@ def upload_to_dropbox(pulselist):
     APP_KEY = "b5tkict7tmtq7ig"
     APP_SECRET = "baaiqhm6bcjskn7"
     # the source folder
-    folder = os.getcwd()+"/scratch"    # located in this folder
+    folder = os.getcwd()+"/saved"    # located in this folder
 
 
 
@@ -34,7 +34,7 @@ def upload_to_dropbox(pulselist):
 
     with dropbox.Dropbox(oauth2_access_token=oauth_result.access_token) as dbx:
         dbx.users_get_current_account()
-        for root, dirs, files in os.walk(folder):
+        for root, dirs, files in os.walk(os.sep+'s'):
             for folders in dirs:
                 if int(folders) in pulselist:
                     for dd,aa,files in os.walk(folder+os.sep+folders):
@@ -54,10 +54,7 @@ def upload_to_dropbox(pulselist):
                                 # link which directly downloads by replacing ?dl=0 with ?dl=1
                                 dl_url = re.sub(r"\?dl\=0", "?dl=1", url)
                                 print(dl_url)
-        with open('pulselist.txt','w'):
-            for item in pulselist:
-                f.write("%s\n" % item)
 
 
 if __name__ == "__main__":
-    upload_to_dropbox([])
+    upload_to_dropbox([97482])
