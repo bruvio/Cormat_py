@@ -60,6 +60,46 @@ def upload_to_dropbox(pulselist):
             meta = dbx.files_upload(f.read(), targetfile,
                                 mode=dropbox.files.WriteMode("overwrite"))
 
+def download_from_dropbox(pulselist,folder):
+    APP_KEY = "b5tkict7tmtq7ig"
+    APP_SECRET = "baaiqhm6bcjskn7"
+    # the source folder
+    # folder = os.getcwd()+os.sep+folder    # located in this folder
+
+
+
+    auth_flow = DropboxOAuth2FlowNoRedirect(APP_KEY, APP_SECRET)
+    #
+    authorize_url = auth_flow.start()
+    print("1. Go to: " + authorize_url)
+    print("2. Click \"Allow\" (you might have to log in first).")
+    print("3. Copy the authorization code.")
+    auth_code = input("Enter the authorization code here: ").strip()
+    try:
+        oauth_result = auth_flow.finish(auth_code)
+    except Exception as e:
+        print('Error: %s' % (e,))
+        exit(1)
+
+    with dropbox.Dropbox(oauth2_access_token=oauth_result.access_token) as dbx:
+        dbx.users_get_current_account()
+        response = dbx.files_list_folder(path="")
+        # print(response)
+        for ii in range(0,len(response.entries)):
+            if response.entries[ii].name.isdigit():
+                if int(response.entries[ii].name) in pulselist:
+                    pathlib.Path(
+                        './'+folder + os.sep + str(response.entries[ii].name) ).mkdir(
+                        parents=True,
+                        exist_ok=True)
+                    entries = dbx.files_list_folder(path=response.entries[ii].path_lower)
+                    # md, res = dbx.files_download_to_file(folder+os.sep+str(response.entries[ii].name),response.entries[ii].path_lower)
+                    for entry in entries.entries:
+
+                        dbx.files_download_to_file(path=entry.path_lower,download_path=os.getcwd()+os.sep+folder+os.sep+str(response.entries[ii].name+os.sep+entry.name))
+
+
 
 if __name__ == "__main__":
-    upload_to_dropbox([])
+    # download_from_dropbox([97133],'saved')
+    download_from_dropbox([97133],'scratch')
