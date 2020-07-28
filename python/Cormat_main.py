@@ -701,7 +701,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 return
 
             else:
-                
+
                 try:
                     int(self.data.pulse)
 
