@@ -1774,41 +1774,42 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         self.chan = actual_chan
         logging.getLogger().disabled = False
         self.save_kg1("scratch")
+        self.save_kg1("saved")
 
         # logger.info(' KG1 data dumped to scratch')
         # if workspace is saved then delete data point collected (so no need to undo)
         self.setcoord(reset=True, chan="all")
 
-        pathlib.Path("./saved" + os.sep+ str(self.data.pulse)).mkdir(parents=True,
-                                                     exist_ok=True)
-        with open("./saved" + os.sep+ str(self.data.pulse)+"/data.pkl", "wb") as f:
-            pickle.dump(
-                [
-                    self.data.pulse,
-                    self.data.sequence,
-                    self.data.KG1_data,
-                    self.data.KG4_data,
-                    self.data.MAG_data,
-                    self.data.PELLETS_data,
-                    self.data.ELM_data,
-                    self.data.HRTS_data,
-                    self.data.NBI_data,
-                    self.data.is_dis,
-                    self.data.dis_time,
-                    self.data.LIDAR_data,
-                    self.data.zeroing_start,
-                    self.data.zeroing_stop,
-                    self.data.zeroed,
-                    self.data.zeroingbackup_den,
-                    self.data.zeroingbackup_vib,
-                    self.data.data_changed,
-                    self.data.statusflag_changed,
-                    self.data.validated_public_channels,
-                    self.data.SF_list_public,
-                ],
-                f,
-            )
-        f.close()
+        # pathlib.Path("./saved" + os.sep+ str(self.data.pulse)).mkdir(parents=True,
+        #                                              exist_ok=True)
+        # with open("./saved" + os.sep+ str(self.data.pulse)+"/data.pkl", "wb") as f:
+        #     pickle.dump(
+        #         [
+        #             self.data.pulse,
+        #             self.data.sequence,
+        #             self.data.KG1_data,
+        #             self.data.KG4_data,
+        #             self.data.MAG_data,
+        #             self.data.PELLETS_data,
+        #             self.data.ELM_data,
+        #             self.data.HRTS_data,
+        #             self.data.NBI_data,
+        #             self.data.is_dis,
+        #             self.data.dis_time,
+        #             self.data.LIDAR_data,
+        #             self.data.zeroing_start,
+        #             self.data.zeroing_stop,
+        #             self.data.zeroed,
+        #             self.data.zeroingbackup_den,
+        #             self.data.zeroingbackup_vib,
+        #             self.data.data_changed,
+        #             self.data.statusflag_changed,
+        #             self.data.validated_public_channels,
+        #             self.data.SF_list_public,
+        #         ],
+        #         f,
+        #     )
+        # f.close()
 
 
     # ----------------------------
