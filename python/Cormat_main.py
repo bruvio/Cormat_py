@@ -1479,7 +1479,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
             logger.info(" loading pulse data from workspace\n")
             # Python 3: open(..., 'rb')
-            with open("./saved/data.pkl", "rb") as f:
+            with open("./scratch/data.pkl", "rb") as f:
                 [
                     self.data.pulse,
                     self.data.sequence,
@@ -1598,34 +1598,37 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         :return:
         """
         logger.info(" saving pulse data to {}\n".format(folder))
-        with open("./" + folder + "/data.pkl", "wb") as f:
-            pickle.dump(
-                [
-                    self.data.pulse,
-                    self.data.sequence,
-                    self.data.KG1_data,
-                    self.data.KG4_data,
-                    self.data.MAG_data,
-                    self.data.PELLETS_data,
-                    self.data.ELM_data,
-                    self.data.HRTS_data,
-                    self.data.NBI_data,
-                    self.data.is_dis,
-                    self.data.dis_time,
-                    self.data.LIDAR_data,
-                    self.data.zeroing_start,
-                    self.data.zeroing_stop,
-                    self.data.zeroed,
-                    self.data.zeroingbackup_den,
-                    self.data.zeroingbackup_vib,
-                    self.data.data_changed,
-                    self.data.statusflag_changed,
-                    self.data.validated_public_channels,
-                    self.data.SF_list_public,
-                ],
-                f,
-            )
-        f.close()
+        if folder == 'saved':
+            pathlib.Path("./" + folder + os.sep+ str(self.data.pulse)).mkdir(parents=True,
+                                                         exist_ok=True)
+            with open("./" + folder + "/data.pkl", "wb") as f:
+                pickle.dump(
+                    [
+                        self.data.pulse,
+                        self.data.sequence,
+                        self.data.KG1_data,
+                        self.data.KG4_data,
+                        self.data.MAG_data,
+                        self.data.PELLETS_data,
+                        self.data.ELM_data,
+                        self.data.HRTS_data,
+                        self.data.NBI_data,
+                        self.data.is_dis,
+                        self.data.dis_time,
+                        self.data.LIDAR_data,
+                        self.data.zeroing_start,
+                        self.data.zeroing_stop,
+                        self.data.zeroed,
+                        self.data.zeroingbackup_den,
+                        self.data.zeroingbackup_vib,
+                        self.data.data_changed,
+                        self.data.statusflag_changed,
+                        self.data.validated_public_channels,
+                        self.data.SF_list_public,
+                    ],
+                    f,
+                )
+            f.close()
         logger.info(" data saved to {}\n".format(folder))
         if folder == 'saved':
             pathlib.Path("./" + folder + os.sep+ str(self.data.pulse)).mkdir(parents=True,

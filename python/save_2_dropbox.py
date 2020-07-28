@@ -114,5 +114,5 @@ if __name__ == "__main__":
 97527,
 97528]
     # upload_to_dropbox(pulselist,'scratch')
-    download_from_dropbox(pulselist,'scratch')
+    download_from_dropbox(pulselist,'saved')
     # download_from_dropbox([97133],'scratch')
