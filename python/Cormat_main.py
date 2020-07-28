@@ -697,11 +697,11 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
             if self.data.pulse == "":  # user has not entered a pulse number
                 logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
-                assert self.data.pulse != "", "ERROR no pulse selected"
+                # assert self.data.pulse != "", "ERROR no pulse selected"
                 return
 
             else:
-                # self.data.pulse = int(self.lineEdit_jpn.text())
+                
                 try:
                     int(self.data.pulse)
 
@@ -1598,10 +1598,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         :return:
         """
         logger.info(" saving pulse data to {}\n".format(folder))
-        if folder == 'saved':
-            pathlib.Path("./" + folder + os.sep+ str(self.data.pulse)).mkdir(parents=True,
-                                                         exist_ok=True)
-            with open("./" + folder + "/data.pkl", "wb") as f:
+
+        with open("./" + folder + "/data.pkl", "wb") as f:
                 pickle.dump(
                     [
                         self.data.pulse,
@@ -1628,7 +1626,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     ],
                     f,
                 )
-            f.close()
+        f.close()
         logger.info(" data saved to {}\n".format(folder))
         if folder == 'saved':
             pathlib.Path("./" + folder + os.sep+ str(self.data.pulse)).mkdir(parents=True,
@@ -1699,27 +1697,32 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
         logger.debug(" saving KG1 data to {}".format(folder))
         try:
-            with open("./" + folder + os.sep+str(self.data.pulse)+ "/kg1_data.pkl", "wb") as f:
-                pickle.dump(
-                    [
-                        self.data.KG1_data,
-                        self.data.SF_list,
-                        self.data.unval_seq,
-                        self.data.val_seq,
-                        self.read_uid,
-                        self.data.zeroing_start,
-                        self.data.zeroing_stop,
-                        self.data.zeroingbackup_den,
-                        self.data.zeroingbackup_vib,
-                        self.data.data_changed,
-                        self.data.statusflag_changed,
-                        self.data.validated_public_channels,
-                        self.data.SF_list_public,
-                    ],
-                    f,
-                )
-            f.close()
-            logger.info(" KG1 data saved to {}\n".format(folder))
+            if folder == 'saved':
+                pathlib.Path(
+                    "./" + folder + os.sep + str(self.data.pulse)).mkdir(
+                    parents=True,
+                    exist_ok=True)
+                with open("./" + folder + os.sep+str(self.data.pulse)+ "/kg1_data.pkl", "wb") as f:
+                    pickle.dump(
+                        [
+                            self.data.KG1_data,
+                            self.data.SF_list,
+                            self.data.unval_seq,
+                            self.data.val_seq,
+                            self.read_uid,
+                            self.data.zeroing_start,
+                            self.data.zeroing_stop,
+                            self.data.zeroingbackup_den,
+                            self.data.zeroingbackup_vib,
+                            self.data.data_changed,
+                            self.data.statusflag_changed,
+                            self.data.validated_public_channels,
+                            self.data.SF_list_public,
+                        ],
+                        f,
+                    )
+                f.close()
+                logger.info(" KG1 data saved to {}\n".format(folder))
         except AttributeError:
             logger.error("failed to save, check data!")
 
