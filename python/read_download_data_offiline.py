@@ -27,6 +27,7 @@ import sys
 import os
 from importlib import import_module
 from save_2_dropbox import *
+from numpy import arange
 
 libnames = ["ppf"]
 relative_imports = []
@@ -530,7 +531,7 @@ def save_kg1( folder):
                     data.SF_list,
                     data.unval_seq,
                     data.val_seq,
-                    read_uid,
+                    data.read_uid,
                     data.zeroing_start,
                     data.zeroing_stop,
                     data.zeroingbackup_den,
@@ -561,7 +562,7 @@ def save_kg1( folder):
                         data.SF_list,
                         data.unval_seq,
                         data.val_seq,
-                        read_uid,
+                        data.read_uid,
                         data.zeroing_start,
                         data.zeroing_stop,
                         data.zeroingbackup_den,
@@ -592,7 +593,7 @@ def save_kg1( folder):
                         data.SF_list,
                         data.unval_seq,
                         data.val_seq,
-                        read_uid,
+                        data.read_uid,
                         data.zeroing_start,
                         data.zeroing_stop,
                         data.zeroingbackup_den,
@@ -611,7 +612,7 @@ def save_kg1( folder):
 
 # ---------------------------------
 @QtCore.pyqtSlot()
-def dump_kg1(:
+def dump_kg1():
     """
     temporary save kg1 data to scratch folder
     :return:
@@ -752,11 +753,17 @@ if __name__ == "__main__":
 97527,
 97528,
 97529]
+    pulselist = list(arange(97560,97563))
+    pulselist = [97512,
+97509,
+97510,
+97511]
     for pulse in pulselist:
         readdata(pulse, "bviola")
-    upload_to_dropbox(pulselist,'saved')
     with open('pulselist.txt', 'w+') as f:
         for item in pulselist:
             f.write("%s\n" % item)
+    # upload_to_dropbox(pulselist,'saved')
+
 
     download_from_dropbox(pulselist, 'saved')
