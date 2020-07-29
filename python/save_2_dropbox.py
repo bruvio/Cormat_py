@@ -5,7 +5,7 @@ import pathlib
 import re
 import os
 import six
-
+from numpy import arange
 '''
 This example walks through a basic oauth flow using the existing long-lived token type
 Populate your app key and app secret in order to run this locally
@@ -64,40 +64,42 @@ def upload_to_dropbox(pulselist,inputfolder):
                                     mode=dropbox.files.WriteMode("overwrite"))
 
 def download_from_dropbox(pulselist,folder):
-    APP_KEY = "b5tkict7tmtq7ig"
-    APP_SECRET = "baaiqhm6bcjskn7"
-
-
-    auth_flow = DropboxOAuth2FlowNoRedirect(APP_KEY, APP_SECRET)
+    # APP_KEY = "b5tkict7tmtq7ig"
+    # APP_SECRET = "baaiqhm6bcjskn7"
     #
-    authorize_url = auth_flow.start()
-    print("1. Go to: " + authorize_url)
-    print("2. Click \"Allow\" (you might have to log in first).")
-    print("3. Copy the authorization code.")
-    auth_code = input("Enter the authorization code here: ").strip()
-    try:
-        oauth_result = auth_flow.finish(auth_code)
-    except Exception as e:
-        print('Error: %s' % (e,))
-        exit(1)
+    #
+    # auth_flow = DropboxOAuth2FlowNoRedirect(APP_KEY, APP_SECRET)
+    # #
+    # authorize_url = auth_flow.start()
+    # print("1. Go to: " + authorize_url)
+    # print("2. Click \"Allow\" (you might have to log in first).")
+    # print("3. Copy the authorization code.")
+    # auth_code = input("Enter the authorization code here: ").strip()
+    # try:
+    #     oauth_result = auth_flow.finish(auth_code)
+    # except Exception as e:
+    #     print('Error: %s' % (e,))
+    #     exit(1)
 
-    with dropbox.Dropbox(oauth2_access_token=oauth_result.access_token) as dbx:
+    # with dropbox.Dropbox(oauth2_access_token=oauth_result.access_token) as dbx:
+    with dropbox.Dropbox(oauth2_access_token='v1LUCAfjVFAAAAAAAAGr06If8oO8KPaJchZB6uxTlHERA_N8wxJNjq0Q9sXogWCE') as dbx:
         dbx.users_get_current_account()
         response = dbx.files_list_folder(path="")
-        # print(response)
+        print(response)
         for ii in range(0,len(response.entries)):
             if response.entries[ii].name.isdigit():
                 if int(response.entries[ii].name) in pulselist:
-                    pathlib.Path(
-                        './'+folder + os.sep + str(response.entries[ii].name) ).mkdir(
-                        parents=True,
-                        exist_ok=True)
-                    entries = dbx.files_list_folder(path=response.entries[ii].path_lower)
-                    # md, res = dbx.files_download_to_file(folder+os.sep+str(response.entries[ii].name),response.entries[ii].path_lower)
-                    for entry in entries.entries:
-                        print('downloading {}\n'.format(str(response.entries[ii].name+os.sep+entry.name)))
-                        dbx.files_download_to_file(path=entry.path_lower,download_path=os.getcwd()+os.sep+folder+os.sep+str(response.entries[ii].name+os.sep+entry.name))
-
+                    print(response.entries[ii].name)
+                    # pathlib.Path(
+                    #     './'+folder + os.sep + str(response.entries[ii].name) ).mkdir(
+                    #     parents=True,
+                    #     exist_ok=True)
+                    # entries = dbx.files_list_folder(path=response.entries[ii].path_lower)
+                    # # md, res = dbx.files_download_to_file(folder+os.sep+str(response.entries[ii].name),response.entries[ii].path_lower)
+                    # for entry in entries.entries:
+                    #     print('downloading {}\n'.format(str(response.entries[ii].name+os.sep+entry.name)))
+                    #     dbx.files_download_to_file(path=entry.path_lower,download_path=os.getcwd()+os.sep+folder+os.sep+str(response.entries[ii].name+os.sep+entry.name))
+                    #
 
 
 if __name__ == "__main__":
@@ -113,6 +115,7 @@ if __name__ == "__main__":
 97525,
 97527,
 97528]
+    pulselist = list(arange(97560,97563))
     # upload_to_dropbox(pulselist,'scratch')
     download_from_dropbox(pulselist,'saved')
     # download_from_dropbox([97133],'scratch')

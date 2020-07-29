@@ -59,7 +59,7 @@ for libname in relative_imports:
 
 import matplotlib
 
-matplotlib.use("QT4Agg")
+# matplotlib.use("QT4Agg")
 import argparse
 from types import SimpleNamespace
 from logging.handlers import RotatingFileHandler
@@ -1671,27 +1671,28 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
         logger.debug(" saving KG1 data to {}".format(folder))
         try:
-            with open("./" + folder + "/kg1_data.pkl", "wb") as f:
-                pickle.dump(
-                    [
-                        self.data.KG1_data,
-                        self.data.SF_list,
-                        self.data.unval_seq,
-                        self.data.val_seq,
-                        self.read_uid,
-                        self.data.zeroing_start,
-                        self.data.zeroing_stop,
-                        self.data.zeroingbackup_den,
-                        self.data.zeroingbackup_vib,
-                        self.data.data_changed,
-                        self.data.statusflag_changed,
-                        self.data.validated_public_channels,
-                        self.data.SF_list_public,
-                    ],
-                    f,
-                )
-            f.close()
-            logger.info(" KG1 data saved to {}\n".format(folder))
+            if folder == 'scratch':
+                with open("./" + folder + "/kg1_data.pkl", "wb") as f:
+                    pickle.dump(
+                        [
+                            self.data.KG1_data,
+                            self.data.SF_list,
+                            self.data.unval_seq,
+                            self.data.val_seq,
+                            self.read_uid,
+                            self.data.zeroing_start,
+                            self.data.zeroing_stop,
+                            self.data.zeroingbackup_den,
+                            self.data.zeroingbackup_vib,
+                            self.data.data_changed,
+                            self.data.statusflag_changed,
+                            self.data.validated_public_channels,
+                            self.data.SF_list_public,
+                        ],
+                        f,
+                    )
+                f.close()
+                logger.info(" KG1 data saved to {}\n".format(folder))
         except AttributeError:
             logger.error("failed to save, check data!")
 
