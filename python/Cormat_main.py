@@ -59,7 +59,7 @@ for libname in relative_imports:
 
 import matplotlib
 
-matplotlib.use("QT4Agg")
+# matplotlib.use("QT4Agg")
 import argparse
 from types import SimpleNamespace
 from logging.handlers import RotatingFileHandler
@@ -697,11 +697,11 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
             if self.data.pulse == "":  # user has not entered a pulse number
                 logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
-                assert self.data.pulse != "", "ERROR no pulse selected"
+                # assert self.data.pulse != "", "ERROR no pulse selected"
                 return
 
             else:
-                # self.data.pulse = int(self.lineEdit_jpn.text())
+
                 try:
                     int(self.data.pulse)
 
@@ -1479,7 +1479,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
             logger.info(" loading pulse data from workspace\n")
             # Python 3: open(..., 'rb')
-            with open("./saved/data.pkl", "rb") as f:
+            with open("./scratch/data.pkl", "rb") as f:
                 [
                     self.data.pulse,
                     self.data.sequence,
@@ -1598,33 +1598,34 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         :return:
         """
         logger.info(" saving pulse data to {}\n".format(folder))
+
         with open("./" + folder + "/data.pkl", "wb") as f:
-            pickle.dump(
-                [
-                    self.data.pulse,
-                    self.data.sequence,
-                    self.data.KG1_data,
-                    self.data.KG4_data,
-                    self.data.MAG_data,
-                    self.data.PELLETS_data,
-                    self.data.ELM_data,
-                    self.data.HRTS_data,
-                    self.data.NBI_data,
-                    self.data.is_dis,
-                    self.data.dis_time,
-                    self.data.LIDAR_data,
-                    self.data.zeroing_start,
-                    self.data.zeroing_stop,
-                    self.data.zeroed,
-                    self.data.zeroingbackup_den,
-                    self.data.zeroingbackup_vib,
-                    self.data.data_changed,
-                    self.data.statusflag_changed,
-                    self.data.validated_public_channels,
-                    self.data.SF_list_public,
-                ],
-                f,
-            )
+                pickle.dump(
+                    [
+                        self.data.pulse,
+                        self.data.sequence,
+                        self.data.KG1_data,
+                        self.data.KG4_data,
+                        self.data.MAG_data,
+                        self.data.PELLETS_data,
+                        self.data.ELM_data,
+                        self.data.HRTS_data,
+                        self.data.NBI_data,
+                        self.data.is_dis,
+                        self.data.dis_time,
+                        self.data.LIDAR_data,
+                        self.data.zeroing_start,
+                        self.data.zeroing_stop,
+                        self.data.zeroed,
+                        self.data.zeroingbackup_den,
+                        self.data.zeroingbackup_vib,
+                        self.data.data_changed,
+                        self.data.statusflag_changed,
+                        self.data.validated_public_channels,
+                        self.data.SF_list_public,
+                    ],
+                    f,
+                )
         f.close()
         logger.info(" data saved to {}\n".format(folder))
         if folder == 'saved':
@@ -1670,29 +1671,62 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
         logger.debug(" saving KG1 data to {}".format(folder))
         try:
-            with open("./" + folder + "/kg1_data.pkl", "wb") as f:
-                pickle.dump(
-                    [
-                        self.data.KG1_data,
-                        self.data.SF_list,
-                        self.data.unval_seq,
-                        self.data.val_seq,
-                        self.read_uid,
-                        self.data.zeroing_start,
-                        self.data.zeroing_stop,
-                        self.data.zeroingbackup_den,
-                        self.data.zeroingbackup_vib,
-                        self.data.data_changed,
-                        self.data.statusflag_changed,
-                        self.data.validated_public_channels,
-                        self.data.SF_list_public,
-                    ],
-                    f,
-                )
-            f.close()
-            logger.info(" KG1 data saved to {}\n".format(folder))
+            if folder == 'scratch':
+                with open("./" + folder + "/kg1_data.pkl", "wb") as f:
+                    pickle.dump(
+                        [
+                            self.data.KG1_data,
+                            self.data.SF_list,
+                            self.data.unval_seq,
+                            self.data.val_seq,
+                            self.read_uid,
+                            self.data.zeroing_start,
+                            self.data.zeroing_stop,
+                            self.data.zeroingbackup_den,
+                            self.data.zeroingbackup_vib,
+                            self.data.data_changed,
+                            self.data.statusflag_changed,
+                            self.data.validated_public_channels,
+                            self.data.SF_list_public,
+                        ],
+                        f,
+                    )
+                f.close()
+                logger.info(" KG1 data saved to {}\n".format(folder))
         except AttributeError:
             logger.error("failed to save, check data!")
+
+        logger.debug(" saving KG1 data to {}".format(folder))
+        try:
+            if folder == 'saved':
+                pathlib.Path(
+                    "./" + folder + os.sep + str(self.data.pulse)).mkdir(
+                    parents=True,
+                    exist_ok=True)
+                with open("./" + folder + os.sep+str(self.data.pulse)+ "/kg1_data.pkl", "wb") as f:
+                    pickle.dump(
+                        [
+                            self.data.KG1_data,
+                            self.data.SF_list,
+                            self.data.unval_seq,
+                            self.data.val_seq,
+                            self.read_uid,
+                            self.data.zeroing_start,
+                            self.data.zeroing_stop,
+                            self.data.zeroingbackup_den,
+                            self.data.zeroingbackup_vib,
+                            self.data.data_changed,
+                            self.data.statusflag_changed,
+                            self.data.validated_public_channels,
+                            self.data.SF_list_public,
+                        ],
+                        f,
+                    )
+                f.close()
+                logger.info(" KG1 data saved to {}\n".format(folder))
+        except AttributeError:
+            logger.error("failed to save, check data!")
+
         if folder == 'saved':
             pathlib.Path(
                 "./" + folder + os.sep + str(self.data.pulse) ).mkdir(
@@ -1741,41 +1775,42 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         self.chan = actual_chan
         logging.getLogger().disabled = False
         self.save_kg1("scratch")
+        self.save_kg1("saved")
 
         # logger.info(' KG1 data dumped to scratch')
         # if workspace is saved then delete data point collected (so no need to undo)
         self.setcoord(reset=True, chan="all")
 
-        pathlib.Path("./saved" + os.sep+ str(self.data.pulse)).mkdir(parents=True,
-                                                     exist_ok=True)
-        with open("./saved" + os.sep+ str(self.data.pulse)+"/data.pkl", "wb") as f:
-            pickle.dump(
-                [
-                    self.data.pulse,
-                    self.data.sequence,
-                    self.data.KG1_data,
-                    self.data.KG4_data,
-                    self.data.MAG_data,
-                    self.data.PELLETS_data,
-                    self.data.ELM_data,
-                    self.data.HRTS_data,
-                    self.data.NBI_data,
-                    self.data.is_dis,
-                    self.data.dis_time,
-                    self.data.LIDAR_data,
-                    self.data.zeroing_start,
-                    self.data.zeroing_stop,
-                    self.data.zeroed,
-                    self.data.zeroingbackup_den,
-                    self.data.zeroingbackup_vib,
-                    self.data.data_changed,
-                    self.data.statusflag_changed,
-                    self.data.validated_public_channels,
-                    self.data.SF_list_public,
-                ],
-                f,
-            )
-        f.close()
+        # pathlib.Path("./saved" + os.sep+ str(self.data.pulse)).mkdir(parents=True,
+        #                                              exist_ok=True)
+        # with open("./saved" + os.sep+ str(self.data.pulse)+"/data.pkl", "wb") as f:
+        #     pickle.dump(
+        #         [
+        #             self.data.pulse,
+        #             self.data.sequence,
+        #             self.data.KG1_data,
+        #             self.data.KG4_data,
+        #             self.data.MAG_data,
+        #             self.data.PELLETS_data,
+        #             self.data.ELM_data,
+        #             self.data.HRTS_data,
+        #             self.data.NBI_data,
+        #             self.data.is_dis,
+        #             self.data.dis_time,
+        #             self.data.LIDAR_data,
+        #             self.data.zeroing_start,
+        #             self.data.zeroing_stop,
+        #             self.data.zeroed,
+        #             self.data.zeroingbackup_den,
+        #             self.data.zeroingbackup_vib,
+        #             self.data.data_changed,
+        #             self.data.statusflag_changed,
+        #             self.data.validated_public_channels,
+        #             self.data.SF_list_public,
+        #         ],
+        #         f,
+        #     )
+        # f.close()
 
 
     # ----------------------------

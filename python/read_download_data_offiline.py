@@ -26,7 +26,8 @@ logger = logging.getLogger(__name__)
 import sys
 import os
 from importlib import import_module
-
+from save_2_dropbox import *
+from numpy import arange
 
 libnames = ["ppf"]
 relative_imports = []
@@ -118,7 +119,7 @@ import getpass
 qm = QMessageBox
 qm_permanent = QMessageBox
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
-myself = lambda: inspect.stack()[1][3]
+my= lambda: inspect.stack()[1][3]
 data = SimpleNamespace()
 data.constants = Consts("consts.ini", __version__)
 
@@ -443,83 +444,83 @@ def readdata(pulse, read_uid):
 
 
 # ------------------------
-def save_to_pickle(folder):
+def save_to_pickle( folder):
     """
-        saves to pickle experimental data
-        :param folder: for now user can save either to saved or scratch folder
-        :return:
-        """
+    saves to pickle experimental data
+    :param folder: for now user can save either to saved or scratch folder
+    :return:
+    """
     logger.info(" saving pulse data to {}\n".format(folder))
+
     with open("./" + folder + "/data.pkl", "wb") as f:
-        pickle.dump(
-            [
-                data.pulse,
-                data.sequence,
-                data.KG1_data,
-                data.KG4_data,
-                data.MAG_data,
-                data.PELLETS_data,
-                data.ELM_data,
-                data.HRTS_data,
-                data.NBI_data,
-                data.is_dis,
-                data.dis_time,
-                data.LIDAR_data,
-                data.zeroing_start,
-                data.zeroing_stop,
-                data.zeroed,
-                data.zeroingbackup_den,
-                data.zeroingbackup_vib,
-                data.data_changed,
-                data.statusflag_changed,
-                data.validated_public_channels,
-                data.SF_list_public,
-            ],
-            f,
-        )
+            pickle.dump(
+                [
+                    data.pulse,
+                    data.sequence,
+                    data.KG1_data,
+                    data.KG4_data,
+                    data.MAG_data,
+                    data.PELLETS_data,
+                    data.ELM_data,
+                    data.HRTS_data,
+                    data.NBI_data,
+                    data.is_dis,
+                    data.dis_time,
+                    data.LIDAR_data,
+                    data.zeroing_start,
+                    data.zeroing_stop,
+                    data.zeroed,
+                    data.zeroingbackup_den,
+                    data.zeroingbackup_vib,
+                    data.data_changed,
+                    data.statusflag_changed,
+                    data.validated_public_channels,
+                    data.SF_list_public,
+                ],
+                f,
+            )
     f.close()
     logger.info(" data saved to {}\n".format(folder))
-
-    pathlib.Path("./" + folder + os.sep + str(data.pulse)).mkdir(
-        parents=True, exist_ok=True
-    )
-    with open("./" + folder + os.sep + str(data.pulse) + "/data.pkl", "wb") as f:
-        pickle.dump(
-            [
-                data.pulse,
-                data.sequence,
-                data.KG1_data,
-                data.KG4_data,
-                data.MAG_data,
-                data.PELLETS_data,
-                data.ELM_data,
-                data.HRTS_data,
-                data.NBI_data,
-                data.is_dis,
-                data.dis_time,
-                data.LIDAR_data,
-                data.zeroing_start,
-                data.zeroing_stop,
-                data.zeroed,
-                data.zeroingbackup_den,
-                data.zeroingbackup_vib,
-                data.data_changed,
-                data.statusflag_changed,
-                data.validated_public_channels,
-                data.SF_list_public,
-            ],
-            f,
-        )
-    f.close()
+    if folder == 'saved':
+        pathlib.Path("./" + folder + os.sep+ str(data.pulse)).mkdir(parents=True,
+                                                     exist_ok=True)
+        with open("./" + folder + os.sep+ str(data.pulse)+"/data.pkl", "wb") as f:
+            pickle.dump(
+                [
+                    data.pulse,
+                    data.sequence,
+                    data.KG1_data,
+                    data.KG4_data,
+                    data.MAG_data,
+                    data.PELLETS_data,
+                    data.ELM_data,
+                    data.HRTS_data,
+                    data.NBI_data,
+                    data.is_dis,
+                    data.dis_time,
+                    data.LIDAR_data,
+                    data.zeroing_start,
+                    data.zeroing_stop,
+                    data.zeroed,
+                    data.zeroingbackup_den,
+                    data.zeroingbackup_vib,
+                    data.data_changed,
+                    data.statusflag_changed,
+                    data.validated_public_channels,
+                    data.SF_list_public,
+                ],
+                f,
+            )
+        f.close()
 
 
 # ------------------------
-def save_kg1(folder):
+def save_kg1( folder):
     """
-        module that saves just kg1 data to folder
-        :param folder:
-        :return:
-        """
+    module that saves just kg1 data to folder
+    :param folder:
+    :return:
+    """
 
     logger.debug(" saving KG1 data to {}".format(folder))
     try:
@@ -547,41 +548,70 @@ def save_kg1(folder):
     except AttributeError:
         logger.error("failed to save, check data!")
 
-    pathlib.Path("./" + folder + os.sep + str(data.pulse)).mkdir(
-        parents=True, exist_ok=True
-    )
-
+    logger.debug(" saving KG1 data to {}".format(folder))
     try:
-        with open(
-            "./" + folder + os.sep + str(data.pulse) + "/kg1_data.pkl", "wb"
-        ) as f:
-            pickle.dump(
-                [
-                    data.KG1_data,
-                    data.SF_list,
-                    data.unval_seq,
-                    data.val_seq,
-                    data.read_uid,
-                    data.zeroing_start,
-                    data.zeroing_stop,
-                    data.zeroingbackup_den,
-                    data.zeroingbackup_vib,
-                    data.data_changed,
-                    data.statusflag_changed,
-                    data.validated_public_channels,
-                    data.SF_list_public,
-                ],
-                f,
-            )
-        f.close()
-        logger.info(" KG1 data saved to {}\n".format(folder))
+        if folder == 'saved':
+            pathlib.Path(
+                "./" + folder + os.sep + str(data.pulse)).mkdir(
+                parents=True,
+                exist_ok=True)
+            with open("./" + folder + os.sep+str(data.pulse)+ "/kg1_data.pkl", "wb") as f:
+                pickle.dump(
+                    [
+                        data.KG1_data,
+                        data.SF_list,
+                        data.unval_seq,
+                        data.val_seq,
+                        data.read_uid,
+                        data.zeroing_start,
+                        data.zeroing_stop,
+                        data.zeroingbackup_den,
+                        data.zeroingbackup_vib,
+                        data.data_changed,
+                        data.statusflag_changed,
+                        data.validated_public_channels,
+                        data.SF_list_public,
+                    ],
+                    f,
+                )
+            f.close()
+            logger.info(" KG1 data saved to {}\n".format(folder))
     except AttributeError:
         logger.error("failed to save, check data!")
 
+    if folder == 'saved':
+        pathlib.Path(
+            "./" + folder + os.sep + str(data.pulse) ).mkdir(
+            parents=True,
+            exist_ok=True)
+
+        try:
+            with open("./" + folder + os.sep + str(data.pulse) + "/kg1_data.pkl", "wb") as f:
+                pickle.dump(
+                    [
+                        data.KG1_data,
+                        data.SF_list,
+                        data.unval_seq,
+                        data.val_seq,
+                        data.read_uid,
+                        data.zeroing_start,
+                        data.zeroing_stop,
+                        data.zeroingbackup_den,
+                        data.zeroingbackup_vib,
+                        data.data_changed,
+                        data.statusflag_changed,
+                        data.validated_public_channels,
+                        data.SF_list_public,
+                    ],
+                    f,
+                )
+            f.close()
+            logger.info(" KG1 data saved to {}\n".format(folder))
+        except AttributeError:
+            logger.error("failed to save, check data!")
 
 # ---------------------------------
-
-
+@QtCore.pyqtSlot()
 def dump_kg1():
     """
     temporary save kg1 data to scratch folder
@@ -602,7 +632,40 @@ def dump_kg1():
     # if workspace is saved then delete data point collected (so no need to undo)
     setcoord(reset=True, chan="all")
 
-    # ----------------------------
+    pathlib.Path("./saved" + os.sep+ str(data.pulse)).mkdir(parents=True,
+                                                 exist_ok=True)
+    with open("./saved" + os.sep+ str(data.pulse)+"/data.pkl", "wb") as f:
+        pickle.dump(
+            [
+                data.pulse,
+                data.sequence,
+                data.KG1_data,
+                data.KG4_data,
+                data.MAG_data,
+                data.PELLETS_data,
+                data.ELM_data,
+                data.HRTS_data,
+                data.NBI_data,
+                data.is_dis,
+                data.dis_time,
+                data.LIDAR_data,
+                data.zeroing_start,
+                data.zeroing_stop,
+                data.zeroed,
+                data.zeroingbackup_den,
+                data.zeroingbackup_vib,
+                data.data_changed,
+                data.statusflag_changed,
+                data.validated_public_channels,
+                data.SF_list_public,
+            ],
+            f,
+        )
+    f.close()
+
+
+# ----------------------------
+
 
 
 if __name__ == "__main__":
@@ -676,6 +739,28 @@ if __name__ == "__main__":
     #     96892,
     #     96893,
     # ]
-    pulselist = [97133,97134]
+    # pulselist = [97133,97134]
+    pulselist = [97514,
+97515,
+97516,
+97517,
+97518,
+97521,
+97522,
+97523,
+97524,
+97525,
+97527,
+97528,
+97529]
+    pulselist = list(arange(97560,97563))
+    pulselist = [97512,
+97509,
+97510,
+97511]
     for pulse in pulselist:
         readdata(pulse, "bviola")
+    with open('pulselist.txt', 'w+') as f:
+        for item in pulselist:
+            f.write("%s\n" % item)
+
