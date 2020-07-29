@@ -5555,7 +5555,10 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 ),
             )
 
-            self.data.KG1_data.density[self.chan].correct_fj(self.corr_den, index=index)
+            # self.data.KG1_data.density[self.chan].correct_fj(self.corr_den, index=index)
+            self.data.KG1_data.density[self.chan].correct_fj(
+                self.corr_den, index=index, lid=corr_den
+            )  # correct data
             if self.data.KG1_data.density[self.chan].corrections is not None:
                 ax_name = "ax" + str(self.chan)
 
@@ -5571,7 +5574,9 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     self.data.KG1_data.vibration[self.chan].correct_fj(
                         self.corr_vib, time=value
                     )
-
+                    self.data.KG1_data.vibration[self.chan].correct_fj(
+                        self.corr_vib, index=index, lid=corr_vib
+                    )
                 except AttributeError:
                     logger.error("insert a correction for the mirror")
                     self.update_channel(self.chan)
@@ -5583,6 +5588,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
                     self.blockSignals(False)
                     return
+
 
         logger.warning("remember to mark corrections as permanent before proceeding!")
 
