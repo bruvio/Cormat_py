@@ -5440,6 +5440,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     self.corr_den = (
                         int(self.lineEdit_mancorr.text()) * self.data.constants.DFR_DCN
                     )  # convert fringe jump into density
+
+                    corr_den = int(self.lineEdit_mancorr.text())
             except ValueError:
                 logger.error("use numerical values")
                 self.lineEdit_mancorr.setText("")
