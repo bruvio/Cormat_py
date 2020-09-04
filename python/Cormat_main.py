@@ -2066,8 +2066,12 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         self.data.SF_old8 = self.data.SF_ch8
 
         try:
+            if self.read_uid == 'chain1':
+                dda = 'kg1r'
+            else:
+                dda = 'kg1v'
             self.data.unval_seq, self.data.val_seq = get_min_max_seq(
-                self.data.pulse, dda="KG1V", read_uid=self.read_uid
+                self.data.pulse, dda=dda, read_uid=self.read_uid
             )
         except TypeError:
             logger.error(

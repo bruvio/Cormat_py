@@ -105,6 +105,8 @@ class Kg1PPFData(SignalBase):
             density = SignalKg1(self.constants, self.pulse)
             # corrections = SignalBase(self.constants)
             dda = nodename[: nodename.find("/")]
+            if read_uid == 'chain1':
+                dda ='KG1R'
             dtype = nodename[nodename.find("/") + 1 :]
             status = density.read_data_ppf(
                 dda, dtype, shot_no, read_bad=True, read_uid=read_uid, seq=self.sequence
@@ -144,6 +146,8 @@ class Kg1PPFData(SignalBase):
             nodename = self.constants.kg1r_ppf_vib[chan]
             vibration = SignalKg1(self.constants, self.pulse)
             dda = nodename[: nodename.find("/")]
+            if read_uid == 'chain1':
+                dda ='KG1R'
             dtype = nodename[nodename.find("/") + 1 :]
             status = vibration.read_data_ppf(
                 dda, dtype, shot_no, read_bad=True, read_uid=read_uid, seq=self.sequence
@@ -163,6 +167,8 @@ class Kg1PPFData(SignalBase):
             fj = SignalBase(self.constants)
 
             dda = nodename[: nodename.find("/")]
+            if read_uid == 'chain1':
+                dda ='KG1R'
             dtype = nodename[nodename.find("/") + 1 :]
             status = fj.read_data_ppf(
                 dda, dtype, shot_no, read_bad=True, read_uid=read_uid, seq=self.sequence
@@ -176,6 +182,8 @@ class Kg1PPFData(SignalBase):
             fj = SignalBase(self.constants)
 
             dda = nodename[: nodename.find("/")]
+            if read_uid == 'chain1':
+                dda ='KG1R'
             dtype = nodename[nodename.find("/") + 1 :]
             status = fj.read_data_ppf(
                 dda, dtype, shot_no, read_bad=True, read_uid=read_uid, seq=self.sequence
@@ -189,6 +197,8 @@ class Kg1PPFData(SignalBase):
             bp = SignalBase(self.constants)
 
             dda = nodename[: nodename.find("/")]
+            if read_uid == 'chain1':
+                dda ='KG1R'
             dtype = nodename[nodename.find("/") + 1 :]
             status = bp.read_data_ppf(
                 dda, dtype, shot_no, read_bad=True, read_uid=read_uid, seq=self.sequence
@@ -214,6 +224,8 @@ class Kg1PPFData(SignalBase):
             nodename = self.constants.kg1r_ppf_jxb[chan]
             jxb = SignalBase(self.constants)
             dda = nodename[: nodename.find("/")]
+            if read_uid == 'chain1':
+                dda ='KG1R'
             dtype = nodename[nodename.find("/") + 1 :]
             status = jxb.read_data_ppf(
                 dda, dtype, shot_no, read_bad=True, read_uid=read_uid, seq=self.sequence
@@ -226,6 +238,8 @@ class Kg1PPFData(SignalBase):
             nodename = self.constants.kg1r_ppf_type[chan]
             sig_type = SignalBase(self.constants)
             dda = nodename[: nodename.find("/")]
+            if read_uid == 'chain1':
+                dda ='KG1R'
             dtype = nodename[nodename.find("/") + 1 :]
             status = sig_type.read_data_ppf(
                 dda, dtype, shot_no, read_bad=True, read_uid=read_uid, seq=self.sequence
@@ -247,7 +261,9 @@ class Kg1PPFData(SignalBase):
         nodename_mode = self.constants.mode
 
         signal_mode = SignalBase(self.constants)
-
+        dda = "KG1V"
+        if read_uid == 'chain1':
+                dda ='KG1R'
         signal_mode.read_data_ppf(
             "KG1V",
             "MODE",
