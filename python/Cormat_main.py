@@ -8836,10 +8836,10 @@ if __name__ == "__main__":
     # hdlr.setFormatter(fmt)
     # logging.root.addHandler(hdlr)
     fh = handlers.RotatingFileHandler(
-        "./LOGFILE.DAT", mode="w", maxBytes=(1048576 * 5), backupCount=7
+        "./LOGFILE.DAT", mode="w", maxBytes=(1e6 * 5), backupCount=7
     )
     fh.setFormatter(fmt)
-    logging.root.addHandler(fh)
+    logger.addHandler(fh)
     logger.setLevel(logging.INFO)
 
     main()
