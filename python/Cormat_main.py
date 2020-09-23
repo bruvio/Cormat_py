@@ -4181,7 +4181,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                         # self.data.KG1_data.density[public_channel] = SignalBase(self.data.constants)
                         self.data.KG1_data.type[
                             public_channel
-                        ] = self.data.KG1_data_public.density[public_channel]
+                        ] = self.data.KG1_data_public.type[public_channel]
 
                     if public_channel in self.data.KG1_data_public.density.keys():
 
