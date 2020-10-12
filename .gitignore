@@ -111,3 +111,5 @@ venv.bak/
 ~*
 /python/run_out.txt
 scratch*
+/python/read_download_data_offiline.py
+/python/save_2_dropbox.py
