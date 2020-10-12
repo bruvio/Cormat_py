@@ -265,7 +265,7 @@ class Kg1PPFData(SignalBase):
         if read_uid == 'chain1':
                 dda ='KG1R'
         signal_mode.read_data_ppf(
-            "KG1V",
+            dda,
             "MODE",
             shot_no,
             read_bad=False,
