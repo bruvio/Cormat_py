@@ -368,7 +368,11 @@ def check_SF(read_uid, pulse, seq):
     for channel in channels:
         ch_text = "lid" + str(channel)
 
-        st_ch = GetSF(pulse, "kg1v", ch_text)
+        if read_uid =='chain1':
+            dda = 'kg1r'
+        else:
+            dda= 'kg1v'
+        st_ch = GetSF(pulse, dda, ch_text)
         st_ch = asscalar(st_ch)
         SF_list.append(st_ch)
     logging.info("%s has the following SF %s", str(pulse), SF_list)
