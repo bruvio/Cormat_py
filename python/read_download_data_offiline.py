@@ -758,12 +758,107 @@ if __name__ == "__main__":
 97509,
 97510,
 97511]
+    pulselist = [97552,
+97553,
+97593,
+97594,
+97551]
+    pulselist = [97536,
+97537,
+97539,
+97540,
+97541,
+97542,
+97543,
+97544,
+97545,
+97555,
+97531]
+    pulselist = [
+    97696,
+    97697]
+    pulselist = [97589,
+    97685,
+    97679]
+    pulselist = [97680,
+97674,
+97586]
+    pulselist = [97764,
+97797,
+97798,
+97799,
+97779,
+97783,
+97784,
+97787,
+97790]
+    pulselist = [97799,97783,97787]
+    pulselist = [97860,
+97861,
+97862,
+97863,
+97864,
+97865,
+97866,
+97867,
+97868,
+97869,
+97844,
+97845,
+97847,
+97848,
+97849,
+97851,
+97853]
+    pulselist =arange(97866,97870)
+    pulselist = [97860,
+97861,
+97862,
+97863,
+97864,
+97865,
+97844,
+97845,
+97847,
+97848,
+97849,
+97851,
+97853
+]
+    pulselist = [97897,
+97898,
+97899,
+97900
+]
+    pulselist = [97952,
+97953,
+97949,
+97950,
+97951]
+    pulselist = [97521,
+97522,
+97523,
+97524,
+97516,
+97517,
+97518]
+    pulselist =[97516]
+    pulselist =[97985,
+97858,
+97927,
+97995,
+97971,
+98004,
+98005,
+97943,
+97981 ]
+    pulselist = [97761,
+97765,
+97758]
     for pulse in pulselist:
         readdata(pulse, "bviola")
     with open('pulselist.txt', 'w+') as f:
         for item in pulselist:
-            f.write("%s\n" % item)
-    # upload_to_dropbox(pulselist,'saved')
-
-
-    download_from_dropbox(pulselist, 'saved')
+         f.write("%s\n" % item)
+    upload_to_dropbox(pulselist,'saved')
+    #download_from_dropbox(pulselist, 'saved')
