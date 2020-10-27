@@ -21,7 +21,7 @@ cffi==1.11.5
 colorama==0.3.7
 configobj==5.0.6
 control==0.7.0
-cryptography==2.4.2
+cryptography==3.2
 curtsies==0.2.6
 cycler==0.10.0
 Cython==0.24
