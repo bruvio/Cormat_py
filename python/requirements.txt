@@ -94,7 +94,7 @@ nbformat==4.4.0
 netCDF4==1.3.1
 networkx==1.11
 nose==1.3.7
-notebook==4.2.0
+notebook==6.1.5
 numexpr==2.6.1
 numpy==1.17.2
 oct2py==3.5.9
