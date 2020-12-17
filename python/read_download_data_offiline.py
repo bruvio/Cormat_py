@@ -315,8 +315,12 @@ def readdata(pulse, read_uid):
     data.SF_old8 = data.SF_ch8
 
     try:
+        if read_uid == 'chain1':
+            dda = 'kg1r'
+        else:
+            dda = 'kg1v'
         data.unval_seq, data.val_seq = get_min_max_seq(
-            data.pulse, dda="KG1V", read_uid=read_uid
+            data.pulse, dda=dda, read_uid=read_uid
         )
     except TypeError:
         logger.error("impossible to read sequence for user {}".format(read_uid))
@@ -855,10 +859,76 @@ if __name__ == "__main__":
     pulselist = [97761,
 97765,
 97758]
-    for pulse in pulselist:
-        readdata(pulse, "bviola")
-    with open('pulselist.txt', 'w+') as f:
-        for item in pulselist:
-         f.write("%s\n" % item)
-    upload_to_dropbox(pulselist,'saved')
-    #download_from_dropbox(pulselist, 'saved')
+    pulselist = [96874]
+    pulselist = [
+97711]
+    pulselist = [97969,
+    97885,
+    97886]
+    pulselist =[98048,
+98049,
+98192,
+98163,
+98164,
+98165,
+98042,
+98043,
+98044,
+98045,
+98046,
+98047]
+    pulselist = [97729,
+97554,
+97956,
+96036,
+97820]
+    pulselist = [96875,96865]
+    pulselist = [97976,
+97977]
+    pulselist = [98307,
+97796,
+98311,
+96537,
+98330,
+98329,
+97707,
+97583,
+97584,
+97718,
+97848,
+95291,
+97468,
+97400,
+97470,
+97469,
+95296,
+95298,
+95299,
+97477,
+97605,
+97735,
+97736,
+97739,
+97742,
+97999,
+97749,
+96471,
+96472,
+97892,
+97893,
+94700,
+97647,
+97776,
+97396,
+96885,
+96888,
+96891,
+97405,
+97406]
+    #for pulse in pulselist:
+         #readdata(pulse, "chain1")
+    #with open('pulselist.txt', 'w+') as f:
+         #for item in pulselist:
+          #f.write("%s\n" % item)
+    #upload_to_dropbox(pulselist,'saved')
+    download_from_dropbox(pulselist, 'saved')

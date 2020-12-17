@@ -3080,7 +3080,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     for chan in self.data.KG4_data.density.keys():
                         if chan in self.data.KG1_data.density.keys():
                             ax_name = "ax" + str(chan)
-                            name = "Far ch." + str(chan)
+                            name = "KG4R ch." + str(chan)
 
                             self.data.secondtrace_original[chan] = SignalBase(
                                 self.data.constants
