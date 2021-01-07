@@ -72,7 +72,7 @@ lazy-object-proxy==1.2.2
 line-profiler==2.1.2
 lmfit==0.9.7
 logilab-common==1.2.0
-lxml==3.6.0
+lxml==4.6.2
 Markdown==2.6.8
 MarkupSafe==0.23
 matlab==0.1
