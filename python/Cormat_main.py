@@ -11,7 +11,7 @@ __version__ = "2.3"
 __release__ = "2"
 __maintainer__ = "Bruno Viola"
 __email__ = "bruno.viola@ukaea.uk"
-#__status__ = "Testing"
+# __status__ = "Testing"
 __status__ = "Production"
 
 
@@ -21,15 +21,14 @@ warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import logging
+
 logger = logging.getLogger(__name__)
 import sys
 import os
 from importlib import import_module
 
 
-
-
-libnames = ['ppf']
+libnames = ["ppf"]
 relative_imports = []
 
 for libname in libnames:
@@ -43,7 +42,7 @@ for libname in libnames:
         globals()[libname] = lib
 for libname in relative_imports:
     try:
-        anchor = libname.split('.')
+        anchor = libname.split(".")
         libr = anchor[0]
         package = anchor[1]
 
@@ -110,8 +109,9 @@ from support_classes import LineEdit, Key, KeyBoard, MyLocator
 import inspect
 import fileinput
 import cProfile, pstats, io
-from pycallgraph import PyCallGraph
-from pycallgraph.output import GraphvizOutput
+
+# from pycallgraph import PyCallGraph
+# from pycallgraph.output import GraphvizOutput
 import inspect
 import getpass
 
@@ -121,9 +121,9 @@ qm_permanent = QMessageBox
 plt.rcParams["savefig.directory"] = os.chdir(os.getcwd())
 myself = lambda: inspect.stack()[1][3]
 
-if 'ppf' not in sys.modules:
-    logging.warning('failed to load ppf')
-    logging.warning('you are offline!')
+if "ppf" not in sys.modules:
+    logging.warning("failed to load ppf")
+    logging.warning("you are offline!")
     offline = True
 else:
     offline = False
@@ -186,15 +186,13 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             if args.erase_data.lower() == "yes":
                 folders = ["scratch", "saved"]
                 for folder in folders:
-                        try:
-                            os.unlink(folder+os.sep+'data.pkl')
-                            os.unlink(folder+os.sep+'kg1_data.pkl')
-                            # elif os.path.isdir(file_path):
-                            #     shutil.rmtree(file_path)
-                        except Exception as e:
-                            logger.error(
-                                "error while deleting file(s) \n {} \n".format(e)
-                            )
+                    try:
+                        os.unlink(folder + os.sep + "data.pkl")
+                        os.unlink(folder + os.sep + "kg1_data.pkl")
+                        # elif os.path.isdir(file_path):
+                        #     shutil.rmtree(file_path)
+                    except Exception as e:
+                        logger.error("error while deleting file(s) \n {} \n".format(e))
         except:
             logger.errro("Error in erase data")
             raise SystemExit("Exiting")
@@ -460,7 +458,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 )
                 logger.info(" copying to local user profile \n")
             except:
-                logger.warning('check file permission on {}'.format(self.chain1))
+                logger.warning("check file permission on {}".format(self.chain1))
             logger.log(5, "we are in %s", cwd)
 
         except:
@@ -693,7 +691,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         self.tabWidget.setTabEnabled(9, False)
         self.tabWidget.setTabEnabled(10, False)
         self.tabWidget.setTabEnabled(11, False)
-        if not offline :
+        if not offline:
 
             if self.data.pulse == "":  # user has not entered a pulse number
                 logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
@@ -706,21 +704,21 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     int(self.data.pulse)
 
                 except ValueError:
-                    logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
+                    logger.error(
+                        "PLEASE USE JPN lower than {}\n".format((ppf.pdmsht()))
+                    )
                     return
 
                 if int(self.data.pulse) <= ppf.pdmsht():
                     pass  # user has entered a valid pulse number
                 else:
-                    logger.error("PLEASE USE JPN lower than {}\n".format((ppf.pdmsht())))
+                    logger.error(
+                        "PLEASE USE JPN lower than {}\n".format((ppf.pdmsht()))
+                    )
                     return
         else:
-            logger.warning('\n OFFLINE MODE \n')
-            logger.warning('reading data from workspace')
-
-
-
-
+            logger.warning("\n OFFLINE MODE \n")
+            logger.warning("reading data from workspace")
 
         # self.data.pulse = int(self.lineEdit_jpn.text())
         # self.data.sequence = self.lineEdit_jpn_seq.text()
@@ -740,8 +738,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             try:
                 self.load_pickle()
             except:
-                logger.error('failed to load workspace data\n')
-                logger.error('run code with -e option!')
+                logger.error("failed to load workspace data\n")
+                logger.error("run code with -e option!")
             # restore channel from saved pickle file (to be used in debug mode)
 
             if args.restore_channel.lower() == "yes":
@@ -1600,38 +1598,41 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         logger.info(" saving pulse data to {}\n".format(folder))
 
         with open("./" + folder + "/data.pkl", "wb") as f:
-                pickle.dump(
-                    [
-                        self.data.pulse,
-                        self.data.sequence,
-                        self.data.KG1_data,
-                        self.data.KG4_data,
-                        self.data.MAG_data,
-                        self.data.PELLETS_data,
-                        self.data.ELM_data,
-                        self.data.HRTS_data,
-                        self.data.NBI_data,
-                        self.data.is_dis,
-                        self.data.dis_time,
-                        self.data.LIDAR_data,
-                        self.data.zeroing_start,
-                        self.data.zeroing_stop,
-                        self.data.zeroed,
-                        self.data.zeroingbackup_den,
-                        self.data.zeroingbackup_vib,
-                        self.data.data_changed,
-                        self.data.statusflag_changed,
-                        self.data.validated_public_channels,
-                        self.data.SF_list_public,
-                    ],
-                    f,
-                )
+            pickle.dump(
+                [
+                    self.data.pulse,
+                    self.data.sequence,
+                    self.data.KG1_data,
+                    self.data.KG4_data,
+                    self.data.MAG_data,
+                    self.data.PELLETS_data,
+                    self.data.ELM_data,
+                    self.data.HRTS_data,
+                    self.data.NBI_data,
+                    self.data.is_dis,
+                    self.data.dis_time,
+                    self.data.LIDAR_data,
+                    self.data.zeroing_start,
+                    self.data.zeroing_stop,
+                    self.data.zeroed,
+                    self.data.zeroingbackup_den,
+                    self.data.zeroingbackup_vib,
+                    self.data.data_changed,
+                    self.data.statusflag_changed,
+                    self.data.validated_public_channels,
+                    self.data.SF_list_public,
+                ],
+                f,
+            )
         f.close()
         logger.info(" data saved to {}\n".format(folder))
-        if folder == 'saved':
-            pathlib.Path("./" + folder + os.sep+ str(self.data.pulse)).mkdir(parents=True,
-                                                         exist_ok=True)
-            with open("./" + folder + os.sep+ str(self.data.pulse)+"/data.pkl", "wb") as f:
+        if folder == "saved":
+            pathlib.Path("./" + folder + os.sep + str(self.data.pulse)).mkdir(
+                parents=True, exist_ok=True
+            )
+            with open(
+                "./" + folder + os.sep + str(self.data.pulse) + "/data.pkl", "wb"
+            ) as f:
                 pickle.dump(
                     [
                         self.data.pulse,
@@ -1660,7 +1661,6 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 )
             f.close()
 
-
     # ------------------------
     def save_kg1(self, folder):
         """
@@ -1671,7 +1671,7 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
         logger.debug(" saving KG1 data to {}".format(folder))
         try:
-            if folder == 'scratch':
+            if folder == "scratch":
                 with open("./" + folder + "/kg1_data.pkl", "wb") as f:
                     pickle.dump(
                         [
@@ -1698,12 +1698,14 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
         logger.debug(" saving KG1 data to {}".format(folder))
         try:
-            if folder == 'saved':
-                pathlib.Path(
-                    "./" + folder + os.sep + str(self.data.pulse)).mkdir(
-                    parents=True,
-                    exist_ok=True)
-                with open("./" + folder + os.sep+str(self.data.pulse)+ "/kg1_data.pkl", "wb") as f:
+            if folder == "saved":
+                pathlib.Path("./" + folder + os.sep + str(self.data.pulse)).mkdir(
+                    parents=True, exist_ok=True
+                )
+                with open(
+                    "./" + folder + os.sep + str(self.data.pulse) + "/kg1_data.pkl",
+                    "wb",
+                ) as f:
                     pickle.dump(
                         [
                             self.data.KG1_data,
@@ -1727,14 +1729,16 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         except AttributeError:
             logger.error("failed to save, check data!")
 
-        if folder == 'saved':
-            pathlib.Path(
-                "./" + folder + os.sep + str(self.data.pulse) ).mkdir(
-                parents=True,
-                exist_ok=True)
+        if folder == "saved":
+            pathlib.Path("./" + folder + os.sep + str(self.data.pulse)).mkdir(
+                parents=True, exist_ok=True
+            )
 
             try:
-                with open("./" + folder + os.sep + str(self.data.pulse) + "/kg1_data.pkl", "wb") as f:
+                with open(
+                    "./" + folder + os.sep + str(self.data.pulse) + "/kg1_data.pkl",
+                    "wb",
+                ) as f:
                     pickle.dump(
                         [
                             self.data.KG1_data,
@@ -1811,7 +1815,6 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         #         f,
         #     )
         # f.close()
-
 
     # ----------------------------
 
@@ -2066,10 +2069,10 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
         self.data.SF_old8 = self.data.SF_ch8
 
         try:
-            if self.read_uid == 'chain1':
-                dda = 'kg1r'
+            if self.read_uid == "chain1":
+                dda = "kg1r"
             else:
-                dda = 'kg1v'
+                dda = "kg1v"
             self.data.unval_seq, self.data.val_seq = get_min_max_seq(
                 self.data.pulse, dda=dda, read_uid=self.read_uid
             )
@@ -2349,9 +2352,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             )
 
             vars()[ax_name].legend()
-            vars()[ax_name].set_xlabel('t[s]')
-            vars()[ax_name].set_ylabel('$m^{-2}$')
-
+            vars()[ax_name].set_xlabel("t[s]")
+            vars()[ax_name].set_ylabel("$m^{-2}$")
 
             ax_all.plot(
                 self.data.KG1_data.density[chan].time,
@@ -2361,8 +2363,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 linestyle="None",
             )
             ax_all.legend()
-            vars()[ax_name].set_xlabel('t[s]')
-            vars()[ax_name].set_ylabel('$m^{-2}$')
+            vars()[ax_name].set_xlabel("t[s]")
+            vars()[ax_name].set_ylabel("$m^{-2}$")
             if chan < 5:
                 # if self.data.SF_list[chan - 1] <4:
                 ax_14.plot(
@@ -2373,8 +2375,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 ax_14.legend()
-                ax_14.set_xlabel('t[s]')
-                ax_14.set_ylabel('$m^{-2}$')
+                ax_14.set_xlabel("t[s]")
+                ax_14.set_ylabel("$m^{-2}$")
 
             if chan > 4:
                 # if self.data.SF_list[chan - 1] <4:
@@ -2386,8 +2388,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 ax_58.legend()
-                ax_58.set_xlabel('t[s]')
-                ax_58.set_ylabel('$m^{-2}$')
+                ax_58.set_xlabel("t[s]")
+                ax_58.set_ylabel("$m^{-2}$")
 
             if chan > 4:
                 name1 = "MIR" + str(chan)
@@ -2412,8 +2414,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 vars()[ax_name1].legend()
-                vars()[ax_name].set_xlabel('t[s]')
-                vars()[ax_name].set_ylabel('$m^{-2}$')
+                vars()[ax_name].set_xlabel("t[s]")
+                vars()[ax_name].set_ylabel("$m^{-2}$")
 
                 ax_mir.plot(
                     self.data.KG1_data.vibration[chan].time,
@@ -2423,8 +2425,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 ax_mir.legend()
-                vars()[ax_name].set_xlabel('t[s]')
-                vars()[ax_name].set_ylabel('$m^{-2}$')
+                vars()[ax_name].set_xlabel("t[s]")
+                vars()[ax_name].set_ylabel("$m^{-2}$")
                 # draw_widget(chan)
 
         for chan in self.data.KG1_data.fj_dcn.keys():
@@ -2846,8 +2848,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 linestyle="None",
             )
             vars()[ax_name].legend()
-            vars()[ax_name].set_xlabel('t[s]')
-            vars()[ax_name].set_ylabel('$m^{-2}$')
+            vars()[ax_name].set_xlabel("t[s]")
+            vars()[ax_name].set_ylabel("$m^{-2}$")
             # self.widget_LID1.draw()
 
             if chan > 4:
@@ -2871,8 +2873,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 vars()[ax_name1].legend()
-                vars()[ax_name].set_xlabel('t[s]')
-                vars()[ax_name].set_ylabel('$m^{-2}$')
+                vars()[ax_name].set_xlabel("t[s]")
+                vars()[ax_name].set_ylabel("$m^{-2}$")
 
         # for chan in self.data.KG1_data.fj_dcn.keys():
         #     if chan >9:
@@ -2971,8 +2973,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                     color="orange",
                                 )
                                 vars()[ax_name].legend()
-                                vars()[ax_name].set_xlabel('t[s]')
-                                vars()[ax_name].set_ylabel('$m^{-2}$')
+                                vars()[ax_name].set_xlabel("t[s]")
+                                vars()[ax_name].set_ylabel("$m^{-2}$")
                             except:
                                 logger.error(
                                     "is not possible to plot HRTS for channel {}".format(
@@ -3021,8 +3023,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                 color="green",
                             )
                             vars()[ax_name].legend()
-                            vars()[ax_name].set_xlabel('t[s]')
-                            vars()[ax_name].set_ylabel('$m^{-2}$')
+                            vars()[ax_name].set_xlabel("t[s]")
+                            vars()[ax_name].set_ylabel("$m^{-2}$")
 
             else:
                 logging.warning("no {} data".format(self.data.s2ndtrace))
@@ -3065,8 +3067,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                 color="red",
                             )
                             vars()[ax_name].legend()
-                            vars()[ax_name].set_xlabel('t[s]')
-                            vars()[ax_name].set_ylabel('$m^{-2}$')
+                            vars()[ax_name].set_xlabel("t[s]")
+                            vars()[ax_name].set_ylabel("$m^{-2}$")
 
             else:
                 logging.warning("no {} data".format(self.data.s2ndtrace))
@@ -3109,8 +3111,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                 color="black",
                             )
                             vars()[ax_name].legend()
-                            vars()[ax_name].set_xlabel('t[s]')
-                            vars()[ax_name].set_ylabel('$m^{-2}$')
+                            vars()[ax_name].set_xlabel("t[s]")
+                            vars()[ax_name].set_ylabel("$m^{-2}$")
 
             else:
                 logging.warning("no {} data".format(self.data.s2ndtrace))
@@ -3154,8 +3156,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                 color="purple",
                             )
                             vars()[ax_name].legend()
-                            vars()[ax_name].set_xlabel('t[s]')
-                            vars()[ax_name].set_ylabel('$m^{-2}$')
+                            vars()[ax_name].set_xlabel("t[s]")
+                            vars()[ax_name].set_ylabel("$m^{-2}$")
 
             else:
                 logging.warning("no {} data".format(self.data.s2ndtrace))
@@ -3198,8 +3200,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                 color="brown",
                             )
                             vars()[ax_name].legend()
-                            vars()[ax_name].set_xlabel('t[s]')
-                            vars()[ax_name].set_ylabel('$m^{-2}$')
+                            vars()[ax_name].set_xlabel("t[s]")
+                            vars()[ax_name].set_ylabel("$m^{-2}$")
 
         elif self.data.s2ndtrace[0:3] == "LID":
             chan = int(self.data.s2ndtrace[-1])
@@ -3243,8 +3245,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                                     color="cyan",
                                 )
                                 vars()[ax_name].legend()
-                                vars()[ax_name].set_xlabel('t[s]')
-                                vars()[ax_name].set_ylabel('$m^{-2}$')
+                                vars()[ax_name].set_xlabel("t[s]")
+                                vars()[ax_name].set_ylabel("$m^{-2}$")
                             except:
                                 logger.error(
                                     "is not possible to plot HRTS for channel {}".format(
@@ -3597,8 +3599,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                 linestyle="None",
             )
             vars()[ax_name].legend()
-            vars()[ax_name].set_xlabel('t[s]')
-            vars()[ax_name].set_ylabel('$m^{-2}$')
+            vars()[ax_name].set_xlabel("t[s]")
+            vars()[ax_name].set_ylabel("$m^{-2}$")
             self.widget_LID1.draw()
 
             if chan > 4:
@@ -3624,8 +3626,8 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
                     linestyle="None",
                 )
                 vars()[ax_name1].legend()
-                vars()[ax_name].set_xlabel('t[s]')
-                vars()[ax_name].set_ylabel('$m^{-2}$')
+                vars()[ax_name].set_xlabel("t[s]")
+                vars()[ax_name].set_ylabel("$m^{-2}$")
 
                 # ax_mir.plot(self.data.KG1_data.vibration[chan].time,
                 #             self.data.KG1_data.vibration[chan].data * 1e6,
@@ -4317,9 +4319,14 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
             if ier != 0:
                 return 0
 
-            ihdata_kg1v, iwdata_kg1v, data_kg1v, x_kg1v, time_kg1v, ier_kg1v = ppf.ppfget(
-                "92025", "KG1V", "LID3"
-            )
+            (
+                ihdata_kg1v,
+                iwdata_kg1v,
+                data_kg1v,
+                x_kg1v,
+                time_kg1v,
+                ier_kg1v,
+            ) = ppf.ppfget("92025", "KG1V", "LID3")
 
         for chan in self.data.KG1_data.density.keys():
             # status = np.empty(
@@ -5594,7 +5601,6 @@ class CORMAT_GUI(QMainWindow, CORMAT_GUI.Ui_CORMAT_py, QPlainTextEditLogger):
 
                     self.blockSignals(False)
                     return
-
 
         logger.warning("remember to mark corrections as permanent before proceeding!")
 
